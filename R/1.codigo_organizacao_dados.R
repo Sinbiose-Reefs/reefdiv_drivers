@@ -1,4 +1,4 @@
-﻿## analises para o manuscrito "Fish reliance on live coral cover in the Brazilian Province" 
+﻿## analises para o manuscrito "Diversity patterns and drivers" 
 
 ## chamar os pacotes
 source("R/packages.R")
