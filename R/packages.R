@@ -1,4 +1,4 @@
-﻿## pacotes necessários
+## pacotes necessários
 
 require(here) ## para transitar entre pastas
 require(reshape) ## para funcao tabela dinamica e melt (formato longo)
@@ -10,7 +10,7 @@ require(rnaturalearthdata)
 require(ggplot2)
 require(gridExtra)
 require(ggrepel)
-require ("scatterpie")
+require (scatterpie)
 require(sf)
 require(rgeos)
 
