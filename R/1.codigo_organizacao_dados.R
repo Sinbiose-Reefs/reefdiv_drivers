@@ -132,11 +132,14 @@ layers <- list_layers()
 # Download specific layers to the current directory
 # set prefered folder (to download data)
 options(sdmpredictors_datadir=here ("data","environment"))
-        
+
+## chlorophil has different extent - loading and extracting in two steps         
 layers_oracle <- load_layers(c("BO2_tempmean_ss","BO2_temprange_ss",
-                               #"BO2_chlomean_ss","BO2_chlorange_ss",
                                "BO2_ppmean_ss", "BO2_pprange_ss",
                                "BO2_salinitymean_ss", "BO2_salinityrange_ss"))
+
+## these data have different extent
+layers_oracle_Chl <- load_layers (c("BO2_chlomean_ss","BO2_chlorange_ss"))
 
 ## coordinates to spatial points
 sp_points <- covariates_site$coord
@@ -147,6 +150,12 @@ spdf <- SpatialPointsDataFrame(coords = sp_points[,2:3], data = sp_points,
 
 extracted_sea_data <- extract (layers_oracle, spdf,method='simple', fun=mean)
 rownames(extracted_sea_data) <- sp_points$Group.1
+extracted_sea_data_Chl <- extract (layers_oracle_Chl, spdf,method='simple', fun=mean)
+rownames(extracted_sea_data_Chl ) <- sp_points$Group.1
+
+## binding these dfs
+extracted_sea_data <- cbind(extracted_sea_data,
+                            extracted_sea_data_Chl)
 
 ## lista de covariaveis
 
