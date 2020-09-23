@@ -34,6 +34,7 @@ require(parallel)
 
 # funcoes diversas (padronizacao)
 require(vegan)
+require(FD)
 
 
 
