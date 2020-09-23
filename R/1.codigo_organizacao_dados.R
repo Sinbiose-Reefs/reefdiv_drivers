@@ -3,6 +3,7 @@
 ## chamar os pacotes
 source("R/packages.R")
 source("R/functions.R")
+library(vegan)
 
 ## CODIGO PARA CARREGAR OS DADOS PARA ANALISES DE DIVERSIDADE
 
