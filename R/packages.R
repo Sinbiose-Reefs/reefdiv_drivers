@@ -36,5 +36,9 @@ require(parallel)
 require(vegan)
 require(FD)
 
+# 
+require("sdmpredictors")
+require("leaflet")
+
 
 

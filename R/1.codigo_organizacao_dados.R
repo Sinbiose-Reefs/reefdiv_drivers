@@ -3,7 +3,6 @@
 ## chamar os pacotes
 source("R/packages.R")
 source("R/functions.R")
-library(vegan)
 
 ## CODIGO PARA CARREGAR OS DADOS PARA ANALISES DE DIVERSIDADE
 
@@ -82,7 +81,7 @@ comp_peixes <-  cast(peixes_subset,
 comp_bentos <-  cast(bentos_subset,
                      formula = locality_site  ~ Taxon,
                      value= "Cover",
-                     fun.aggregate = sum)
+                     fun.aggregate = mean)
 
 #######################################################################################
 #######################################################################################
@@ -98,8 +97,6 @@ nord <- cast(peixes_subset,
              value= "IndCounting",
              fun.aggregate = sum)
 
-## colocar na ordem da tabela 
-#nord <- nord [match (rownames (tab_completa_site_ocasiao [[1]]),nord$locality_site),]
 ## regiao 
 ilhas <-  ifelse(nord [,3] >0,"oc.isl",0)
 nor <-  ifelse(nord [,2] >0,"nord",0)
@@ -127,12 +124,46 @@ coordenadas <- aggregate(bentos_subset,
                          by= list (bentos_subset$locality_site), 
                          FUN=mean)[c("Group.1","Lon","Lat")]
 
+### BiO Oracle covariates
+# Explore datasets in the package
+layers <- list_layers()
+#View (layers [grep ("Bio-ORACLE",layers$dataset_code),])
+
+# Download specific layers to the current directory
+# set prefered folder (to download data)
+options(sdmpredictors_datadir=here ("data","environment"))
+
+## chlorophil has different extent - loading and extracting in two steps         
+layers_oracle <- load_layers(c("BO2_tempmean_ss","BO2_temprange_ss",
+                               "BO2_ppmean_ss", "BO2_pprange_ss",
+                               "BO2_salinitymean_ss", "BO2_salinityrange_ss"))
+
+## these data have different extent
+layers_oracle_Chl <- load_layers (c("BO2_chlomean_ss","BO2_chlorange_ss"))
+
+## coordinates to spatial points
+sp_points <- covariates_site$coord
+spdf <- SpatialPointsDataFrame(coords = sp_points[,2:3], data = sp_points,
+                               proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"))
+
+## extracting data
+
+extracted_sea_data <- extract (layers_oracle, spdf,method='simple', fun=mean)
+rownames(extracted_sea_data) <- sp_points$Group.1
+extracted_sea_data_Chl <- extract (layers_oracle_Chl, spdf,method='simple', fun=mean)
+rownames(extracted_sea_data_Chl ) <- sp_points$Group.1
+
+## binding these dfs
+extracted_sea_data <- cbind(extracted_sea_data,
+                            extracted_sea_data_Chl)
+
 ## lista de covariaveis
 
 covariates_site <- list (biog_reef = recife_biog,
                          region = regiao,
                          site_names = tipo_recife$eventID_MOD,
-                         coord = coordenadas)
+                         coord = coordenadas,
+                         sea_data = extracted_sea_data)
 
 ###############################################
 # # # # # # # # #  SAVE # # # # # # # # # # # #
