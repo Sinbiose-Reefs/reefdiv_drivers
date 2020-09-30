@@ -35,7 +35,7 @@ require(parallel)
 # funcoes diversas (padronizacao)
 require(vegan)
 require(FD)
-
+require(cluster)
 # 
 require("sdmpredictors")
 require("leaflet")
