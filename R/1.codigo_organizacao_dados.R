@@ -19,7 +19,7 @@ peixes <- read.xlsx(here("data","detection","UpdatedData_RMorais_et_al_2017.xlsx
 peixes$eventDate <-convertToDate(peixes$eventDate)
 
 ## filtrar os dados de peixes de acordo com o minimo de ano de bentos
-peixes <- peixes [which(peixes$eventYear >= min (bentos$eventYear) & peixes$eventYear <= max (bentos$eventYear)),]
+# peixes <- peixes [which(peixes$eventYear >= min (bentos$eventYear) & peixes$eventYear <= max (bentos$eventYear)),]
 
 ## modificar o eventID removendo o ano, desde que escolhemos um lapso temporal que cobre 2010 a 2014, 
 ## de modo que possamos analisar os dados se peixes foi coletado em 2012 e bentos em 2014, por exemplo 
@@ -34,11 +34,12 @@ barplot_function(df1=bentos,#bentos
                  df2= peixes #peixes
                  )
 
+## se quiser o subset de sitios que correspondem em ambos os data sets
 ## subset entre os datasets, desde que peixes ou bentos foram amostrados nos mesmos locais
-peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
+# peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
 
 ## da mesma forma, pegar o subset de ID de bentos que estao nos dados de peixes
-bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
+# bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
 
 ##  criar uma ID numerica para o observador
 peixes_subset$ID.observer <- as.numeric(as.factor(peixes_subset$Observer))
