@@ -67,4 +67,13 @@ initial_map_function <- function (df1, df2) {
 closest<-function(xv,sv){
   xv[which(abs(xv-sv)==min(abs(xv-sv)))]}
 
+# OUTPUTS:
+# convex hull around data points in a particular color (specified by lcolor)
 
+# FUNCTION:
+Plot_ConvexHull<-function(xcoord, ycoord, lcolor){
+  hpts <- chull(x = xcoord, y = ycoord)
+  hpts <- c(hpts, hpts[1])
+  lines(xcoord[hpts], ycoord[hpts], col = lcolor)
+}  
+# END OF FUNCTION
