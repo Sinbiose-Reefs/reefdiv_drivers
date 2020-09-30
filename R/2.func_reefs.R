@@ -102,7 +102,7 @@ FD_results_f1 <- lapply (list_fish_diet, function (i) {
                                  Activity=as.factor (fish_traits2$Diel_activity), 
                                  Schooling=ordered (schooling), 
                                  Level=ordered (level), 
-                                 Diet=as.factor(fish_traits2$Diet), 
+                                 #Diet=as.factor(fish_traits2$Diet), 
                                  Body_shape=as.factor(fish_traits2$Body_shape),
                                  Caudal_fin=as.factor(fish_traits2$Caudal_fin), 
                                  Mouth_position=as.factor(fish_traits2$Mouth_position))
@@ -149,7 +149,7 @@ FD_results_f1 <- lapply (list_fish_diet, function (i) {
                     InertiaQuality=Inertia7,
                     convexHullVolum=convhulln(pco$tab[,1:axes_to_choose],output.options = T)$vol,
                     convexHullArea=convhulln(pco$tab[,1:axes_to_choose],output.options = T)$area,
-                    axesPCO=pco$li)
+                    axesPCO=pco$l1)
    ; ## return
    
    results
@@ -207,7 +207,7 @@ FD_results_f2 <- lapply (list_fish_diet, function (i) {
                                  Activity=as.factor (fish_traits2$Diel_activity), 
                                  Schooling=ordered (schooling), 
                                  Level=ordered (level), 
-                                 Diet=as.factor(fish_traits2$Diet), 
+                                 #Diet=as.factor(fish_traits2$Diet), 
                                  Body_shape=as.factor(fish_traits2$Body_shape),
                                  Caudal_fin=as.factor(fish_traits2$Caudal_fin), 
                                  Mouth_position=as.factor(fish_traits2$Mouth_position))
@@ -266,7 +266,7 @@ FD_results_f2 <- lapply (list_fish_diet, function (i) {
                     InertiaQuality=Inertia7,
                     convexHullVolum=convhulln(pco$tab[,1:axes_to_choose],output.options = T)$vol,
                     convexHullArea=convhulln(pco$tab[,1:axes_to_choose],output.options = T)$area,
-                    axesPCO=pco$li)
+                    axesPCO=pco$l1)
    ; ## return
    
    results
@@ -316,9 +316,10 @@ bent_traits <- read.csv(here("data","traits","Database_benthos.csv"),
 bent_traits$groups <- tolower(gsub("_", ".", bent_traits$groups)) #adjust spp names in trait dataset
 
 ## creating a list of traits we are interested in
-list_benthos_level <- list (all = unique(bent_traits$trophic_type),
-                            autot = c("A","S"),
-                            mixo = "AC")
+list_benthos_level <- list (all =c("AC","S","C","G", "A"),
+                            nonAut = c("AC","S","C","G"),
+                            nonMixAut = c("S","C","G"),
+                            corals = c("AC"))
 
 ## doing that for all three sets of species at once 
 ## two functions
@@ -351,9 +352,9 @@ FD_results_f1_bentos <- lapply (list_benthos_level, function (i) {
    # Set data for benthos traits with ordered categories
    bent_traits_ord <-data.frame (body_size=ordered (benthos_body_size), 
                                  growth_form=as.factor(bent_traits2$growth_form),
-                                 #modularity=as.factor(bent_traits2$modularity), 
+                                 modularity=as.factor(bent_traits2$modularity), 
                                  #mobility=as.factor(bent_traits2$mobility),
-                                 reproductive_mode=as.factor(bent_traits2$reproductive_mode), 
+                                 #reproductive_mode=as.factor(bent_traits2$reproductive_mode), 
                                  carbonate=as.factor(bent_traits2$carbonate.accretion))
    
    rownames(bent_traits_ord) <- rownames(bent_traits2)
@@ -385,7 +386,8 @@ FD_results_f1_bentos <- lapply (list_benthos_level, function (i) {
    rownames(bent_abund) <- bent2$locality_site
    
    bent_rel <- bent_abund/rowSums(bent_abund) # relative abundance for fish
-   bent_rel <- bent_rel [ which(is.na (rowSums (bent_rel))!= T),]
+   quais_sitios_manter <-which(is.na (rowSums (bent_rel))!= T) 
+   bent_rel <- bent_rel [quais_sitios_manter,]
    # Method with dbFD() 
    
    fd_benthos <- dbFD (gower_benthos, 
@@ -395,15 +397,28 @@ FD_results_f1_bentos <- lapply (list_benthos_level, function (i) {
                        stand.FRic = TRUE,
                        print.pco = TRUE)
    
-   bent_fd <- data.frame (nbsp.bent=fd_benthos$nbsp, 
-                          sing.sp.bent=fd_benthos$sing.sp, 
-                          FRic.bent=fd_benthos$FRic, 
-                          qual.FRic.bent=fd_benthos$qual.FRic,
-                          FEve.bent=fd_benthos$FEve, 
-                          FDiv.bent=fd_benthos$FDiv, 
-                          FDis.bent=fd_benthos$FDis, 
-                          RaoQ.bent=fd_benthos$RaoQ)
-
+   ## some sites had no species
+   
+   bent_fd <- data.frame (matrix (NA, ncol=8,nrow=38,
+           dimnames = list (NULL,
+                            c("nbsp.bent",
+                              "sing.sp.bent",
+                              "FRic.bent",
+                              "qual.FRic.bent",
+                              "FEve.bent",
+                              "FDiv.bent",
+                              "FDis.bent",
+                              "RaoQ.bent"))))
+   
+   bent_fd[quais_sitios_manter,1] <- fd_benthos$nbsp
+   bent_fd[quais_sitios_manter,2] <- fd_benthos$sing.sp
+   bent_fd[quais_sitios_manter,3] <- fd_benthos$FRic
+   bent_fd[quais_sitios_manter,4] <- fd_benthos$qual.FRic
+   bent_fd[quais_sitios_manter,5] <- fd_benthos$FEve
+   bent_fd[quais_sitios_manter,6] <- fd_benthos$FDiv
+   bent_fd[quais_sitios_manter,7] <- fd_benthos$FDis
+   bent_fd[quais_sitios_manter,8] <- fd_benthos$RaoQ
+   
    # and then a list
    results <- list (Fdindexes = bent_fd,
                     chosenAxes = axes_to_choose,
@@ -411,7 +426,7 @@ FD_results_f1_bentos <- lapply (list_benthos_level, function (i) {
                     InertiaQuality=Inertia4,
                     convexHullVolum=convhulln(pco$tab[,1:axes_to_choose],output.options = T)$vol,
                     convexHullArea=convhulln(pco$tab[,1:axes_to_choose],output.options = T)$area,
-                    axesPCO=pco$li)
+                    axesPCO=pco$l1)
    ; ## return
    
    results
@@ -441,7 +456,7 @@ FD_results_f2_bentos <- lapply (list_benthos_level, function (i) {
    # Set data for benthos traits with ordered categories
    bent_traits_ord <-data.frame (body_size=ordered (benthos_body_size), 
                                  growth_form=as.factor(bent_traits2$growth_form),
-                                 #modularity=as.factor(bent_traits2$modularity), 
+                                 modularity=as.factor(bent_traits2$modularity), 
                                  #mobility=as.factor(bent_traits2$mobility),
                                  reproductive_mode=as.factor(bent_traits2$reproductive_mode), 
                                  carbonate=as.factor(bent_traits2$carbonate.accretion))
@@ -483,6 +498,7 @@ FD_results_f2_bentos <- lapply (list_benthos_level, function (i) {
    bent_rel <- bent_abund/rowSums(bent_abund) # relative abundance for fish
    quais_sitios_manter <-which(is.na (rowSums (bent_rel))!= T) 
    bent_rel <- bent_rel [quais_sitios_manter,]
+   
    # Method with dbFD() 
    
    fd_benthos <- dbFD (gower_matrix_subset , 
@@ -492,24 +508,34 @@ FD_results_f2_bentos <- lapply (list_benthos_level, function (i) {
                        stand.FRic = TRUE,
                        print.pco = TRUE)
    
-   bent_fd <- data.frame (nbsp.bent=fd_benthos$nbsp, 
-                          sing.sp.bent=fd_benthos$sing.sp, 
-                          FRic.bent=fd_benthos$FRic, 
-                          qual.FRic.bent=fd_benthos$qual.FRic,
-                          FEve.bent=fd_benthos$FEve, 
-                          FDiv.bent=fd_benthos$FDiv, 
-                          FDis.bent=fd_benthos$FDis, 
-                          RaoQ.bent=fd_benthos$RaoQ)
+   ## some sites had no species
+   bent_fd <- data.frame (matrix (NA, ncol=8,nrow=38,
+                                  dimnames = list (NULL,
+                                                   c("nbsp.bent",
+                                                     "sing.sp.bent",
+                                                     "FRic.bent",
+                                                     "qual.FRic.bent",
+                                                     "FEve.bent",
+                                                     "FDiv.bent",
+                                                     "FDis.bent",
+                                                     "RaoQ.bent"))))
+   bent_fd[quais_sitios_manter,1] <- fd_benthos$nbsp
+   bent_fd[quais_sitios_manter,2] <- fd_benthos$sing.sp
+   bent_fd[quais_sitios_manter,3] <- fd_benthos$FRic
+   bent_fd[quais_sitios_manter,4] <- fd_benthos$qual.FRic
+   bent_fd[quais_sitios_manter,5] <- fd_benthos$FEve
+   bent_fd[quais_sitios_manter,6] <- fd_benthos$FDiv
+   bent_fd[quais_sitios_manter,7] <- fd_benthos$FDis
+   bent_fd[quais_sitios_manter,8] <- fd_benthos$RaoQ
    
    # and then a list
-   results <- list (Fdindexes = bent_fd,
+   results <- list (Fdindexes =  bent_fd,
                     chosenAxes = axes_to_choose,
                     InertiaPCO=Inertia2,
                     InertiaQuality=Inertia4,
                     convexHullVolum=convhulln(pco$tab[,1:axes_to_choose],output.options = T)$vol,
                     convexHullArea=convhulln(pco$tab[,1:axes_to_choose],output.options = T)$area,
-                    axesPCO=pco$li,
-                    quais_sitios_manter=quais_sitios_manter)
+                    axesPCO=pco$l1)
    ; ## return
    
    results
@@ -539,11 +565,12 @@ round(sapply (FD_results_f2_bentos, "[[","InertiaPCO"),6)
 
 ## relationship between richness and effort
 # benthos
-par(mfrow=c(1,2),mar = c (6,4,8,1))
+par(mfrow=c(2,2),mar = c (4,4,2,1))
 plot(covariates_effort$effort$n_videos_bentos,FD_results_f1_bentos[[1]]$Fdindexes$nbsp.bent,
      ylab= "Number of species",
      xlab= "Number of videos per site",
-     main = "Benthos",pch=19,col="coral")
+     main = "Benthos",pch=19,col="coral",
+     cex.axis=0.6,cex.lab=0.8)
 abline(lm (FD_results_f1_bentos[[1]]$Fdindexes$nbsp.bent~covariates_effort$effort$n_videos_bentos),
        lwd=2,col="gray70")
 # summary(lm (FD_results_f1_bentos$all$Fdindexes$nbsp.bent~covariates_effort$effort$n_videos_bentos))
@@ -553,95 +580,131 @@ text (x=17.5,y=17, labels=expression (paste("R"^2, "=-0.021")),cex=0.7)
 plot(covariates_effort$effort$n_transectos_peixes,FD_results_f1[[1]]$Fdindexes$nbsp,
      xlab= "Number of transects per site",
      ylab= "",
-     main = "Fishes",pch=19,col="cyan3")
+     main = "Fishes",pch=19,col="cyan3",
+     cex.axis=0.6,cex.lab=0.8)
 abline(lm (FD_results_f1[[1]]$Fdindexes$nbsp~covariates_effort$effort$n_transectos_peixes),
        lwd=2,col="gray70")
 # summary(lm (FD_results_f1$all$Fdindexes$nbsp~covariates_effort$effort$n_transectos_peixes))
 text (x=80,y=65, labels=expression (paste("R"^2, "=0.15**")),cex=0.7)
 
 ### rarefaction for richness of fishes and benthos
-## 286 was sample size suggested by the function
-# plot(FD_results_f2[[1]]$Fdindexes$nbsp,rarefy (fish,286))
+## 286 was sample size suggested by the function; lower than the minimum row max across sites (max abundance)
+rarefied_richness <- rarefy (fish,100)
+plot(covariates_effort$effort$n_transectos_peixes,rarefied_richness,
+     ylab= "Rarefied fish richness",
+     xlab = "Number of transects per site",
+     cex.axis=0.6,cex.lab=0.8,
+     pch=19, col = "blue")
+abline (lm(rarefied_richness ~ covariates_effort$effort$n_transectos_peixes),
+        lwd=2,col="gray70")
+## summary (lm(rarefy (fish,286) ~ covariates_effort$effort$n_transectos_peixes))
+text (x=80,y=28, labels=expression (paste("R"^2, "=-0.006")),cex=0.7)
 
 ### RELATIONSHIP BETWEEN FRIC OF BENTHOS AND FISHES
 ## FRIC
 
-whole <- lapply (seq (1,4), function (k)
+whole_data <- lapply (seq (1,length(FD_results_f2)), function (k)
+   do.call (rbind, lapply (seq (1,length(FD_results_f2_bentos)), function (i)
 
-       (data.frame (FRicBenthos = FD_results_f2_bentos[[1]]$Fdindexes$FRic,
+       data.frame (
+            RicBenthos = FD_results_f2_bentos[[i]]$Fdindexes$nbsp.bent,
+            RicFishes = FD_results_f2[[k]]$Fdindexes$nbsp,
+            RareRicFishes = rarefied_richness,
+            FRicBenthos = FD_results_f2_bentos[[i]]$Fdindexes$FRic,
             FRicFishes = FD_results_f2[[k]]$Fdindexes$FRic,
+            FEveBenthos = FD_results_f2_bentos[[i]]$Fdindexes$FEve.bent,
+            FEveFishes = FD_results_f2[[k]]$Fdindexes$FEve,
+            FDivBenthos = FD_results_f2_bentos[[i]]$Fdindexes$FDiv.bent,
+            FDivFishes = FD_results_f2[[k]]$Fdindexes$FDiv,
             Group= names(FD_results_f2)[k],
-            Benthos = "Whole"))
-)
-
-algae.filt <- lapply (seq (1,4), function (k)
-      
-       (data.frame (FRicBenthos = FD_results_f2_bentos[[2]]$Fdindexes$FRic,
-                        FRicFishes = FD_results_f2[[k]]$Fdindexes$FRic,
-                        Group= names(FD_results_f2)[k],
-                        Benthos = "AlgaeFilterers"))
-   )
-   
-corals <- lapply (seq (1,4), function (k)
-      
-       (data.frame (FRicBenthos = FD_results_f2_bentos[[3]]$Fdindexes$FRic,
-                        FRicFishes = FD_results_f2[[k]]$Fdindexes$FRic [FD_results_f2_bentos[[3]]$quais_sitios_manter],
-                        Group= names(FD_results_f2)[k],
-                        Benthos="Corals"))
-   )
+            Benthos = names(list_benthos_level)[i])
+)))
 
 ## data for relationship between indexes
-data_corr_index <- do.call (rbind, c( whole, algae.filt,corals))
-## add comparison between benthic components, and fish diet
-data_corr_index$Comp <- paste (data_corr_index$Group, data_corr_index$Benthos,sep=".")
-   
-## 
+data_corr_index <- do.call (rbind, whole_data)
+
+## Relationship between FRic of Benthos and Fishes
 ggplot (data_corr_index, aes (x=FRicBenthos,y=FRicFishes)) + 
    geom_point() + 
    geom_smooth()+
-   facet_wrap(~ Benthos+Group, scales = "free_y") + 
+   facet_wrap(~ Benthos+Group, scales = "free") + 
    theme_light()
 
-## fRIC 
+## Relationship between FRic and richness of Benthos and Fishes
+# Rich benthos, FRic Fishes
+ggplot (data_corr_index, aes (x=RicBenthos,y=FRicFishes)) + 
+   geom_point() + 
+   geom_smooth()+
+   facet_wrap(~ Benthos+Group, scales = "free") + 
+   theme_light()
+# Rich benthos, rich fishes
+ggplot (data_corr_index, aes (x=RicBenthos,y=RicFishes)) + 
+   geom_point() + 
+   geom_smooth()+
+   facet_wrap(~ Benthos+Group, scales = "free") + 
+   theme_light()
+# FRic Fishes,  FRic benthos
+ggplot (data_corr_index, aes (x=FRicBenthos,y=FRicFishes)) + 
+   geom_point() + 
+   geom_smooth()+
+   facet_wrap(~ Benthos+Group, scales = "free") + 
+   theme_light()
+# FEve benthos,  Feve fishes
+ggplot (data_corr_index, aes (x=FEveBenthos,y=FEveFishes)) + 
+   geom_point() + 
+   geom_smooth()+
+   facet_wrap(~ Benthos+Group, scales = "free") + 
+   theme_light()
+# FDiv benthos,  FRic fishes
+ggplot (data_corr_index, aes (x=FDivBenthos,y=FRicFishes)) + 
+   geom_point() + 
+   geom_smooth()+
+   facet_wrap(~ Benthos+Group, scales = "free") + 
+   theme_light()
+# FRic benthos,  Feve benthos
+ggplot (data_corr_index, aes (x=FRicBenthos,y=FEveBenthos)) + 
+   geom_point() + 
+   geom_smooth()+
+   facet_wrap(~ Benthos, scales = "free") + 
+   theme_light()
+# FRic benthos,  FDiv benthos
+ggplot (data_corr_index, aes (x=FRicBenthos,y=FDivBenthos)) + 
+   geom_point() + 
+   geom_smooth()+
+   facet_wrap(~ Benthos, scales = "free") + 
+   theme_light()
+# FRic fishes,  Feve fishes
+ggplot (data_corr_index, aes (x=FRicFishes,y=FEveFishes)) + 
+   geom_point() + 
+   geom_smooth()+
+   facet_wrap(~ Group, scales = "free") + 
+   theme_light()
+# FRic fishes,  FDiv fishes
+ggplot (data_corr_index, aes (x=FRicFishes,y=FDivFishes)) + 
+   geom_point() + 
+   geom_smooth()+
+   facet_wrap(~ Group, scales = "free") + 
+   theme_light()
 
-par (mfrow=c(2,2),mar=c(4,4,2,1))
-
-plot(FD_results_f2_bentos$all$Fdindexes$nbsp.bent, 
-     FD_results_f2_bentos$all$Fdindexes$FRic.bent, 
-     ylim=c(0,0.83), xlim=c(0,20), pch=21, col="coral", bg="coral",
-     ylab="Benthos FRic", xlab="Species Richness", cex=1.2)
-plot(FD_results_f2[[1]]$Fdindexes$nbsp, 
-     FD_results_f2[[1]]$Fdindexes$FRic, ylim=c(0,0.4), xlim=c(10,70), pch=21, col="cyan3", bg="cyan3",
-     ylab="Fish FRic", xlab="Species Richness", cex=1.2)
-plot(FD_results_f2_bentos$all$Fdindexes$FRic.bent, 
-     FD_results_f2[[1]]$Fdindexes$FRic, ylim=c(0,0.3), xlim=c(0,0.83), pch=21, col="goldenrod", bg="goldenrod",
-     ylab="Fish FRic", xlab="Benthos FRic", cex=1.2)
-
-par (mfrow=c(2,2),mar=c(4,4,2,1))
-plot(FD_results_f2_bentos$all$Fdindexes$FEve.bent~FD_results_f2_bentos$all$Fdindexes$nbsp.bent, ylim=c(0,0.8), xlim=c(0,30), pch=21, col="darkgray", bg="darkgray",
-     ylab="Benthos FEveness", xlab="Benthos Richness", cex=1.2)
-plot(FD_results_f2_bentos$all$Fdindexes$FDiv.bent~FD_results_f2_bentos$all$Fdindexes$nbsp.bent, ylim=c(0,1), xlim=c(0,30), pch=21, col="darkgray", bg="darkgray",
-     ylab="Benthos FDivergence", xlab="Benthos Richness", cex=1.2)
-plot(FD_results_f2[[1]]$Fdindexes$FEve~rarefy(fish,286), ylim=c(0,0.8), xlim=c(0,70), pch=21, col="darkgray", bg="darkgray",
-     ylab="Fish FEveness", xlab="Fish Richness", cex=1.2)
-plot(FD_results_f2[[1]]$Fdindexes$FDiv~rarefy(fish,286), ylim=c(0,1), xlim=c(0,70), pch=21, col="darkgray", bg="darkgray",
-     ylab="Fish FDivergence", xlab="Fish Richness", cex=1.2)
-
-
+####################################################################
 ### functional volume
 par (mfrow=c(2,2),mar=c(4,4,2,1))
-plot(FD_results_f2_bentos$all$axesPCO [,1:2],xlim =c(-0.6,1))
+plot(FD_results_f2_bentos$all$axesPCO [,1:2],xlim =c(-5,5),ylim =c(-5,5))
 Plot_ConvexHull (FD_results_f2_bentos$all$axesPCO [,1],
                  FD_results_f2_bentos$all$axesPCO [,2],
                  lcolor="black")
-Plot_ConvexHull (FD_results_f2_bentos$autot$axesPCO [,1],
-                 FD_results_f2_bentos$autot$axesPCO [,2],
+Plot_ConvexHull (FD_results_f2_bentos[[2]]$axesPCO [,1],
+                 FD_results_f2_bentos[[2]]$axesPCO [,2],
                  lcolor="green")
-Plot_ConvexHull (FD_results_f2_bentos$mixo$axesPCO [,1],
-                 FD_results_f2_bentos$mixo$axesPCO [,2],
+Plot_ConvexHull (FD_results_f2_bentos[[3]]$axesPCO [,1],
+                 FD_results_f2_bentos[[3]]$axesPCO [,2],
                  lcolor="goldenrod")
+Plot_ConvexHull (FD_results_f2_bentos[[4]]$axesPCO [,1],
+                 FD_results_f2_bentos[[4]]$axesPCO [,2],
+                 lcolor="blue")
+
 ## fishes
-plot(FD_results_f1$all$axesPCO [,1:2],xlim =c(-0.6,1))
+plot(FD_results_f2$all$axesPCO [,1:2],xlim =c(-5,5),ylim =c(-5,5))
 Plot_ConvexHull (FD_results_f2$all$axesPCO [,1],
                  FD_results_f2$all$axesPCO [,2],
                  lcolor=rgb(red = 0.5, green = 0.8, blue = 1, alpha = 1))
@@ -656,11 +719,10 @@ Plot_ConvexHull (FD_results_f2$nonHS$axesPCO [,1],
                  lcolor=rgb(red = 0, green =0, blue = 1, alpha = 0.5))
 
 ## Load environmental variables
-
 ## Plots with environmental data
 ## building a DF with data
 
-df_results <- data.frame (Nspec = FD_results_f2$all$Fdindexes$nbsp,
+df_results <- data.frame (Nspec = rarefied_richness,
                            FRic = FD_results_f2$all$Fdindexes$FRic,
                           FEve = FD_results_f2$all$Fdindexes$FEve,
                           FDiv = FD_results_f2$all$Fdindexes$FDiv,
@@ -685,8 +747,8 @@ df_results <- cbind(df_results,
 ### Latitude
 ggplot (df_results, aes (x=Lat, y=value)) + 
    geom_point() + 
-   geom_smooth() +
-   facet_wrap(~Group+variable,scales="free_y",
+   geom_smooth(method='gam',formula = y ~ s(x, bs = "cs")) +
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Latitude") + 
@@ -695,8 +757,8 @@ ggplot (df_results, aes (x=Lat, y=value)) +
 ### Temperature
 ggplot (df_results, aes (x=BO2_tempmean_ss, y=value)) + 
    geom_point() + 
-   geom_smooth() +
-   facet_wrap(~Group+variable,scales="free_y",
+   geom_smooth(method='gam',formula = y ~ s(x, bs = "cs")) +
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Average sea surface temperature (ºC)") + 
@@ -705,8 +767,8 @@ ggplot (df_results, aes (x=BO2_tempmean_ss, y=value)) +
 ### temperature range
 ggplot (df_results, aes (x=BO2_temprange_ss, y=value)) + 
    geom_point() + 
-   geom_smooth() +
-   facet_wrap(~Group+variable,scales="free_y",
+   geom_smooth(method='gam',formula = y ~ s(x, bs = "cs")) +
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Range of sea surface temperature (ºC)") + 
@@ -715,8 +777,8 @@ ggplot (df_results, aes (x=BO2_temprange_ss, y=value)) +
 ### primary productivity
 ggplot (df_results, aes (x=BO2_ppmean_ss, y=value)) + 
    geom_point() + 
-   geom_smooth() +
-   facet_wrap(~Group+variable,scales="free_y",
+   geom_smooth(method='gam',formula = y ~ s(x, bs = "cs")) +
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Average primary productivity") + 
@@ -725,8 +787,8 @@ ggplot (df_results, aes (x=BO2_ppmean_ss, y=value)) +
 ### primary productivity range
 ggplot (df_results, aes (x=BO2_pprange_ss, y=value)) + 
    geom_point() + 
-   geom_smooth() +
-   facet_wrap(~Group+variable,scales="free_y",
+   geom_smooth(method='gam',formula = y ~ s(x, bs = "cs")) +
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Primary productivity range") + 
@@ -735,8 +797,8 @@ ggplot (df_results, aes (x=BO2_pprange_ss, y=value)) +
 ### Salinity
 ggplot (df_results, aes (x=BO2_salinitymean_ss, y=value)) + 
    geom_point() + 
-   geom_smooth() +
-   facet_wrap(~Group+variable,scales="free_y",
+   geom_smooth(method='gam',formula = y ~ s(x, bs = "cs")) +
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Average salinity") + 
@@ -745,8 +807,8 @@ ggplot (df_results, aes (x=BO2_salinitymean_ss, y=value)) +
 # Salinity range
 ggplot (df_results, aes (x=BO2_salinityrange_ss, y=value)) + 
 geom_point() + 
-   geom_smooth() +
-   facet_wrap(~Group+variable,scales="free_y",
+   geom_smooth(method='gam',formula = y ~ s(x, bs = "cs")) +
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Salinity range") + 
@@ -755,8 +817,8 @@ geom_point() +
 # ### Chlorophyl
 ggplot (df_results, aes (x=BO2_chlomean_ss, y=value)) + 
    geom_point() + 
-   geom_smooth() +
-   facet_wrap(~Group+variable,scales="free_y",
+   geom_smooth(method='gam',formula = y ~ s(x, bs = "cs")) +
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Average chlorophyl") + 
@@ -765,8 +827,8 @@ ggplot (df_results, aes (x=BO2_chlomean_ss, y=value)) +
 # Salinity range
 ggplot (df_results, aes (x=BO2_chlorange_ss, y=value)) + 
    geom_point() + 
-   geom_smooth() +
-   facet_wrap(~Group+variable,scales="free_y",
+   geom_smooth(method='gam',formula = y ~ s(x, bs = "cs")) +
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Chlorophyl range") + 
@@ -775,7 +837,7 @@ ggplot (df_results, aes (x=BO2_chlorange_ss, y=value)) +
 ## region
 ggplot (df_results, aes (x=Region, y=value)) + 
    geom_boxplot()+
-   facet_wrap(~Group+variable,scales="free_y",
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Region") + 
@@ -784,9 +846,229 @@ ggplot (df_results, aes (x=Region, y=value)) +
 ## Reef type
 ggplot (df_results, aes (x=ReefType, y=value)) + 
    geom_boxplot()+
-   facet_wrap(~Group+variable,scales="free_y",
+   facet_wrap(~Group+variable,scales="free",
               ncol=4,nrow=2) + 
    theme_classic() + 
    xlab("Reef type") + 
    ylab("Index")
+
+############################ 
+## MAPPING
+
+## creating a dataframe for each result
+# fish
+fish_richness <- do.call (cbind, 
+   lapply (seq(1,length(FD_results_f2)), function (i)
+
+      FD_results_f2[[i]]$Fdindexes$nbsp
+      
+))
+colnames (fish_richness) <- names(FD_results_f2)
+
+# benthos
+benthos_richness <- do.call (cbind, 
+                             
+    lapply (seq(1,length(FD_results_f2_bentos)), function (i)
+            
+            FD_results_f2_bentos[[i]]$Fdindexes$nbsp.bent
+            
+         ))
+colnames (benthos_richness) <- names(FD_results_f2_bentos)
+benthos_richness <- data.frame(benthos_richness)
+benthos_richness$aut <- benthos_richness$all - benthos_richness$nonAut 
+benthos_richness[is.na(benthos_richness)] <- 0
+
+## binding coordinates (fishes for now)
+fish_richness <- cbind (fish_richness, covariates_site$coord)
+## jittering these coordinates
+fish_richness$LonJitter <- jitter (fish_richness$Lon,factor=400)
+fish_richness$LatJitter <- jitter (fish_richness$Lat,factor=600)
+
+## just moving charts of benthic communities to the left
+benthos_richness <- cbind(benthos_richness,LatJitter = fish_richness$LatJitter,
+                          LonJitter=fish_richness$LonJitter+6.5)
+
+## maps
+# mapa mundi
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+# cortar o mapa para ver a america do Sul e parte da central
+wm <- ggplot() + 
+   geom_sf (data=world, size = 0.1, 
+            fill= "gray90",colour="gray90") +
+   coord_sf (xlim = c(-50, -20),  ylim = c(-30, 2), expand = FALSE) +
+   theme_bw() + #xlab ("Longitude")  + ylab ("Latitude") +
+   theme(panel.border = element_blank(), 
+         panel.grid.major = element_blank(), 
+         panel.grid.minor = element_blank(),
+         panel.background = element_rect(fill = "lightcyan",#darkslategray1
+                                         colour = "lightcyan"),
+         axis.text.x = element_text(size=6),
+         axis.ticks.x=element_line(size=1),
+         axis.text.y = element_text(size=6),
+         axis.ticks.y=element_line(size=1),
+         axis.title.x = element_text(size=8),
+         axis.title.y = element_text(size=8),
+         title = element_blank()) + ggtitle("Number of fish and benthic species")+
+   xlab("Longitude") + ylab("Latitude")
+
+
+## advise to jitter : https://stackoverflow.com/questions/52806580/pie-charts-in-geom-scatterpie-overlapping
+## pie: http://www.spectdata.com/index.php/2018/10/25/how-to-use-ggplot-to-plot-pie-charts-on-a-map/
+
+wm_pie <- wm + geom_scatterpie(aes(x=LonJitter, y=LatJitter, r=all/max(all)),alpha=0.5,
+                               data = fish_richness,
+                               cols = c(
+                                        "herbivorous",
+                                        "sessileInv",
+                                        "nonHS"),
+                               #pie_scale = 0.1,
+                               size=0,
+                               sorted_by_radius = F,
+                               legend_name = "Groups") 
+
+### adding benthos richness
+
+wm_pie_col_benthos <- wm_pie + geom_scatterpie(aes(x=LonJitter, y=LatJitter,r=all/max(all,na.rm=T)),alpha=0.5,
+                data = benthos_richness,
+                cols = c("aut",
+                         "nonAut",
+                         "nonMixAut",
+                         "corals"
+                   ),
+                pie_scale = 1,
+                size=0,
+                sorted_by_radius = F,
+                legend_name = "Benthos") + 
+   
+   theme (legend.title = element_text(size=7),
+          legend.text = element_text(size=7),
+          legend.position = c(0.37, 0.9),
+          legend.justification = c("right", "top"),
+          legend.box.just = "right",
+          legend.margin = margin(6,6,6,6),
+          legend.background = element_blank(),
+          title=element_text(size=7)) 
+
+
+wm_pie_col_benthos <- wm_pie_col_benthos + scale_fill_manual(
+        
+                                       breaks=c("aut", "nonAut", "nonMixAut","corals",
+                                                "nonHS","sessileInv","herbivorous"),
+                                       labels=c("Autotrophs", "Non-autotrophs", 
+                                                "Non-autotrophs and non-mixotrophs",
+                                                "Mixotrophs",
+                                                "Carnivores, planktivores, omnivores",
+                                                "Invertivores",
+                                                "Herbivores"),
+                                       values= c("aut" = "#003300",
+                                                 "nonAut" = "#009900",
+                                                 "nonMixAut" = "#00CC66",
+                                                 "corals" = "#B2FF66",
+                                                 "nonHS" = "#990000",
+                                                 "sessileInv" = "#CC0000",
+                                                 "herbivorous" = "#FF6666"))
+
+wm_pie_col_benthos <- wm_pie_col_benthos + geom_scatterpie_legend(fish_richness$all/max(fish_richness$all), 
+                                                  x=-35, y=0.5, n=3, 
+                                                  labeller=function(x) (x*max(fish_richness$all)))
+wm_pie_col_benthos <- wm_pie_col_benthos + geom_scatterpie_legend(benthos_richness$all/max(benthos_richness$all,na.rm=T), 
+                                                  x=-28, y=0.5, n=3, 
+                                                  labeller=function(x) (x*max(benthos_richness$all,na.rm=T)))
+
+
+### Latitude and FRIC
+lat_fric <- ggplot (df_results [which (df_results$variable == "FRic"),], aes (x=Lat, y=value,
+                                                                  col=Group)) + 
+   geom_point() + 
+   geom_smooth() +
+   scale_color_manual(values=c('#009900','#ca0020'))+
+   theme_classic() + 
+   ylab(NULL) + 
+   coord_flip() + 
+   theme_classic()+
+   ggtitle ("FRic")+
+   
+   theme (legend.title = element_text(size=6),
+          legend.text = element_text(size=5),
+          legend.position = c(1, 0.8),
+          legend.justification = c("right", "top"),
+          legend.box.just = "right",
+          legend.margin = margin(6,6,6,6),
+          legend.background = element_blank(),
+          axis.title.x = element_text(size=8),
+          axis.text.x = element_text(size=6),
+          axis.title.y =  element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank(),
+          title=element_text(size=7),
+          panel.background = element_rect(fill = 'lightcyan', 
+                                          colour = 'lightcyan'),
+          plot.margin = unit(c(0.2,0.2,0.3,-0.5), "cm")) 
+
+## LATITUDE AND FEVE
+lat_feve <- ggplot (df_results [which (df_results$variable == "FEve"),], aes (x=Lat, y=value,
+                                                                              col=Group)) + 
+   geom_point() + 
+   geom_smooth() +
+   scale_color_manual(values=c('#009900','#ca0020'))+
+   theme_classic() + 
+   ylab(NULL) + 
+   coord_flip() + 
+   theme_classic()+
+   ggtitle ("FEve")+
+   
+   theme (legend.position = "none",
+          axis.title.x = element_text(size=6),
+          axis.text.x = element_text(size=5),
+          axis.title.y =  element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank(),
+          title=element_text(size=7),
+          panel.background = element_rect(fill = 'lightcyan', 
+                                          colour = 'lightcyan'),
+          plot.margin = unit(c(0.2,0.2,0.3,-0.1), "cm")) 
+
+
+## LATITUDE AND FDIV
+lat_fdiv <- ggplot (df_results [which (df_results$variable == "FDiv"),], aes (x=Lat, y=value,
+                                                                              col=Group)) + 
+   geom_point() + 
+   geom_smooth() +
+   scale_color_manual(values=c('#009900','#ca0020'))+
+   theme_classic() + 
+   ylab(NULL) + 
+   coord_flip() + 
+   theme_classic()+
+   ggtitle ("FDiv")+
+   
+   theme (legend.position = "none",
+          axis.title.x = element_text(size=6),
+          axis.text.x = element_text(size=5),
+          axis.title.y =  element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank(),
+          title=element_text(size=7),
+          panel.background = element_rect(fill = 'lightcyan', 
+                                          colour = 'lightcyan'),
+          plot.margin = unit(c(0.2,0.2,0.3,-0.1), "cm")) 
+
+
+## panel with plot and map
+pdf(here ("output", "MapFD.pdf"),width = 10,heigh=7)
+grid.arrange(wm_pie_col_benthos, 
+             lat_fric,
+             lat_feve,
+             lat_fdiv,
+             ncol=9,nrow=6,
+             layout_matrix = rbind (c(1,1,1,1,1,1,2,3,4),
+                                    c(1,1,1,1,1,1,2,3,4),
+                                    c(1,1,1,1,1,1,2,3,4),
+                                    c(1,1,1,1,1,1,2,3,4),
+                                    c(1,1,1,1,1,1,2,3,4),
+                                    c(1,1,1,1,1,1,2,3,4)))
+dev.off()
 
