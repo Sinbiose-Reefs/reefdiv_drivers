@@ -4,5 +4,6 @@
 .RData
 .Ruserdata
 data/environment
-.jpeg
-.JPEG
+*.jpeg
+*.JPEG
+output/*.pdf
