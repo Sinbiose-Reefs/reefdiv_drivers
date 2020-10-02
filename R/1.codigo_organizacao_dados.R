@@ -36,10 +36,10 @@ barplot_function(df1=bentos,#bentos
 
 ## se quiser o subset de sitios que correspondem em ambos os data sets
 ## subset entre os datasets, desde que peixes ou bentos foram amostrados nos mesmos locais
-# peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
+ peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
 
 ## da mesma forma, pegar o subset de ID de bentos que estao nos dados de peixes
-# bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
+ bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
 
 ##  criar uma ID numerica para o observador
 peixes_subset$ID.observer <- as.numeric(as.factor(peixes_subset$Observer))
@@ -73,11 +73,34 @@ comp_peixes <-  cast(peixes_subset,
                      value= "IndCounting",
                      fun.aggregate = sum)
 
+## dados para rarefação
+rar_peixes <- lapply (unique (peixes_subset$Site), function (i)
+    
+    cast (peixes_subset [which (peixes_subset$Site == i),],
+          formula = Transect_id ~ ScientificName,
+          value="IndCounting",
+          fun.aggregate = sum))
+
+## rarefaction
+rarefied_richness_fish <- lapply (rar_peixes, specaccum,method="random",permutations=999)
+rarefied_richness_fish <- lapply (rarefied_richness_fish, function (i) (i$richness)[5])
+
 ## composicao de bentos
 comp_bentos <-  cast(bentos_subset,
                      formula = locality_site  ~ Taxon,
                      value= "Cover",
                      fun.aggregate = mean)
+
+## dados para rarefação
+rar_bentos <- lapply (unique (bentos_subset$Site), function (i)
+  
+  cast (bentos_subset [which (bentos_subset$Site == i),],
+        formula = Video_number ~ Taxon,
+        value="Cover",
+        fun.aggregate = max))
+
+rarefied_richness_bentos <- lapply (rar_bentos, specaccum,method="random",permutations=999)
+rarefied_richness_bentos <- lapply (rarefied_richness_bentos, function (i) (i$richness)[3])
 
 #######################################################################################
 #######################################################################################
