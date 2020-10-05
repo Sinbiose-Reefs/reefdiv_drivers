@@ -41,7 +41,7 @@ initial_map_function <- function (df1, df2) {
   wm <- ggplot() + 
     geom_sf (data=world, size = 0.1, 
              fill= "gray90",colour="gray90") +
-    coord_sf (xlim = c(-50, -30),  ylim = c(-25, -1), expand = FALSE) +
+    coord_sf (xlim = c(-50, -30),  ylim = c(-25, 0), expand = FALSE) +
     theme_bw() + xlab(NULL) + ylab(NULL) +
     theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           axis.text.x = element_blank(),axis.ticks.x=element_blank(),
@@ -67,4 +67,13 @@ initial_map_function <- function (df1, df2) {
 closest<-function(xv,sv){
   xv[which(abs(xv-sv)==min(abs(xv-sv)))]}
 
+# OUTPUTS:
+# convex hull around data points in a particular color (specified by lcolor)
 
+# FUNCTION:
+Plot_ConvexHull<-function(xcoord, ycoord, lcolor){
+  hpts <- chull(x = xcoord, y = ycoord)
+  hpts <- c(hpts, hpts[1])
+  lines(xcoord[hpts], ycoord[hpts], col = lcolor)
+}  
+# END OF FUNCTION

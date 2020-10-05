@@ -1,4 +1,4 @@
-## analises para o manuscrito "Diversity patterns and drivers" 
+## organizacaoo de dados, e analises para o manuscrito "Diversity patterns and drivers" 
 
 ## chamar os pacotes
 source("R/packages.R")
@@ -18,13 +18,8 @@ peixes <- read.xlsx(here("data","detection","UpdatedData_RMorais_et_al_2017.xlsx
 ## converter data em data - bug do pacote openxlsx
 peixes$eventDate <-convertToDate(peixes$eventDate)
 
-## subset dos sitios baseado na quantidade de coral
-peixes <- peixes [which(peixes$Locality %in% locais_corais),]
-bentos <- bentos [which(bentos$Locality %in% locais_corais),]
-
 ## filtrar os dados de peixes de acordo com o minimo de ano de bentos
-peixes <- peixes [which(peixes$eventYear >= min (bentos$eventYear) & peixes$eventYear <= max (bentos$eventYear)),]
-
+# peixes <- peixes [which(peixes$eventYear >= min (bentos$eventYear) & peixes$eventYear <= max (bentos$eventYear)),]
 
 ## modificar o eventID removendo o ano, desde que escolhemos um lapso temporal que cobre 2010 a 2014, 
 ## de modo que possamos analisar os dados se peixes foi coletado em 2012 e bentos em 2014, por exemplo 
@@ -39,11 +34,12 @@ barplot_function(df1=bentos,#bentos
                  df2= peixes #peixes
                  )
 
+## se quiser o subset de sitios que correspondem em ambos os data sets
 ## subset entre os datasets, desde que peixes ou bentos foram amostrados nos mesmos locais
-peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
+ peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
 
 ## da mesma forma, pegar o subset de ID de bentos que estao nos dados de peixes
-bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
+ bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
 
 ##  criar uma ID numerica para o observador
 peixes_subset$ID.observer <- as.numeric(as.factor(peixes_subset$Observer))
@@ -77,11 +73,34 @@ comp_peixes <-  cast(peixes_subset,
                      value= "IndCounting",
                      fun.aggregate = sum)
 
+## dados para rarefação
+rar_peixes <- lapply (unique (peixes_subset$Site), function (i)
+    
+    cast (peixes_subset [which (peixes_subset$Site == i),],
+          formula = Transect_id ~ ScientificName,
+          value="IndCounting",
+          fun.aggregate = sum))
+
+## rarefaction
+rarefied_richness_fish <- lapply (rar_peixes, specaccum,method="random",permutations=999)
+rarefied_richness_fish <- lapply (rarefied_richness_fish, function (i) (i$richness)[5])
+
 ## composicao de bentos
 comp_bentos <-  cast(bentos_subset,
                      formula = locality_site  ~ Taxon,
                      value= "Cover",
                      fun.aggregate = mean)
+
+## dados para rarefação
+rar_bentos <- lapply (unique (bentos_subset$Site), function (i)
+  
+  cast (bentos_subset [which (bentos_subset$Site == i),],
+        formula = Video_number ~ Taxon,
+        value="Cover",
+        fun.aggregate = max))
+
+rarefied_richness_bentos <- lapply (rar_bentos, specaccum,method="random",permutations=999)
+rarefied_richness_bentos <- lapply (rarefied_richness_bentos, function (i) (i$richness)[3])
 
 #######################################################################################
 #######################################################################################
@@ -113,6 +132,22 @@ tipo_recife <- cast(bentos_subset,
 
 recife_biog <- as.factor (ifelse (tipo_recife  [,2] >0, "1","0") )
 
+## numero de transeccoes e videos (esforço)
+
+lista_sitios <- unique(comp_peixes$locality_site)
+# encontrando o ID das transeccoes unicas, e vendo seu length == numero de transectos
+n_transeccoes <- lapply (lista_sitios, function (i)
+  length (unique (peixes_subset [which(peixes_subset$locality_site == i),"Transect_id"]))
+)
+# encontrando numero de videos unicos por sitio
+n_videos <- lapply (lista_sitios, function (i)
+  length (unique (bentos_subset [which(bentos_subset$locality_site == i),"Video_number"]))
+)
+
+# montando uma tabela
+tabela_esforco <- data.frame (locality_site = lista_sitios,
+                              n_transectos_peixes = unlist(n_transeccoes),
+                              n_videos_bentos = unlist(n_videos))
 ## lista de dados
 
 dados_peixes_bentos <- list(peixes = comp_peixes,
@@ -142,7 +177,7 @@ layers_oracle <- load_layers(c("BO2_tempmean_ss","BO2_temprange_ss",
 layers_oracle_Chl <- load_layers (c("BO2_chlomean_ss","BO2_chlorange_ss"))
 
 ## coordinates to spatial points
-sp_points <- covariates_site$coord
+sp_points <- coordenadas
 spdf <- SpatialPointsDataFrame(coords = sp_points[,2:3], data = sp_points,
                                proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"))
 
@@ -161,9 +196,11 @@ extracted_sea_data <- cbind(extracted_sea_data,
 
 covariates_site <- list (biog_reef = recife_biog,
                          region = regiao,
-                         site_names = tipo_recife$eventID_MOD,
+                         site_names = lista_sitios,
                          coord = coordenadas,
                          sea_data = extracted_sea_data)
+
+covariates_effort <- list(effort = tabela_esforco)
 
 ###############################################
 # # # # # # # # #  SAVE # # # # # # # # # # # #
@@ -172,6 +209,7 @@ covariates_site <- list (biog_reef = recife_biog,
 ### save data - para os modelos de coral
 
 save (covariates_site , ### dados de covariaveis das bases de dados
+      covariates_effort, ## variaveis de esforco
       dados_peixes_bentos, ## dados de composicao 
       file=here ("output","data_drivers_analysis.RData"))
 
