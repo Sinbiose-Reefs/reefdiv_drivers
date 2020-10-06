@@ -36,11 +36,11 @@ barplot_function(df1=bentos,#bentos
 
 ## se quiser o subset de sitios que correspondem em ambos os data sets
 ## subset entre os datasets, desde que peixes ou bentos foram amostrados nos mesmos locais
- peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
-
+# peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
+peixes_subset <- peixes
 ## da mesma forma, pegar o subset de ID de bentos que estao nos dados de peixes
- bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
-
+# bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
+bentos_subset <- bentos
 ##  criar uma ID numerica para o observador
 peixes_subset$ID.observer <- as.numeric(as.factor(peixes_subset$Observer))
 
@@ -154,13 +154,19 @@ dados_peixes_bentos <- list(peixes = comp_peixes,
                             bentos = comp_bentos)
 
 ## coordenadas geográficas para os mapas e analises
+# peixes
+coordenadas_peixes <- aggregate(peixes_subset, 
+                                by= list (peixes_subset$locality_site), 
+                                FUN=mean)[c("Group.1","Lon","Lat")]
 
-coordenadas <- aggregate(bentos_subset, 
+# bentos
+coordenadas_bentos <- aggregate(bentos_subset, 
                          by= list (bentos_subset$locality_site), 
                          FUN=mean)[c("Group.1","Lon","Lat")]
 
 ### BiO Oracle covariates
 # Explore datasets in the package
+# devtools::install_github("lifewatch/sdmpredictors")
 layers <- list_layers()
 #View (layers [grep ("Bio-ORACLE",layers$dataset_code),])
 
@@ -174,30 +180,39 @@ layers_oracle <- load_layers(c("BO2_tempmean_ss","BO2_temprange_ss",
                                "BO2_salinitymean_ss", "BO2_salinityrange_ss"))
 
 ## these data have different extent
-layers_oracle_Chl <- load_layers (c("BO2_chlomean_ss","BO2_chlorange_ss"))
+#layers_oracle_Chl <- load_layers (c("BO2_chlomean_ss","BO2_chlorange_ss"))
 
 ## coordinates to spatial points
-sp_points <- coordenadas
-spdf <- SpatialPointsDataFrame(coords = sp_points[,2:3], data = sp_points,
-                               proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"))
+sp_points <- list(coordenadas_peixes,
+                  coordenadas_bentos)
+
+spdf <- lapply (sp_points, function (i) 
+  
+  SpatialPointsDataFrame(coords = i[,2:3], data = i,
+                               proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")))
 
 ## extracting data
 
-extracted_sea_data <- extract (layers_oracle, spdf,method='simple', fun=mean)
-rownames(extracted_sea_data) <- sp_points$Group.1
-extracted_sea_data_Chl <- extract (layers_oracle_Chl, spdf,method='simple', fun=mean)
-rownames(extracted_sea_data_Chl ) <- sp_points$Group.1
+extracted_sea_data <- lapply (spdf, function (i) 
+  extract (layers_oracle, i,method='simple', fun=mean))
+extracted_sea_data<-lapply (seq(1,length(extracted_sea_data)), function (i) {
+  rownames(extracted_sea_data[[i]]) <- sp_points[[i]]$Group.1;
+  extracted_sea_data[[i]]
+})
+
+#extracted_sea_data_Chl <- extract (layers_oracle_Chl, spdf,method='simple', fun=mean)
+#rownames(extracted_sea_data_Chl ) <- sp_points$Group.1
 
 ## binding these dfs
-extracted_sea_data <- cbind(extracted_sea_data,
-                            extracted_sea_data_Chl)
-
+#extracted_sea_data <- cbind(extracted_sea_data,
+#                            extracted_sea_data_Chl)
 ## lista de covariaveis
 
 covariates_site <- list (biog_reef = recife_biog,
                          region = regiao,
                          site_names = lista_sitios,
-                         coord = coordenadas,
+                         coord = list(coord_bentos=coordenadas_bentos,
+                                      coord_peixes = coordenadas_peixes),
                          sea_data = extracted_sea_data)
 
 covariates_effort <- list(effort = tabela_esforco)
