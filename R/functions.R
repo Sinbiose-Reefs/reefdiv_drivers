@@ -41,7 +41,7 @@ initial_map_function <- function (df1, df2) {
   wm <- ggplot() + 
     geom_sf (data=world, size = 0.1, 
              fill= "gray90",colour="gray90") +
-    coord_sf (xlim = c(-50, -30),  ylim = c(-25, 0), expand = FALSE) +
+    coord_sf (xlim = c(-50, -20),  ylim = c(-30, 0), expand = FALSE) +
     theme_bw() + xlab(NULL) + ylab(NULL) +
     theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           axis.text.x = element_blank(),axis.ticks.x=element_blank(),
