@@ -11,26 +11,30 @@ load (here("output", "results_FD_analyses.RData"))
 ## relationship between richness and effort
 # benthos
 par(mfrow=c(2,2),mar = c (4,4,2,1))
-plot(covariates_effort$effort$n_videos_bentos,FD_results_f1_bentos[[1]]$Fdindexes$nbsp.bent,
+plot(covariates_effort$effort$n_videos_bentos[which(covariates_effort$effort$n_videos_bentos>0)],
+     FD_results_f1_bentos[[1]]$Fdindexes$nbsp.bent,
      ylab= "Number of species",
      xlab= "Number of videos per site",
      main = "Benthos",pch=19,col="coral",
      cex.axis=0.6,cex.lab=0.8)
-abline(lm (FD_results_f1_bentos[[1]]$Fdindexes$nbsp.bent~covariates_effort$effort$n_videos_bentos),
+abline(lm (FD_results_f1_bentos[[1]]$Fdindexes$nbsp.bent~
+             covariates_effort$effort$n_videos_bentos[which(covariates_effort$effort$n_videos_bentos>0)]),
        lwd=2,col="gray70")
-# summary(lm (FD_results_f1_bentos$all$Fdindexes$nbsp.bent~covariates_effort$effort$n_videos_bentos))
-text (x=17.5,y=17, labels=expression (paste("R"^2, "=-0.021")),cex=0.7)
+summary(lm (FD_results_f1_bentos$all$Fdindexes$nbsp.bent~
+covariates_effort$effort$n_videos_bentos[which(covariates_effort$effort$n_videos_bentos>0)]))
+
+text (x=17.5,y=17, labels=expression (paste("R"^2, "=-0.023")),cex=0.7)
 
 # fishes
-plot(covariates_effort$effort$n_transectos_peixes,FD_results_f1[[1]]$Fdindexes$nbsp,
+plot(log(covariates_effort$effort$n_transectos_peixes),(FD_results_f1[[1]]$Fdindexes$nbsp),
      xlab= "Number of transects per site",
      ylab= "",
      main = "Fishes",pch=19,col="cyan3",
      cex.axis=0.6,cex.lab=0.8)
-abline(lm (FD_results_f1[[1]]$Fdindexes$nbsp~covariates_effort$effort$n_transectos_peixes),
+abline(lm ((FD_results_f1[[1]]$Fdindexes$nbsp)~log(covariates_effort$effort$n_transectos_peixes)),
        lwd=2,col="gray70")
-# summary(lm (FD_results_f1$all$Fdindexes$nbsp~covariates_effort$effort$n_transectos_peixes))
-text (x=80,y=65, labels=expression (paste("R"^2, "=0.15**")),cex=0.7)
+summary(lm ((FD_results_f1$all$Fdindexes$nbsp)~log(covariates_effort$effort$n_transectos_peixes)))
+text (x=3,y=75, labels=expression (paste("R"^2, "=0.53**")),cex=0.7)
 
 ### rarefaction for richness of fishes and benthos
 ## 286 was sample size suggested by the function; lower than the minimum row max across sites (max abundance)
@@ -70,6 +74,7 @@ df_results <- data.frame (Nspec = FD_results_f1$all$Fdindexes$nbsp/max(FD_result
                           FEve = FD_results_f1$all$Fdindexes$FEve,
                           FDiv = FD_results_f1$all$Fdindexes$FDiv,
                           Group="Fishes")
+
 # bind dataframe with benthos results
 df_results <- rbind (df_results, 
                      data.frame (Nspec = FD_results_f1_bentos$all$Fdindexes$nbsp.bent/max(FD_results_f1_bentos$all$Fdindexes$nbsp.bent,na.rm=T),
