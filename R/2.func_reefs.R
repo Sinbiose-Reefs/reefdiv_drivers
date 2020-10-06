@@ -146,7 +146,8 @@ FD_results_f1 <- lapply (list_fish_diet, function (i) {
    fish_abund <- fish[,which(colnames(fish) %in% rownames(fish_traits_ord))] # match fish spp in both datasets
    rownames(fish_abund) <- fish$locality_site
    fish_rel <- fish_abund/rowSums(fish_abund) # relative abundance for fish
-   
+   quais_sitios_manter <-which(is.na (rowSums (fish_rel))!= T) 
+   fish_rel <- fish_rel [quais_sitios_manter,]
    # Method with dbFD() 
    fd <- dbFD (gower_matrix, fish_rel, 
                corr ="none", 
@@ -154,9 +155,26 @@ FD_results_f1 <- lapply (list_fish_diet, function (i) {
                stand.FRic = TRUE,
                print.pco = TRUE)
    
-   # building a DF with results
-   fish_fd <- data.frame (nbsp=fd$nbsp, sing.sp=fd$sing.sp, FRic=fd$FRic, qual.FRic=fd$qual.FRic,
-                          FEve=fd$FEve, FDiv=fd$FDiv, FDis=fd$FDis, RaoQ=fd$RaoQ)
+   fish_fd  <- data.frame (matrix (NA, ncol=8,nrow=nrow(fish_abund),
+                                  dimnames = list (NULL,
+                                                   c("nbsp.bent",
+                                                     "sing.sp.bent",
+                                                     "FRic.bent",
+                                                     "qual.FRic.bent",
+                                                     "FEve.bent",
+                                                     "FDiv.bent",
+                                                     "FDis.bent",
+                                                     "RaoQ.bent"))))
+   
+   fish_fd [quais_sitios_manter,1] <- fd$nbsp
+   fish_fd[quais_sitios_manter,2] <- fd$sing.sp
+   fish_fd[quais_sitios_manter,3] <- fd$FRic
+   fish_fd[quais_sitios_manter,4] <- fd$qual.FRic
+   fish_fd[quais_sitios_manter,5] <- fd$FEve
+   fish_fd[quais_sitios_manter,6] <- fd$FDiv
+   fish_fd[quais_sitios_manter,7] <- fd$FDis
+   fish_fd[quais_sitios_manter,8] <- fd$RaoQ
+   
    # and then a list
    results <- list (Fdindexes = fish_fd,
                     chosenAxes = axes_to_choose,
@@ -208,6 +226,7 @@ bent_traits$groups <- tolower(gsub("_", ".", bent_traits$groups)) #adjust spp na
 ## mante coral e alga
 
 list_benthos_level <- list (all =c("AC","S","C","G","A"),
+                            aut = "A",
                             nonAut = c("AC","S","C","G"),
                             nonMixAut = c("S","C","G"),
                             corals = c("AC"))
@@ -299,7 +318,7 @@ FD_results_f1_bentos <- lapply (list_benthos_level, function (i) {
    
    ## some sites had no species
    
-   bent_fd <- data.frame (matrix (NA, ncol=8,nrow=38,
+   bent_fd <- data.frame (matrix (NA, ncol=8,nrow=nrow(bent_abund),
            dimnames = list (NULL,
                             c("nbsp.bent",
                               "sing.sp.bent",
