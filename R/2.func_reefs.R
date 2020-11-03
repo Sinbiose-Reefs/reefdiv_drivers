@@ -46,7 +46,10 @@ fishes <- data.frame(Name=colnames(fish))
 list_fish_diet <- list( all = c("hd","hm","om","pk","fc","im","is"),
                         herbivorous = c("hd","hm"),
                         sessileInv = c("is","im"),
-                        pred = c("om","fc","pk"))
+                        om = c("om"),
+                        fc = "fc",
+                        pk = "pk"
+                        )
 
 ## doing that for all three sets of species at once 
 ## two functions
@@ -153,18 +156,20 @@ FD_results_f1 <- lapply (list_fish_diet, function (i) {
                corr ="none", 
                m = axes_to_choose, 
                stand.FRic = TRUE,
-               print.pco = TRUE)
+               print.pco = TRUE,
+               calc.FGR = F,
+               clust.type = "kmeans")
    
    fish_fd  <- data.frame (matrix (NA, ncol=8,nrow=nrow(fish_abund),
                                   dimnames = list (NULL,
-                                                   c("nbsp.bent",
-                                                     "sing.sp.bent",
-                                                     "FRic.bent",
-                                                     "qual.FRic.bent",
-                                                     "FEve.bent",
-                                                     "FDiv.bent",
-                                                     "FDis.bent",
-                                                     "RaoQ.bent"))))
+                                                   c("nbsp",
+                                                     "sing",
+                                                     "FRic",
+                                                     "qual.FRic",
+                                                     "FEve",
+                                                     "FDiv",
+                                                     "FDis",
+                                                     "RaoQ"))))
    
    fish_fd [quais_sitios_manter,1] <- fd$nbsp
    fish_fd[quais_sitios_manter,2] <- fd$sing.sp
@@ -175,8 +180,25 @@ FD_results_f1 <- lapply (list_fish_diet, function (i) {
    fish_fd[quais_sitios_manter,7] <- fd$FDis
    fish_fd[quais_sitios_manter,8] <- fd$RaoQ
    
+   ## FD total
+   # Method with dbFD() 
+   total <- aggregate (fish_abund,
+                       by = list(covariates_site$region[,'Region']),
+                       FUN=sum)[,-1]
+   total <- total/rowSums(total)
+   
+   ## calculating total FD           
+   fd_total <- dbFD (gower_matrix, total, 
+               corr ="none", 
+               m = axes_to_choose, 
+               stand.FRic = TRUE,
+               print.pco = TRUE,
+               calc.FGR = F,
+               clust.type = "kmeans")
+   
    # and then a list
    results <- list (Fdindexes = fish_fd,
+                    fd_total = fd_total,
                     chosenAxes = axes_to_choose,
                     InertiaPCO=Inertia2,
                     InertiaQuality=Inertia7,
@@ -226,9 +248,8 @@ bent_traits$groups <- tolower(gsub("_", ".", bent_traits$groups)) #adjust spp na
 ## mante coral e alga
 
 list_benthos_level <- list (all =c("AC","S","C","G","A"),
-                            aut = "A",
-                            nonAut = c("AC","S","C","G"),
-                            nonMixAut = c("S","C","G"),
+                            aut = "A", # produtores
+                            nonAut = c("S","C","G"), ## consumidores
                             corals = c("AC"))
 
 ## doing that for all three sets of species at once 
@@ -303,7 +324,6 @@ FD_results_f1_bentos <- lapply (list_benthos_level, function (i) {
    
    bent_abund <- bent2[,which(colnames(bent2) %in% rownames(bent_traits_ord))] # match fish spp in both datasets
    rownames(bent_abund) <- bent2$locality_site
-   
    bent_rel <- bent_abund/rowSums(bent_abund) # relative abundance for fish
    quais_sitios_manter <-which(is.na (rowSums (bent_rel))!= T) 
    bent_rel <- bent_rel [quais_sitios_manter,]
@@ -314,7 +334,9 @@ FD_results_f1_bentos <- lapply (list_benthos_level, function (i) {
                        corr ="none", 
                        m =  axes_to_choose, 
                        stand.FRic = TRUE,
-                       print.pco = TRUE)
+                       print.pco = TRUE,
+                       calc.FGR = F,
+                       clust.type = "kmeans")
    
    ## some sites had no species
    
@@ -338,8 +360,27 @@ FD_results_f1_bentos <- lapply (list_benthos_level, function (i) {
    bent_fd[quais_sitios_manter,7] <- fd_benthos$FDis
    bent_fd[quais_sitios_manter,8] <- fd_benthos$RaoQ
    
+   ## FD total
+   # Method with dbFD() 
+   # Method with dbFD() 
+   total <- aggregate (bent_abund,
+                       by = list(covariates_site$region[,'Region'][which(covariates_effort$effort$n_videos_bentos>0)]),
+                       FUN=sum)[,-1]
+   total <- total/rowSums(total)
+   
+   ## calculating total FD           
+   fd_total <- dbFD (gower_benthos, total, 
+                     corr ="none", 
+                     m = axes_to_choose, 
+                     stand.FRic = TRUE,
+                     print.pco = TRUE,
+                     calc.FGR = F,
+                     clust.type = "kmeans")
+   
+   
    # and then a list
    results <- list (Fdindexes = bent_fd,
+                    fd_total = fd_total,
                     chosenAxes = axes_to_choose,
                     InertiaPCO=Inertia2,
                     InertiaQuality=Inertia4,
@@ -361,12 +402,153 @@ round(sapply (FD_results_f1_bentos, "[[","convexHullVolum"),6)
 round(sapply (FD_results_f1_bentos, "[[","InertiaQuality"),6)
 round(sapply (FD_results_f1_bentos, "[[","InertiaPCO"),6)
 
+## finding the number of functional entities
+bent_traits_subset <- bent_traits [which(bent_traits$groups %in% colnames (bent2)[-1]),]
 
-## save these results
+total_funct_ent <- unique(
+   unlist (
+      lapply (seq (1,nrow (bent_traits_subset)), function (i) {
+   
+   FE <- paste(unname(bent_traits_subset[i,-1] [1]),
+               unname(bent_traits_subset[i,-1] [2]),
+               unname(bent_traits_subset[i,-1] [3]),
+               unname(bent_traits_subset[i,-1] [4]),
+               unname(bent_traits_subset[i,-1] [5]),
+               unname(bent_traits_subset[i,-1] [6]),
+               sep=".")
+    }  
+  )
+ )
+)
+
+# site entities
+# site composition
+list_sites_bentos <- lapply (seq (1,nrow (bent2)), function (i){
+   
+   sub1 <- bent2[i,-1]
+   sub2 <- sub1[,which(sub1>0)] 
+   
+})
+
+## trait composition per site
+traits_site <- lapply (list_sites_bentos, function (i)
+   
+   bent_traits [which(bent_traits$groups %in% colnames (i)),]
+)
+
+### finding site functional entities
+site_funct_ent <- lapply (traits_site, function (k)
+   unique(
+      unlist (lapply (seq (1,nrow (k)), function (i) {
+         
+         FE <- paste(unname(bent_traits_subset[i,-1] [1]),
+                     unname(bent_traits_subset[i,-1] [2]),
+                     unname(bent_traits_subset[i,-1] [3]),
+                     unname(bent_traits_subset[i,-1] [4]),
+                     unname(bent_traits_subset[i,-1] [5]),
+                     unname(bent_traits_subset[i,-1] [6]),
+                     sep=".")
+      }  
+      )
+   )
+ )
+)
+
+###############################
+### fishes functional entities
+fish_traits2 <- merge(fishes, fish_traits, by="Name")
+
+# Select traits of interest and remove NAs
+fish_traits2 <- na.omit(fish_traits2[,c("Name","Home_range","Diel_activity","Size_group","Body_size",
+                                        "Level_water","Body_shape","Diet","Caudal_fin","Mouth_position")])
+
+# here transform each ordered category in 1, 2, 3.... 
+fish_traits2$Body_size  <- sapply(fish_traits2$Body_size, function(x) {
+   if (x<=10) {"S"} 
+   else if (x>10&x<=50) {"M"} 
+   else if (x>50&x<=400) {"L"}
+   else if (x>400) {"XL"}
+   }
+)
+
+## all traits into a dataframe
+fish_traits_ord <-data.frame (Size=as.character(fish_traits2$Body_size), 
+                              Mobility=as.character(fish_traits2$Home_range), 
+                              Activity= as.character(fish_traits2$Diel_activity), 
+                              Schooling=as.character(fish_traits2$Size_group), 
+                              Level=as.character(fish_traits2$Level_water), 
+                              #Diet=as.factor(fish_traits2$Diet), 
+                              Body_shape=as.character(fish_traits2$Body_shape),
+                              Caudal_fin=as.character(fish_traits2$Caudal_fin), 
+                              Mouth_position=as.character(fish_traits2$Mouth_position))
+
+rownames(fish_traits_ord) <- (fish_traits2$Name)
+
+## finding total FE
+total_funct_ent_fish <- unique(
+   unlist ( lapply (seq(1,nrow(fish_traits_ord)), function (i) {
+
+      FE <- paste(unname(fish_traits_ord[i,] [1]),
+            unname(fish_traits_ord[i,] [2]),
+            unname(fish_traits_ord[i,] [3]),
+            unname(fish_traits_ord[i,] [4]),
+            unname(fish_traits_ord[i,] [5]),
+            unname(fish_traits_ord[i,] [6]),
+            unname(fish_traits_ord[i,] [7]),
+            unname(fish_traits_ord[i,] [8]),
+            sep=".")
+}
+)))
+
+# site entities
+# site composition
+list_sites_fishes <- lapply (seq (1,nrow (fish)), function (i){
+   
+   sub1 <- fish[i,-1]
+   sub2 <- sub1[,which(sub1>0)] 
+   
+})
+
+## trait composition per site
+traits_site_fishes <- lapply (list_sites_fishes, function (i)
+   
+   fish_traits_ord [which(rownames(fish_traits_ord) %in% colnames (i)),]
+)
+
+### finding site functional entities
+site_FE_fishes <- lapply (traits_site_fishes, function (k)
+   unique(
+      unlist (lapply (seq (1,nrow (k)), function (i) {
+         
+         FE <- paste(unname(fish_traits_ord[i,] [1]),
+                     unname(fish_traits_ord[i,] [2]),
+                     unname(fish_traits_ord[i,] [3]),
+                     unname(fish_traits_ord[i,] [4]),
+                     unname(fish_traits_ord[i,] [5]),
+                     unname(fish_traits_ord[i,] [6]),
+                     unname(fish_traits_ord[i,] [7]),
+                     unname(fish_traits_ord[i,] [8]),
+                     sep=".")
+      }  
+      )
+      )
+   )
+)
+
+###
+fishes_FE <- unlist(lapply (site_FE_fishes, length))
+total_fishes_FE <- length(total_funct_ent_fish )
+###
+bentos_FE <- unlist(lapply (site_funct_ent , length))
+total_bentos_FE <- length(total_funct_ent )
+
+## saving these results
 save (bent_traits, fish_traits,
       bent2, fish,
       list_benthos_level,list_fish_diet,
       covariates_site,
       covariates_effort,
       FD_results_f1_bentos,FD_results_f1,
+      fishes_FE,total_fishes_FE,
+      bentos_FE,total_bentos_FE,
       file = here("output", "results_FD_analyses.RData"))
