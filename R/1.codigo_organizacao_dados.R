@@ -9,6 +9,7 @@ source("R/functions.R")
 ## dados dos bentos
 bentos <- read.xlsx(here("data","detection","Updated_compiled_quadrats_allsites.xlsx"),
                     sheet = 1, colNames = TRUE,detectDates=F)
+
 ## converter data em data - bug do pacote openxlsx
 bentos$eventDate <-convertToDate(bentos$eventDate)
 
@@ -26,7 +27,6 @@ peixes$eventDate <-convertToDate(peixes$eventDate)
 
 bentos$eventID_MOD <- substr(bentos$eventID, 1,nchar(as.character(bentos$eventID))-5) 
 peixes$eventID_MOD  <- substr(peixes$eventID, 1,nchar(as.character(peixes$eventID))-5) 
-
 
 ## fazer um histograma pra saber o numero de eventIDS por ano
 
@@ -117,35 +117,29 @@ nord <- cast(peixes_subset,
              fun.aggregate = sum)
 
 ## regiao 
-ilhas <-  ifelse(nord [,3] >0,"oc.isl",0)
-nor <-  ifelse(nord [,2] >0,"nord",0)
-sud <-  ifelse(nord [,4] >0,"sud",0)
-regiao <-  c(ilhas[which(ilhas !=0)],
-             nor[which(nor !=0)],
-             sud[which(sud !=0)])
+regiao <- matrix(NA, nrow(nord),ncol = 1,
+                 dimnames=list(nord$locality_site,
+                               "Region"))
 
-## tipo de recife
-tipo_recife <- cast(bentos_subset,
-                    formula = locality_site  ~ Reef,
-                    value= "Cover",
-                    fun.aggregate = max)
-
-recife_biog <- as.factor (ifelse (tipo_recife  [,2] >0, "1","0") )
+regiao [nord [,3] >0] <-  "Oceanic Islands"
+regiao [nord [,2] >0] <- "Northeastern"
+regiao [nord [,4] >0]<- "Southeastern"
 
 ## numero de transeccoes e videos (esforço)
 
-lista_sitios <- unique(comp_peixes$locality_site)
+lista_sitios_peixes <- unique(comp_peixes$locality_site)
+
 # encontrando o ID das transeccoes unicas, e vendo seu length == numero de transectos
-n_transeccoes <- lapply (lista_sitios, function (i)
+n_transeccoes <- lapply (lista_sitios_peixes, function (i)
   length (unique (peixes_subset [which(peixes_subset$locality_site == i),"Transect_id"]))
 )
 # encontrando numero de videos unicos por sitio
-n_videos <- lapply (lista_sitios, function (i)
+n_videos <- lapply (lista_sitios_peixes, function (i)
   length (unique (bentos_subset [which(bentos_subset$locality_site == i),"Video_number"]))
 )
 
 # montando uma tabela
-tabela_esforco <- data.frame (locality_site = lista_sitios,
+tabela_esforco <- data.frame (locality_site = lista_sitios_peixes,
                               n_transectos_peixes = unlist(n_transeccoes),
                               n_videos_bentos = unlist(n_videos))
 ## lista de dados
@@ -183,6 +177,9 @@ layers_oracle <- load_layers(c("BO2_tempmean_ss","BO2_temprange_ss",
 #layers_oracle_Chl <- load_layers (c("BO2_chlomean_ss","BO2_chlorange_ss"))
 
 ## coordinates to spatial points
+# ajustando uma coordenada
+coordenadas_peixes [39,2] <- as.numeric(-35.082658)
+#
 sp_points <- list(coordenadas_peixes,
                   coordenadas_bentos)
 
@@ -208,9 +205,8 @@ extracted_sea_data<-lapply (seq(1,length(extracted_sea_data)), function (i) {
 #                            extracted_sea_data_Chl)
 ## lista de covariaveis
 
-covariates_site <- list (biog_reef = recife_biog,
-                         region = regiao,
-                         site_names = lista_sitios,
+covariates_site <- list (region = regiao,
+                         site_names = lista_sitios_peixes,
                          coord = list(coord_bentos=coordenadas_bentos,
                                       coord_peixes = coordenadas_peixes),
                          sea_data = extracted_sea_data)
