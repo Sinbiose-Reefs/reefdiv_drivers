@@ -5,6 +5,8 @@
 .Ruserdata
 data/environment
 *.jpeg
+*.pdf
 *.JPEG
 output/*.pdf
 output/*.svg
+MS
