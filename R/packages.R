@@ -39,6 +39,8 @@ require(cluster)
 # 
 require("sdmpredictors")
 require("leaflet")
+library(mgcv)
+
 
 
 
