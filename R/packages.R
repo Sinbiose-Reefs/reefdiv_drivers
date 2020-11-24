@@ -40,6 +40,8 @@ require(cluster)
 require("sdmpredictors")
 require("leaflet")
 library(mgcv)
+require("gamm4")
+require(nlme)
 
 
 
