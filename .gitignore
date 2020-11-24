@@ -7,6 +7,5 @@ data/environment
 *.jpeg
 *.pdf
 *.JPEG
-output/*.pdf
-output/*.svg
+output
 MS
