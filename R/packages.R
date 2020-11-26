@@ -43,6 +43,9 @@ library(mgcv)
 require("gamm4")
 require(nlme)
 
+require(betareg)
+require(MASS)
+require(effects)
 
 
 

@@ -216,7 +216,10 @@ cov_benthos_ASSi$Locality <- as.factor (cov_benthos_ASSi$Locality)
 
 ############################################################################
 # -------------------------------------------------------------------------
-#          Generalized Additive Models
+#          Non-linear models
+#
+#           RICHNESS
+#
 # -------------------------------------------------------------------------
 ############################################################################
 
@@ -224,665 +227,713 @@ cov_benthos_ASSi$Locality <- as.factor (cov_benthos_ASSi$Locality)
 #      FISH
 #-----------------
 
-### MMS
+# MMS
 
 ## Richness
-
-# alternatives for the number of knots
-kts <- seq (3,10)
-
-# richness
-GAM_fish_rich_MMS <- lapply (kts, function (kts)
-   
-   gam (EST.rich ~ 
-           s(BO2_ppmean_ss, k=kts,bs="cr")+
-           s(BO2_salinitymean_ss, k=kts,bs="cr")+
-           inv_temp +
-           s(BO_damean, k=kts,bs="cr"),
-        family= Gamma (link='log'),
-        data = cov_fish_MMS,
-        na.action = na.exclude,
-        drop.unused.levels=TRUE,
-        method="REML"
-   )
-)
-
-# check 
-par(mfrow=c(2,2))
-lapply (GAM_fish_rich_MMS, function (i)
-   gam.check(i, pch=19,cex=.5))
-
-# refit
-kts.fit <- 5
-
-GAM_fish_rich_MMS <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                           s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                           inv_temp +
-                           s(BO_damean, k=kts.fit,bs="cr"),
-                        family= Gamma (link='log'),
-                        data = cov_fish_MMS,
-                        na.action = na.exclude,
-                        drop.unused.levels=TRUE,
-                        method="REML"
-)
-
-summary(GAM_fish_rich_MMS)
-
-# simplify
-s1_GAM_fish_rich_MMS <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                              s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                                inv_temp,
-                           family= Gamma (link='log'),
-                           data = cov_fish_MMS,
-                           na.action = na.exclude,
-                           drop.unused.levels=TRUE,
-                           method="REML")
-summary(s1_GAM_fish_rich_MMS)
-
-# compare
-anova(GAM_fish_rich_MMS, s1_GAM_fish_rich_MMS,test = "Chisq")
-
-# keep on simplifying
-s2_GAM_fish_rich_MMS <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                              s(BO2_salinitymean_ss, k=kts.fit,bs="cr"),
-                           family= Gamma (link='log'),
-                           data = cov_fish_MMS,
-                           na.action = na.exclude,
-                           drop.unused.levels=TRUE,
-                           method="REML")
-
-# compare
-anova(s1_GAM_fish_rich_MMS, s2_GAM_fish_rich_MMS,test = "Chisq")
-
-# we can't simplify more
-plot(s1_GAM_fish_rich_MMS,pages=1)
-gam.vcomp(s1_GAM_fish_rich_MMS)
-
-
-### MMS
-
-## Functional diversity
-
-GAM_fish_FD_MMS <- lapply (kts, function (kts)
-   
-   gam (FD ~ 
-             s(BO2_ppmean_ss, k=kts,bs="cr")+
-             s(BO2_salinitymean_ss, k=kts,bs="cr")+
-             inv_temp +
-             s(BO_damean, k=kts,bs="cr"),
-     family= betar (link='logit'),
+model1 <- glm (EST.rich ~ 
+        poly(BO2_ppmean_ss, 2)+
+        poly(BO2_salinitymean_ss, 2)+
+        inv_temp +
+        poly(BO_damean, 2),
+     family= Gamma (link='log'),
      data = cov_fish_MMS,
-     na.action = na.exclude,
-     drop.unused.levels=TRUE,
-     method="REML"
-     )
-)
+     na.action = na.exclude)
 
-# check 
-par(mfrow=c(2,2))
-lapply (GAM_fish_FD_MMS, function (i)
-   gam.check(i, pch=19,cex=.5))
-
-# refit
-kts.fit <- 9
-
-GAM_fish_FD_MMS <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-           s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-           inv_temp +
-           s(BO_damean, k=kts.fit,bs="cr"),
-           family=betar (link='logit'),
-           data = cov_fish_MMS,
-           na.action = na.exclude,
-           drop.unused.levels=TRUE,
-           method="REML"
-   )
-
-summary(GAM_fish_FD_MMS)
+# 
+summary (model1)
 
 # simplify
-s1_GAM_fish_FD_MMS <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                                s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                                s(BO_damean, k=kts.fit,bs="cr"),
-                             family= betar (link='logit'),
-                             data = cov_fish_MMS,
-                             na.action = na.exclude,
-                             drop.unused.levels=TRUE,
-                             method="REML")
-summary(s1_GAM_fish_FD_MMS)
+model2 <- glm (EST.rich ~ 
+                  poly(BO2_salinitymean_ss, 2)+
+                  inv_temp +
+                  poly(BO_damean, 2),
+               family= Gamma (link='log'),
+               data = cov_fish_MMS,
+               na.action = na.exclude)
 
-# compare
-anova(GAM_fish_FD_MMS, s1_GAM_fish_FD_MMS,test = "Chisq")
+summary(model2)
 
-# keep on simplifying
-s2_GAM_fish_FD_MMS <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                                s(BO2_salinitymean_ss, k=kts.fit,bs="cr"),
-                             family= betar (link='logit'),
-                             data = cov_fish_MMS,
-                             na.action = na.exclude,
-                             drop.unused.levels=TRUE,
-                             method="REML")
+# compare them
+anova (model1,model2,test = "Chisq")
 
-# compare
-anova(s1_GAM_fish_FD_MMS, s2_GAM_fish_FD_MMS,test = "Chisq")
 
-# we can't simplify more
-plot(s1_GAM_fish_FD_MMS,pages=1)
-gam.vcomp(s1_GAM_fish_FD_MMS)
+# simplify again
+model3 <- glm (EST.rich ~ 
+                  poly(BO2_salinitymean_ss, 2)+
+                  inv_temp +
+                  BO_damean,
+               family= Gamma (link='log'),
+               data = cov_fish_MMS,
+               na.action = na.exclude)
 
-# -----------------------------
-###         ASSi
-# -----------------------------
+summary(model3)
+
+#
+anova (model2,model3, test = "Chisq")
+
+# simplify again
+model4 <- glm (EST.rich ~ 
+                  poly(BO2_salinitymean_ss, 1)+
+                  inv_temp+
+                  BO_damean,
+               family= Gamma (link='log'),
+               data = cov_fish_MMS,
+               na.action = na.exclude)
+
+summary(model4)
+
+#
+anova (model3,model4, test = "Chisq")
+
+## we can't simplify anymore
+
+## diagnose model fit
+plot(model3) 
+
+## check coeffs and other statistics
+summary (model3)
+
+## unadjusted R2
+# help here: https://stats.stackexchange.com/questions/46345/how-to-calculate-goodness-of-fit-in-glm-r
+round (with(summary(model3), 1 - deviance/null.deviance),2)
+
+## newd
+newd <- data.frame (BO2_salinitymean_ss= 0,
+                    inv_temp=0,
+                    BO_damean=seq (range(cov_fish_MMS$BO_damean)[1],
+                                   range(cov_fish_MMS$BO_damean)[2],
+                                   0.05))
+
+## data to predict (based on the model)
+pred.vals <- predict (model3,
+                      newdata = newd,
+                      type="link", # predictions in the link-function scale
+                      se.fit = T)
+# get confidence interval (in the link-function scale)
+upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
+lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+
+# plotting 
+
+plot(exp(pred.vals$fit) ~ newd$BO_damean, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(10,37),
+     ylab = "Estimated fish richness",
+     xlab = "Turbidity")
+lines (exp(upr) ~  newd$BO_damean,lwd=2,col="gray50")
+lines (exp(lwr) ~  newd$BO_damean,lwd=2,col="gray50")
+
+#
+
+## newd
+newd <- data.frame (BO2_salinitymean_ss= 0,
+                    inv_temp=seq (range(cov_fish_MMS$inv_temp)[1],
+                                  range(cov_fish_MMS$inv_temp)[2],
+                                  0.05),
+                    BO_damean=0)
+
+## data to predict (based on the model)
+pred.vals <- predict (model3,
+                      newdata = newd,
+                      type="link", # predictions in the link-function scale
+                      se.fit = T)
+# get confidence interval (in the link-function scale)
+upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
+lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+
+# plotting 
+
+plot(exp(pred.vals$fit) ~ newd$inv_temp, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(10,37),
+     ylab = "Estimated fish richness",
+     xlab = "Temperature")
+lines (exp(upr) ~  newd$inv_temp,lwd=2,col="gray50")
+lines (exp(lwr) ~  newd$inv_temp,lwd=2,col="gray50")
+
+
+## newd
+newd <- data.frame (BO2_salinitymean_ss= seq (range(cov_fish_MMS$BO2_salinitymean_ss)[1],
+                                              range(cov_fish_MMS$BO2_salinitymean_ss)[2],
+                                              0.05),
+                    inv_temp=0,
+                    BO_damean=0)
+
+## data to predict (based on the model)
+pred.vals <- predict (model3,
+                      newdata = newd,
+                      type="link", # predictions in the link-function scale
+                      se.fit = T)
+# get confidence interval (in the link-function scale)
+upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
+lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+
+# plotting 
+
+plot(exp(pred.vals$fit) ~ newd$BO2_salinitymean_ss, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(10,37),
+     ylab = "Estimated fish richness",
+     xlab = "Salinity")
+lines (exp(upr) ~  newd$BO2_salinitymean_ss,lwd=2,col="gray50")
+lines (exp(lwr) ~  newd$BO2_salinitymean_ss,lwd=2,col="gray50")
+
+
+# -------------------------
+#           ASSi
 
 ## Richness
+model1 <- glm (EST.rich ~ 
+                  poly(BO2_ppmean_ss, 2)+
+                  poly(BO2_salinitymean_ss, 2)+
+                  inv_temp +
+                  poly(BO_damean, 2),
+               family= Gamma (link='log'),
+               data = cov_fish_ASSi,
+               na.action = na.exclude)
 
-# alternatives for the number of knots
-kts <- seq (3,10)
-
-# richness
-GAM_fish_rich_ASSi <- lapply (kts, function (kts)
-   
-   gam (EST.rich ~ 
-           s(BO2_ppmean_ss, k=kts,bs="cr")+
-           s(BO2_salinitymean_ss, k=kts,bs="cr")+
-           inv_temp +
-           s(BO_damean, k=kts,bs="cr"),
-        family= Gamma (link='log'),
-        data = cov_fish_ASSi,
-        na.action = na.exclude,
-        drop.unused.levels=TRUE,
-        method="REML"
-   )
-)
-
-# check 
-par(mfrow=c(2,2))
-lapply (GAM_fish_rich_ASSi, function (i)
-   gam.check(i, pch=19,cex=.5))
-
-# refit
-kts.fit <- 5
-
-GAM_fish_rich_ASSi <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                             s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                             inv_temp +
-                             s(BO_damean, k=kts.fit,bs="cr"),
-                          family= Gamma (link='log'),
-                          data = cov_fish_ASSi,
-                          na.action = na.exclude,
-                          drop.unused.levels=TRUE,
-                          method="REML"
-)
-
-summary(GAM_fish_rich_ASSi)
+# 
+summary (model1)
 
 # simplify
-s1_GAM_fish_rich_ASSi <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                                s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                                inv_temp,
-                             family= Gamma (link='log'),
-                             data = cov_fish_ASSi,
-                             na.action = na.exclude,
-                             drop.unused.levels=TRUE,
-                             method="REML")
-summary(s1_GAM_fish_rich_ASSi)
+model2 <- glm (EST.rich ~ poly(BO2_ppmean_ss, 2)+
+                  poly(BO2_salinitymean_ss, 2)+
+                  inv_temp,
+               family= Gamma (link='log'),
+               data = cov_fish_ASSi,
+               na.action = na.exclude)
 
-# compare
-anova(GAM_fish_rich_ASSi, s1_GAM_fish_rich_ASSi,test = "Chisq")
+summary(model2)
 
-# keep on simplifying
-s2_GAM_fish_rich_ASSi <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                                s(BO2_salinitymean_ss, k=kts.fit,bs="cr"),
-                             family= Gamma (link='log'),
-                             data = cov_fish_ASSi,
-                             na.action = na.exclude,
-                             drop.unused.levels=TRUE,
-                             method="REML")
+# compare them
+anova (model1,model2,test = "Chisq")
 
-# compare
-anova(s1_GAM_fish_rich_ASSi, s2_GAM_fish_rich_ASSi,test = "Chisq")
+# simplify again
+model3 <- glm (EST.rich ~ BO2_ppmean_ss +
+                   poly(BO2_salinitymean_ss, 2)+
+                   inv_temp,
+                family= Gamma (link='log'),
+                data = cov_fish_ASSi,
+                na.action = na.exclude)
 
-# we can't simplify more
-plot(GAM_fish_rich_ASSi,pages=1,shade.col="gray90",shade=T)
-gam.vcomp(s1_GAM_fish_rich_ASSi)
+summary(model3)
+
+#
+anova (model2,model3, test = "Chisq")
+
+# simplify again
+model4 <- glm (EST.rich ~ BO2_ppmean_ss +
+                  poly(BO2_salinitymean_ss, 1)+
+                  inv_temp,
+               family= Gamma (link='log'),
+               data = cov_fish_ASSi,
+               na.action = na.exclude)
+
+summary(model4)
+
+#
+anova (model3,model4, test = "Chisq")
+
+## we can't simplify anymore
+
+## diagnose model fit
+plot(model3) 
+
+## check coeffs and other statistics
+summary (model3)
+
+## unadjusted R2
+# help here: https://stats.stackexchange.com/questions/46345/how-to-calculate-goodness-of-fit-in-glm-r
+round (with(summary(model3), 1 - deviance/null.deviance),2)
+
+## newd
+newd <- data.frame (BO2_salinitymean_ss= 0,
+                    inv_temp=0,
+                    BO2_ppmean_ss=seq (range(cov_fish_MMS$BO_damean)[1],
+                                   range(cov_fish_MMS$BO_damean)[2],
+                                   0.05))
+
+## data to predict (based on the model)
+pred.vals <- predict (model3,
+                      newdata = newd,
+                      type="link", # predictions in the link-function scale
+                      se.fit = T)
+# get confidence interval (in the link-function scale)
+upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
+lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+
+# plotting 
+
+plot(exp(pred.vals$fit) ~ newd$BO2_ppmean_ss, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(10,90),
+     ylab = "Estimated fish richness",
+     xlab = "Productivity")
+lines (exp(upr) ~  newd$BO2_ppmean_ss,lwd=2,col="gray50")
+lines (exp(lwr) ~  newd$BO2_ppmean_ss,lwd=2,col="gray50")
+
+#
+
+## newd
+newd <- data.frame (BO2_salinitymean_ss= 0,
+                    inv_temp=seq (range(cov_fish_MMS$inv_temp)[1],
+                                  range(cov_fish_MMS$inv_temp)[2],
+                                  0.05),
+                    BO2_ppmean_ss=0)
+
+## data to predict (based on the model)
+pred.vals <- predict (model3,
+                      newdata = newd,
+                      type="link", # predictions in the link-function scale
+                      se.fit = T)
+# get confidence interval (in the link-function scale)
+upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
+lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+
+# plotting 
+
+plot(exp(pred.vals$fit) ~ newd$inv_temp, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(10,150),
+     ylab = "Estimated fish richness",
+     xlab = "Temperature")
+lines (exp(upr) ~  newd$inv_temp,lwd=2,col="gray50")
+lines (exp(lwr) ~  newd$inv_temp,lwd=2,col="gray50")
 
 
-### ASSi
+## newd
+newd <- data.frame (BO2_salinitymean_ss= seq (range(cov_fish_MMS$BO2_salinitymean_ss)[1],
+                                              range(cov_fish_MMS$BO2_salinitymean_ss)[2],
+                                              0.05),
+                    inv_temp=0,
+                    BO2_ppmean_ss=0)
 
-## Functional diversity
+## data to predict (based on the model)
+pred.vals <- predict (model3,
+                      newdata = newd,
+                      type="link", # predictions in the link-function scale
+                      se.fit = T)
+# get confidence interval (in the link-function scale)
+upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
+lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
 
-GAM_fish_FD_ASSi <- lapply (kts, function (kts)
-   
-   gam (FD ~ 
-           s(BO2_ppmean_ss, k=kts,bs="cr")+
-           s(BO2_salinitymean_ss, k=kts,bs="cr")+
-           inv_temp +
-           s(BO_damean, k=kts,bs="cr"),
-        family= betar (link='logit'),
-        data = cov_fish_ASSi,
-        na.action = na.exclude,
-        drop.unused.levels=TRUE,
-        method="REML"
-   )
-)
+# plotting 
 
-# check 
-par(mfrow=c(2,2))
-lapply (GAM_fish_FD_ASSi, function (i)
-   gam.check(i, pch=19,cex=.5))
-
-# refit
-kts.fit <- 6
-
-GAM_fish_FD_ASSi <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                           s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                           inv_temp +
-                           s(BO_damean, k=kts.fit,bs="cr"),
-                        family=betar (link='logit'),
-                        data = cov_fish_ASSi,
-                        na.action = na.exclude,
-                        drop.unused.levels=TRUE,
-                        method="REML"
-)
-
-summary(GAM_fish_FD_ASSi)
-
-# simplify
-s1_GAM_fish_FD_ASSi <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                              s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                               inv_temp,
-                           family= betar (link='logit'),
-                           data = cov_fish_ASSi,
-                           na.action = na.exclude,
-                           drop.unused.levels=TRUE,
-                           method="REML")
-summary(s1_GAM_fish_FD_ASSi)
-
-# compare
-anova(GAM_fish_FD_ASSi, s1_GAM_fish_FD_ASSi,test = "Chisq")
-
-# keep on simplifying
-s2_GAM_fish_FD_ASSi <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                              s(BO2_salinitymean_ss, k=kts.fit,bs="cr"),
-                           family= betar (link='logit'),
-                           data = cov_fish_ASSi,
-                           na.action = na.exclude,
-                           drop.unused.levels=TRUE,
-                           method="REML")
-
-summary(s2_GAM_fish_FD_ASSi)
-
-# compare
-anova(s1_GAM_fish_FD_ASSi, s2_GAM_fish_FD_ASSi,test = "Chisq")
-
-# we can't simplify more
-plot(s1_GAM_fish_FD_ASSi,pages=1,shade.col="gray90",shade=T)
-gam.vcomp(s1_GAM_fish_FD_ASSi)
+plot(exp(pred.vals$fit) ~ newd$BO2_salinitymean_ss, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(10,70),
+     ylab = "Estimated fish richness",
+     xlab = "Salinity")
+lines (exp(upr) ~  newd$BO2_salinitymean_ss,lwd=2,col="gray50")
+lines (exp(lwr) ~  newd$BO2_salinitymean_ss,lwd=2,col="gray50")
 
 # ----------------
 #      BENTHOS
 #-----------------
 
-### MMS
+# MMS
 
 ## Richness
+model1 <- glm (EST.rich ~ 
+                  poly(BO2_ppmean_ss, 2)+
+                  poly(BO2_salinitymean_ss, 2)+
+                  inv_temp +
+                  poly(BO_damean, 2),
+               family= Gamma (link='log'),
+               data = cov_benthos_MMS,
+               na.action = na.exclude)
 
-# alternatives for the number of knots
-kts <- seq (3,10)
-
-# richness
-GAM_benthos_rich_MMS <- lapply (kts, function (kts)
-   
-   gam (EST.rich ~ 
-           s(BO2_ppmean_ss, k=kts,bs="cr")+
-           s(BO2_salinitymean_ss, k=kts,bs="cr")+
-           inv_temp +
-           s(BO_damean, k=kts,bs="cr"),
-        family= Gamma (link='log'),
-        data = cov_benthos_MMS,
-        na.action = na.exclude,
-        drop.unused.levels=TRUE,
-        method="REML"
-   )
-)
-
-# check 
-par(mfrow=c(2,2))
-lapply (GAM_benthos_rich_MMS, function (i)
-   gam.check(i, pch=19,cex=.5))
-
-# refit
-kts.fit <- 8
-
-GAM_benthos_rich_MMS <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                             s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                             inv_temp +
-                             s(BO_damean, k=kts.fit,bs="cr"),
-                          family= Gamma (link='log'),
-                          data = cov_benthos_MMS,
-                          na.action = na.exclude,
-                          drop.unused.levels=TRUE,
-                          method="REML"
-)
-
-summary(GAM_benthos_rich_MMS)
+# 
+summary (model1)
 
 # simplify
-s1_GAM_benthos_rich_MMS <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                                s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                                inv_temp,
-                             family= Gamma (link='log'),
-                             data = cov_benthos_MMS,
-                             na.action = na.exclude,
-                             drop.unused.levels=TRUE,
-                             method="REML")
-summary(s1_GAM_benthos_rich_MMS)
+model2 <- glm (EST.rich ~ 
+                  poly(BO2_ppmean_ss, 2)+
+                  poly(BO2_salinitymean_ss, 2)+
+                  inv_temp,
+               family= Gamma (link='log'),
+               data = cov_benthos_MMS,
+               na.action = na.exclude)
 
-# compare
-anova(GAM_benthos_rich_MMS, s1_GAM_benthos_rich_MMS,test = "Chisq")
+summary(model2)
 
-# keep on simplifying
-s2_GAM_benthos_rich_MMS <- gam (EST.rich ~ inv_temp+
-                                s(BO2_salinitymean_ss, k=kts.fit,bs="cr"),
-                             family= Gamma (link='log'),
-                             data = cov_benthos_MMS,
-                             na.action = na.exclude,
-                             drop.unused.levels=TRUE,
-                             method="REML")
-
-# compare
-anova(s1_GAM_benthos_rich_MMS, s2_GAM_benthos_rich_MMS,test = "Chisq")
-
-# we can't simplify more
-plot(s1_GAM_benthos_rich_MMS,pages=1)
-gam.vcomp(s1_GAM_benthos_rich_MMS)
+# compare them
+anova (model1,model2,test = "Chisq")
 
 
-### MMS
+# simplify again
+model3 <- glm (EST.rich ~ 
+                  poly(BO2_ppmean_ss, 2)+
+                  poly(BO2_salinitymean_ss, 2),
+               family= Gamma (link='log'),
+               data = cov_benthos_MMS,
+               na.action = na.exclude)
 
-## Functional diversity
+summary(model3)
 
-GAM_benthos_FD_MMS <- lapply (kts, function (kts)
-   
-   gam (FD ~ 
-           s(BO2_ppmean_ss, k=kts,bs="cr")+
-           s(BO2_salinitymean_ss, k=kts,bs="cr")+
-           inv_temp +
-           s(BO_damean, k=kts,bs="cr"),
-        family= betar (link='logit'),
-        data = cov_benthos_MMS,
-        na.action = na.exclude,
-        drop.unused.levels=TRUE,
-        method="REML"
-   )
-)
+#
+anova (model2,model3, test = "Chisq")
 
-# check 
-par(mfrow=c(2,2))
-lapply (GAM_benthos_FD_MMS, function (i)
-   gam.check(i, pch=19,cex=.5))
+# simplify again
+model4 <- glm (EST.rich ~ 
+                  poly(BO2_ppmean_ss, 2)+
+                  I(BO2_salinitymean_ss^2),
+               family= Gamma (link='log'),
+               data = cov_benthos_MMS,
+               na.action = na.exclude)
 
-# refit
-kts.fit <- 9
+summary(model4)
 
-GAM_benthos_FD_MMS <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                           s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                           inv_temp +
-                           s(BO_damean, k=kts.fit,bs="cr"),
-                        family=betar (link='logit'),
-                        data = cov_benthos_MMS,
-                        na.action = na.exclude,
-                        drop.unused.levels=TRUE,
-                        method="REML"
-)
+#
+anova (model3,model4, test = "Chisq")
 
-summary(GAM_benthos_FD_MMS)
+## we can't simplify anymore
 
-# simplify
-s1_GAM_benthos_FD_MMS <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                              s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                              s(BO_damean, k=kts.fit,bs="cr"),
-                           family= betar (link='logit'),
-                           data = cov_benthos_MMS,
-                           na.action = na.exclude,
-                           drop.unused.levels=TRUE,
-                           method="REML")
-summary(s1_GAM_benthos_FD_MMS)
+## diagnose model fit
+plot(model4) 
 
-# compare
-anova(GAM_benthos_FD_MMS, s1_GAM_benthos_FD_MMS,test = "Chisq")
+## check coeffs and other statistics
+summary (model4)
 
-# keep on simplifying
-s2_GAM_benthos_FD_MMS <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                              s(BO2_salinitymean_ss, k=kts.fit,bs="cr"),
-                           family= betar (link='logit'),
-                           data = cov_benthos_MMS,
-                           na.action = na.exclude,
-                           drop.unused.levels=TRUE,
-                           method="REML")
+## unadjusted R2
+# help here: https://stats.stackexchange.com/questions/46345/how-to-calculate-goodness-of-fit-in-glm-r
+round (with(summary(model4), 1 - deviance/null.deviance),2)
 
-# compare
-anova(s1_GAM_benthos_FD_MMS, s2_GAM_benthos_FD_MMS,test = "Chisq")
+## newd
+newd <- data.frame (BO2_salinitymean_ss= 0,
+                    BO2_ppmean_ss=seq (range(cov_benthos_MMS$BO2_ppmean_ss)[1],
+                                   range(cov_benthos_MMS$BO2_ppmean_ss)[2],
+                                   0.05))
 
-# we can't simplify more
-plot(s1_GAM_benthos_FD_MMS,pages=1)
-gam.vcomp(s1_GAM_benthos_FD_MMS)
+## data to predict (based on the model)
+pred.vals <- predict (model4,
+                      newdata = newd,
+                      type="link", # predictions in the link-function scale
+                      se.fit = T)
+# get confidence interval (in the link-function scale)
+upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
+lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
 
-# -----------------------------
-###         ASSi
-# -----------------------------
+# plotting 
 
-## Richness
-
-# alternatives for the number of knots
-kts <- seq (3,10)
-
-# richness
-GAM_benthos_rich_ASSi <- lapply (kts, function (kts)
-   
-   gam (EST.rich ~ 
-           s(BO2_ppmean_ss, k=kts,bs="cr")+
-           s(BO2_salinitymean_ss, k=kts,bs="cr")+
-           inv_temp +
-           s(BO_damean, k=kts,bs="cr"),
-        family= Gamma (link='log'),
-        data = cov_benthos_ASSi,
-        na.action = na.exclude,
-        drop.unused.levels=TRUE,
-        method="REML"
-   )
-)
-
-# check 
-par(mfrow=c(2,2))
-lapply (GAM_benthos_rich_ASSi, function (i)
-   gam.check(i, pch=19,cex=.5))
-
-# refit
-kts.fit <- 5
-
-GAM_benthos_rich_ASSi <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                              s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                              inv_temp +
-                              s(BO_damean, k=kts.fit,bs="cr"),
-                           family= Gamma (link='log'),
-                           data = cov_benthos_ASSi,
-                           na.action = na.exclude,
-                           drop.unused.levels=TRUE,
-                           method="REML"
-)
-
-summary(GAM_benthos_rich_ASSi)
-
-# simplify
-s1_GAM_benthos_rich_ASSi <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                                 s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                                 inv_temp,
-                              family= Gamma (link='log'),
-                              data = cov_benthos_ASSi,
-                              na.action = na.exclude,
-                              drop.unused.levels=TRUE,
-                              method="REML")
-summary(s1_GAM_benthos_rich_ASSi)
-
-# compare
-anova(GAM_benthos_rich_ASSi, s1_GAM_benthos_rich_ASSi,test = "Chisq")
-
-# keep on simplifying
-s2_GAM_benthos_rich_ASSi <- gam (EST.rich ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                                 s(BO2_salinitymean_ss, k=kts.fit,bs="cr"),
-                              family= Gamma (link='log'),
-                              data = cov_benthos_ASSi,
-                              na.action = na.exclude,
-                              drop.unused.levels=TRUE,
-                              method="REML")
-
-# compare
-anova(s1_GAM_benthos_rich_ASSi, s2_GAM_benthos_rich_ASSi,test = "Chisq")
-
-# we can't simplify more
-plot(GAM_benthos_rich_ASSi,pages=1,shade.col="gray90",shade=T)
-gam.vcomp(s1_GAM_benthos_rich_ASSi)
-
-
-### ASSi
-
-## Functional diversity
-
-GAM_benthos_FD_ASSi <- lapply (kts, function (kts)
-   
-   gam (FD ~ 
-           s(BO2_ppmean_ss, k=kts,bs="cr")+
-           s(BO2_salinitymean_ss, k=kts,bs="cr")+
-           inv_temp +
-           s(BO_damean, k=kts,bs="cr"),
-        family= betar (link='logit'),
-        data = cov_benthos_ASSi,
-        na.action = na.exclude,
-        drop.unused.levels=TRUE,
-        method="REML"
-   )
-)
-
-# check 
-par(mfrow=c(2,2))
-lapply (GAM_benthos_FD_ASSi, function (i)
-   gam.check(i, pch=19,cex=.5))
-
-# refit
-kts.fit <- 6
-
-GAM_benthos_FD_ASSi <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                            s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                            inv_temp +
-                            s(BO_damean, k=kts.fit,bs="cr"),
-                         family=betar (link='logit'),
-                         data = cov_benthos_ASSi,
-                         na.action = na.exclude,
-                         drop.unused.levels=TRUE,
-                         method="REML"
-)
-
-summary(GAM_benthos_FD_ASSi)
-
-# simplify
-s1_GAM_benthos_FD_ASSi <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                               s(BO2_salinitymean_ss, k=kts.fit,bs="cr")+
-                               inv_temp,
-                            family= betar (link='logit'),
-                            data = cov_benthos_ASSi,
-                            na.action = na.exclude,
-                            drop.unused.levels=TRUE,
-                            method="REML")
-summary(s1_GAM_benthos_FD_ASSi)
-
-# compare
-anova(GAM_benthos_FD_ASSi, s1_GAM_benthos_FD_ASSi,test = "Chisq")
-
-# keep on simplifying
-s2_GAM_benthos_FD_ASSi <- gam (FD ~ s(BO2_ppmean_ss, k=kts.fit,bs="cr")+
-                               s(BO2_salinitymean_ss, k=kts.fit,bs="cr"),
-                            family= betar (link='logit'),
-                            data = cov_benthos_ASSi,
-                            na.action = na.exclude,
-                            drop.unused.levels=TRUE,
-                            method="REML")
-
-summary(s2_GAM_benthos_FD_ASSi)
-
-# compare
-anova(s1_GAM_benthos_FD_ASSi, s2_GAM_benthos_FD_ASSi,test = "Chisq")
-
-# we can't simplify more
-plot(s1_GAM_benthos_FD_ASSi,pages=1,shade.col="gray90",shade=T)
-gam.vcomp(s1_GAM_benthos_FD_ASSi)
-
+plot(exp(pred.vals$fit) ~ newd$BO2_ppmean_ss, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(5,25),
+     ylab = "Estimated benthos richness",
+     xlab = "Productivity")
+lines (exp(upr) ~  newd$BO2_ppmean_ss,lwd=2,col="gray50")
+lines (exp(lwr) ~  newd$BO2_ppmean_ss,lwd=2,col="gray50")
 
 #
 
+## newd
+newd <- data.frame (BO2_salinitymean_ss= seq (range(cov_benthos_MMS$BO2_salinitymean_ss)[1],
+                                              range(cov_benthos_MMS$BO2_salinitymean_ss)[2],
+                                              0.05),
+                    BO2_ppmean_ss=0)
+
+## data to predict (based on the model)
+pred.vals <- predict (model4,
+                      newdata = newd,
+                      type="link", # predictions in the link-function scale
+                      se.fit = T)
+# get confidence interval (in the link-function scale)
+upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
+lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+
+# plotting 
+
+plot(exp(pred.vals$fit) ~ newd$BO2_salinitymean_ss, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(5,25),
+     ylab = "Estimated fish richness",
+     xlab = "Salinity")
+lines (exp(upr) ~  newd$BO2_salinitymean_ss,lwd=2,col="gray50")
+lines (exp(lwr) ~  newd$BO2_salinitymean_ss,lwd=2,col="gray50")
+
+# -------------------------
+#      ASSi
+
+## Richness
+model1 <- glm (EST.rich ~ 
+                  poly(BO2_ppmean_ss, 2)+
+                  poly(BO2_salinitymean_ss, 2)+
+                  inv_temp +
+                  poly(BO_damean, 2),
+               family= Gamma (link='log'),
+               data = cov_benthos_ASSi,
+               na.action = na.exclude)
+
+# 
+summary (model1)
+
+# simplify
+model2 <- glm (EST.rich ~ 
+                  poly(BO2_ppmean_ss, 2)+
+                 inv_temp +
+                  poly(BO_damean, 2),
+               family= Gamma (link='log'),
+               data = cov_benthos_ASSi,
+               na.action = na.exclude)
+
+summary(model2)
+
+# compare them
+anova (model1,model2,test = "Chisq")
 
 
+# simplify again
+model3 <- glm (EST.rich ~ 
+                  poly(BO2_ppmean_ss, 2)+
+                  inv_temp ,
+               family= Gamma (link='log'),
+               data = cov_benthos_ASSi,
+               na.action = na.exclude)
 
+summary(model3)
 
+#
+anova (model2,model3, test = "Chisq")
 
+# simplify again
+model4 <- glm (EST.rich ~ 
+                  I(BO2_ppmean_ss^2)+
+                  inv_temp ,
+               family= Gamma (link='log'),
+               data = cov_benthos_ASSi,
+               na.action = na.exclude)
 
+summary(model4)
 
+#
+anova (model3,model4, test = "Chisq")
 
+# simplify again
+model5 <- glm (EST.rich ~ 
+                  inv_temp ,
+               family= Gamma (link='log'),
+               data = cov_benthos_ASSi,
+               na.action = na.exclude)
 
+summary(model5)
 
+#
+anova (model4,model5, test = "Chisq")
 
+## we can't simplify anymore
 
+## diagnose model fit
+plot(model5) 
 
+## check coeffs and other statistics
+summary (model5)
 
-## newdata to predict
-newd <- data.frame (BO2_ppmean_ss = seq (-2,2,0.1),
-                    BO2_salinitymean_ss=0)
-# predict
-p <- predict.gam(s2_GAM_fish_FD_ASSi,
-                 newdata=newd,
-                 type="link",
-                 se.fit=T)
-upr <- p$fit + (1.96 * p$fit)
-lwr <- p$fit - (1.96 * p$fit)
+## unadjusted R2
+# help here: https://stats.stackexchange.com/questions/46345/how-to-calculate-goodness-of-fit-in-glm-r
+round (with(summary(model5), 1 - deviance/null.deviance),2)
 
-plot(newd$BO2_ppmean_ss, 
-     p$fit,
-     lwd=2,type="l",
-     ylim = c(-10,4))
-lines (newd$BO2_ppmean_ss,
-       upr, lwd=1,col="gray")
-lines (newd$BO2_ppmean_ss,
-       lwr, lwd=1,col="gray")
+## newd
+newd <- data.frame (inv_temp= seq (range(cov_benthos_ASSi$inv_temp)[1],
+                                       range(cov_benthos_ASSi$inv_temp)[2],
+                                       0.05))
 
+## data to predict (based on the model)
+pred.vals <- predict (model5,
+                      newdata = newd,
+                      type="link", # predictions in the link-function scale
+                      se.fit = T)
+# get confidence interval (in the link-function scale)
+upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
+lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
 
+# plotting 
 
+plot(exp(pred.vals$fit) ~ newd$inv_temp, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(5,35),
+     ylab = "Estimated benthos richness",
+     xlab = "Temperature")
+lines (exp(upr) ~  newd$inv_temp,lwd=2,col="gray50")
+lines (exp(lwr) ~  newd$inv_temp,lwd=2,col="gray50")
 
+############################################################################
+# -------------------------------------------------------------------------
+#          Non-linear models
+#
+#           FUNCTIONAL DIVERSITY
+#
+# -------------------------------------------------------------------------
+############################################################################
 
+# ----------------
+#      FISH
+#-----------------
 
+# MMS
 
+## FD
+model1 <- glm (FD ~ poly(BO2_ppmean_ss, 2)+
+                  poly(BO2_salinitymean_ss,2)+
+                  inv_temp +
+                  poly(BO_damean, 2),
+               family = gaussian(link="identity"),
+               data = cov_fish_MMS,
+               na.action = na.exclude)
+#
+summary (model1)
 
+# simplify
+model2 <- glm (FD ~ poly(BO2_salinitymean_ss,2)+
+                  inv_temp +
+                  poly(BO_damean, 2),
+               family = gaussian(link="identity"),
+               data = cov_fish_MMS,
+               na.action = na.exclude)
 
+summary(model2)
+#
+anova (model1,model2, test = "Chisq")
 
+# simplify
+model3 <- glm (FD ~ inv_temp +
+                  poly(BO_damean, 2),
+               family = gaussian(link="identity"),
+               data = cov_fish_MMS,
+               na.action = na.exclude)
 
+summary(model3)
 
+# compare them
+anova(model2,
+      model3,test="Chisq")
 
+# simplify again
+model4 <- glm (FD ~ inv_temp +
+                  BO_damean,
+               family = gaussian(link="identity"),
+               data = cov_fish_MMS,
+               na.action = na.exclude)
 
+summary(model4)
 
-## newdata to predict
-newd <- data.frame (BO2_ppmean_ss = seq (-2,2,0.1),
-                    BO2_salinitymean_ss=0)
-# predict
-p <- predict.gam(s2_GAM_fish_FD_ASSi,
-                 newdata=newd,
-                 type="link",
-                 se.fit=T)
-upr <- p$fit + (1.96 * p$fit)
-lwr <- p$fit - (1.96 * p$fit)
+#
+anova(model3, model4,test="Chisq")
 
-plot(newd$BO2_ppmean_ss, 
-     p$fit,
-     lwd=2,type="l",
-     ylim = c(-10,4))
-lines (newd$BO2_ppmean_ss,
-       upr, lwd=1,col="gray")
-lines (newd$BO2_ppmean_ss,
-       lwr, lwd=1,col="gray")
+## we can't simplify anymore
+
+## diagnose model fit
+plot(model3,pages=1) 
+
+## check coeffs and other statistics
+## pseudo R2
+summary (model3)
+
+## newd
+newd <- data.frame (inv_temp=0,
+                    BO_damean=seq (range(cov_fish_MMS$BO_damean)[1],
+                                   range(cov_fish_MMS$BO_damean)[2],
+                                   0.05))
+
+## data to predict (based on the model)
+## help here : https://stats.stackexchange.com/questions/230501/variance-vs-standard-deviation-in-beta-regression/230681#230681
+pred.resp <- predict (model3,
+                      newdata = newd,
+                      type= "link",
+                      se.fit=T)
+
+upr <- pred.resp$fit+(2*pred.resp$se.fit)
+lwr <- pred.resp$fit-(2*pred.resp$se.fit)
+
+# plotting 
+
+plot(pred.resp$fit ~ newd$BO_damean, ## plogis is because the inverse of log-link in its plogisonential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(0,0.3),
+     ylab = "Estimated functional diversity",
+     xlab = "Turbidity")
+lines (upr ~  newd$BO_damean,lwd=2,col="gray50")
+lines (lwr ~  newd$BO_damean,lwd=2,col="gray50")
+points (cov_fish_MMS$FD ~ cov_fish_MMS$BO_damean,
+        col=rgb(0,0,0.2,alpha=0.1),pch=19)
+
+#
+
+## newd
+newd <- data.frame (BO_damean=0,
+                    inv_temp=seq (range(cov_fish_MMS$inv_temp)[1],
+                                   range(cov_fish_MMS$inv_temp)[2],
+                                   0.05))
+
+## data to predict (based on the model)
+## help here : https://stats.stackexchange.com/questions/230501/variance-vs-standard-deviation-in-beta-regression/230681#230681
+pred.resp <- predict (model3,
+                      newdata = newd,
+                      type= "link",
+                      se.fit=T)
+
+upr <- pred.resp$fit+(2*pred.resp$se.fit)
+lwr <- pred.resp$fit-(2*pred.resp$se.fit)
+
+# plotting 
+
+plot(pred.resp$fit ~ newd$inv_temp, ## plogis is because the inverse of log-link in its plogisonential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(0,0.3),
+     ylab = "Estimated functional diversity",
+     xlab = "Temperature")
+lines (upr ~  newd$inv_temp,lwd=2,col="gray50")
+lines (lwr ~  newd$inv_temp,lwd=2,col="gray50")
+
+points (cov_fish_MMS$FD ~ cov_fish_MMS$inv_temp,
+        col=rgb(0,0,0.2,alpha=0.2),pch=19)
+
+## newd
+newd <- data.frame (BO2_ppmean_ss=seq (range(cov_fish_MMS$BO2_ppmean_ss)[1],
+                                       range(cov_fish_MMS$BO2_ppmean_ss)[2],
+                                       0.05),
+                    BO2_salinitymean_ss=0,
+                    BO_damean=0)
+
+## data to predict (based on the model)
+## help here : https://stats.stackexchange.com/questions/230501/variance-vs-standard-deviation-in-beta-regression/230681#230681
+pred.resp <- predict (model2,
+                      newdata = newd,
+                      type= "link",
+                      se.fit=T)
+
+upr <- pred.resp$fit+(2*pred.resp$se.fit)
+lwr <- pred.resp$fit-(2*pred.resp$se.fit)
+
+# plotting 
+
+plot(plogis(pred.resp$fit) ~ newd$BO2_ppmean_ss, ## plogis is because the inverse of log-link in its plogisonential - see basics of GLM Poisson 
+     col = "darkred",
+     type="l",
+     lwd =3,
+     ylim=c(0,0.3),
+     ylab = "Estimated fish functional diversity",
+     xlab = "Productivity")
+lines (plogis(upr) ~  newd$BO2_ppmean_ss,lwd=2,col="gray50")
+lines (plogis(lwr) ~  newd$BO2_ppmean_ss,lwd=2,col="gray50")
