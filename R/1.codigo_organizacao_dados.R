@@ -7,6 +7,7 @@
 ## call packages
 source("R/packages.R")
 source("R/functions.R")
+source("R/function_lomolino_richness.R")
 
 # Load data
 
@@ -32,6 +33,7 @@ bentos$Taxon <- tolower (bentos$Taxon)
 ## dados dos peixes
 peixes <- read.xlsx(here("data","detection","UpdatedData_RMorais_et_al_2017.xlsx"),
                     sheet = 1, colNames = TRUE,detectDates=F)
+
 ## converter data em data - bug do pacote openxlsx
 peixes$eventDate <-convertToDate(peixes$eventDate)
 
@@ -107,7 +109,18 @@ rar_peixes <- lapply (unique (peixes_subset$Site), function (i)
 rarefied_richness_fish <- lapply (rar_peixes, 
                                   specaccum,
                                   method="random", 
-                                  permutations=9999)
+                                  permutations=9)
+
+
+# rarefaction based on Lomolino function (from Diego Barneche)
+vegan_data <- data.frame(ln_richness = log(rarefied_richness_fish[[1]]$richness), 
+                         sample = rarefied_richness_fish[[1]]$sites,
+                         iter =100)
+model <- run_lomolino_model(vegan_data)
+
+#Desse modelo voc? pode extrair a estimativa m?dia de lnasym, que representa a riqueza m?xima estimada daquele s?tio.
+
+asymp <- exp(fixefs(model)["lnasym_Intercept", "Estimate"])
 
 ### plotting 
 par (mfrow=c(1,1))
@@ -121,8 +134,9 @@ lapply (rarefied_richness_fish,plot,add=T)
 abline(v=5,lwd=2,col="gray50",lty=2)
 
 ##---------------------------------- ## 
-# based on minimum number of samples
+# richness estimate based on the minimum number of samples
 ## ---------------------------------- ##
+
 min_samples <- sapply (rarefied_richness_fish,"[[","sites")
 # finding the minimum number of samples across sites
 min_samples<- min(unlist(sapply (min_samples,max,simplify=F)))
@@ -217,8 +231,8 @@ rdm_composition_complete <-lapply (rdm_composition, function (i)
 rdm_composition_complete
 
 # -------------------------------------------------------------------- #
-# 2) random sample based on min samples
-# based on asymptote (Standard deviation of estimates > 1 and != 0)
+# 2) random sample based on asymptote 
+#  (Standard deviation of estimates > 1 and != 0)
 #--------------------------------------------------------------------- #
 
 ## df with extracted estimates

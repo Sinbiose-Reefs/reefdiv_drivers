@@ -13,6 +13,7 @@ source("R/quality_funct_space_fromdist2.R")
 # Load rarefied data of fishes and benthos
 # sites x transect / video x species
 # ------------------------------------------ #
+
 load (here ("output","random_composition_bentos.RData"))
 load (here ("output","random_composition_fish.RData"))
 
@@ -64,8 +65,15 @@ rownames(fish_traits2) <- fish_traits2$Name
 fish_traits2 <- fish_traits2[,-1]
 fish_traits2 <- fish_traits2[order(rownames(fish_traits2)),]
 fish_traits2$Body_size <- as.numeric(fish_traits2$Body_size)
+
 ### transform body size
-size <-log (fish_traits2$Body_size) # log the size 
+size <- (fish_traits2$Body_size) # log the size 
+# discreticize
+size  <- sapply(fish_traits2$Body_size, function(x) {if (x<=50) {1} 
+   else if (x>=50&x<100) {2} 
+   else if (x>=100&x<150) {3}
+   else if (x>=150) {4}}
+)
 
 ### here transform each ordered category in 1, 2, 3.... 
 mobility  <- sapply(fish_traits2$Home_range, function(x) {if (x=="sed") {1} 
@@ -91,7 +99,7 @@ level  <-ordered (level)
 schooling <-ordered (schooling) 
 
 ### all traits into a dataframe
-fish_traits_ord <-data.frame (Size=as.numeric(size), 
+fish_traits_ord <-data.frame (Size=ordered(size), 
                               Mobility=ordered (mobility), 
                               Activity=as.factor (fish_traits2$Diel_activity), 
                               Schooling=ordered (schooling), 
@@ -102,7 +110,6 @@ fish_traits_ord <-data.frame (Size=as.numeric(size),
                               Mouth_position=as.factor(fish_traits2$Mouth_position))
 
 rownames(fish_traits_ord) <- rownames(fish_traits2)
-
 
 #----------------------------------#
 #      Load benthos trait dataset
