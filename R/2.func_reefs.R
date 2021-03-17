@@ -155,106 +155,10 @@ bent_traits_ord <-data.frame (body_size=ordered (benthos_body_size),
 
 rownames(bent_traits_ord) <- rownames(bent_traits2)
 
+
 # --------------------------------------------------------------------- #
 #    Functional diversity per site, data set, and sample size def
 # --------------------------------------------------------------------- #
-
-# function
-
-function_FD <- function (site.data, spp.trait.data) {
-      
-      #---------------------------------------------------#
-      # Adjust fish abundance data to relative abundance
-      #-------------------------------------------------- #
-      
-      abund_matrix <- site.data[,which(colnames(site.data) %in% rownames(spp.trait.data))] 
-      rel_abund <- abund_matrix/rowSums(abund_matrix) # relative abundance/cover
-      quais_sitios_manter <-which(is.na (rowSums (rel_abund))!= T) 
-      rel_abund <- rel_abund [quais_sitios_manter,]
-      rel_abund <- rel_abund [,which(colSums (rel_abund) > 0)]
-      
-      # and match fish spp in both datasets
-      fish_traits_ord_match <- spp.trait.data[which(rownames(spp.trait.data) %in% colnames (rel_abund)),]
-      
-      ## ---------------------------------- ##
-      ## Building the gower distance matrix ##
-      ## ---------------------------------- ##
-      
-      gower_matrix <- daisy (fish_traits_ord_match, metric=c("gower")) 
-      
-      ## ---------------------------------------------- ##
-      ## Building the functional space based on a PCOA 
-      ## quasieuclid() transformation to make the gower matrix as euclidean. nf= number of axis 
-      ## ---------------------------------------------- ##
-      
-      pco<-dudi.pco(quasieuclid(gower_matrix), scannf=F, nf=10) 
-      
-      ### barplot of eigenvalues for each axis 
-      barplot(pco$eig) 
-      
-      ### calculate and show percentage of inertia explained by the two first axes
-      (Inertia2<-(pco$eig[1]+pco$eig[2]) /(sum(pco$eig))) 
-      
-      ## ----------------------------------------------------- ##
-      # Testing the Quality of the functional space based on the method 
-      # of Maire et al. (2015) in GEB, i.e. how many axes do we need to keep to 
-      # faithfully represent the original Gower's distances.
-      # The function will test the quality of the space from 2 to n axes using 
-      # dudi.pco(quasieuclid(gower_matrix), scannf=F, nf=10)
-      ## ------------------------------------------------------ ##
-      
-      quality<-quality_funct_space_fromdist( gower_matrix,  nbdim=10,   
-                                             plot="quality_funct_space_I") 
-      
-      ### the minimal value corresponds to the best space to use (min SD)
-      axes_to_choose <- which(quality$meanSD == min(quality$meanSD)) 
-      ### calculate and show the percentage of inertia explained by the choosen axes
-      (Inertia7<- (sum(pco$eig[1:axes_to_choose])) /(sum(pco$eig))) 
-      
-      ### Method with dbFD() 
-      fd <- dbFD (gower_matrix, rel_abund, 
-                  corr ="none", 
-                  w.abun = T,
-                  m = 5, 
-                  stand.FRic = TRUE,
-                  print.pco = TRUE,
-                  calc.FGR = F,
-                  clust.type = "kmeans")
-      
-      ### in the case of samples with too few species
-      fd_indexes  <- data.frame (matrix (NA, ncol=8,nrow=nrow(rel_abund),
-                                         dimnames = list (NULL,
-                                                          c("nbsp",
-                                                            "sing",
-                                                            "FRic",
-                                                            "qual.FRic",
-                                                            "FEve",
-                                                            "FDiv",
-                                                            "FDis",
-                                                            "RaoQ"))))
-      
-      fd_indexes [quais_sitios_manter,1] <- fd$nbsp
-      fd_indexes[quais_sitios_manter,2] <- fd$sing.sp
-      fd_indexes[quais_sitios_manter,3] <- fd$FRic
-      fd_indexes[quais_sitios_manter,4] <- fd$qual.FRic
-      fd_indexes[quais_sitios_manter,5] <- fd$FEve
-      fd_indexes[quais_sitios_manter,6] <- fd$FDiv
-      fd_indexes[quais_sitios_manter,7] <- fd$FDis
-      fd_indexes[quais_sitios_manter,8] <- fd$RaoQ
-      
-      ### list with results
-      results <- list (Fdindexes = fd_indexes,
-                       chosenAxes = axes_to_choose,
-                       InertiaPCO=Inertia2,
-                       InertiaQuality=Inertia7,
-                       explanAxes=pco$eig/sum(pco$eig),
-                       convexHullVolume=convhulln(fd$x.axes[,1:axes_to_choose],output.options = T)$vol,
-                       convexHullArea=convhulln(fd$x.axes[,1:axes_to_choose],output.options = T)$area,
-                       axesPCO=fd$x.axes)
-
-      return (results)
-      
-}
 
 # ------
 # Fish
@@ -275,11 +179,14 @@ clusterExport(cl, c("rdm_composition_complete",
                     "quality_funct_space_fromdist"))
 
 FD_fish_MSS <- parLapply (cl, 
-                          rdm_composition_complete, function (i)
+                          rdm_composition_complete, function (i) {
    
-                             function_FD (i, fish_traits_ord)
+                           tryCatch ( function_FD (i, fish_traits_ord),
+                                      error = function (e)
+                                        return (e)
+                           )
 
-                          )
+                          })
 
 stopCluster (cl)
 
@@ -299,15 +206,44 @@ clusterExport(cl, c("rdm_composition_asymptote_complete",
                     "quality_funct_space_fromdist"))
 
 FD_fish_ASSi <- parLapply (cl, 
-                           rdm_composition_asymptote_complete, function (i)
+                           rdm_composition_asymptote_complete, function (i) {
                              
-                             function_FD (i, fish_traits_ord)
-                          
-)
+                             tryCatch (function_FD (i, fish_traits_ord),
+                                       error = function (e)
+                                         return (e)
+                                       )
+                           })
 
 stopCluster (cl)
 
 save (FD_fish_ASSi, file=here("output","FD_fish_ASSi.RData"))
+
+
+### tests using composition obtained by Lomolino function
+nc<-3
+cl <- makeCluster(nc) ## number of cores = generally ncores -1
+
+# exportar pacote para os cores
+clusterEvalQ(cl, library(FD))
+clusterEvalQ(cl, library(cluster))
+
+# export your data and function
+clusterExport(cl, c("rdm_composition_lomolino_complete", 
+                    "fish_traits_ord",
+                    "function_FD",
+                    "quality_funct_space_fromdist"))
+
+FD_fish_lomolino <- parLapply (cl, 
+                               rdm_composition_lomolino_complete, function (i) {
+                                  
+                                  tryCatch (function_FD (i, fish_traits_ord),
+                                            error = function (e) 
+                                               return (e))
+                               })
+
+stopCluster (cl)
+
+save (FD_fish_lomolino, file=here("output","FD_fish_lomolino.RData"))
 
 # ------
 # Benthos
@@ -327,9 +263,12 @@ clusterExport(cl, c("rdm_composition_complete_bentos",
                     "quality_funct_space_fromdist"))
 
 FD_benthos_MSS <- parLapply (cl, 
-                           rdm_composition_complete_bentos, function (i)
-                              
-                              function_FD (i, bent_traits_ord)
+                           rdm_composition_complete_bentos, function (i){
+                                 
+                                 tryCatch (function_FD (i, bent_traits_ord),
+                                            error = function (e) 
+                                              return (e))
+                                 }
                            
 )
 
@@ -352,9 +291,12 @@ clusterExport(cl, c("rdm_composition_asymptote_complete_bentos",
                     "quality_funct_space_fromdist"))
 
 FD_benthos_ASSi <- parLapply (cl, 
-                             rdm_composition_asymptote_complete_bentos, function (i)
-                                
-                                function_FD (i, bent_traits_ord)
+                             rdm_composition_asymptote_complete_bentos, function (i){
+                                 
+                                 tryCatch (function_FD (i, bent_traits_ord),
+                                            error = function (e) 
+                                              return (e))
+                                 }
                              
 )
 
@@ -362,3 +304,30 @@ stopCluster (cl)
 
 save (FD_benthos_ASSi, file=here("output","FD_benthos_ASSi.RData"))
 
+## function lomolino
+
+cl <- makeCluster(nc) ## number of cores = generally ncores -1
+
+# exportar pacote para os cores
+clusterEvalQ(cl, library(FD))
+clusterEvalQ(cl, library(cluster))
+
+# export your data and function
+clusterExport(cl, c("rdm_composition_lomolino_complete_bentos", 
+                    "bent_traits_ord",
+                    "function_FD",
+                    "quality_funct_space_fromdist"))
+
+FD_benthos_lomolino <- parLapply (cl, 
+                                  rdm_composition_lomolino_complete_bentos, function (i){
+                                     
+                                     tryCatch (function_FD (i, bent_traits_ord),
+                                               error = function (e) 
+                                                  return (e))
+                                  }
+                                  
+)
+
+stopCluster (cl)
+
+save (FD_benthos_lomolino, file=here("output","FD_benthos_lomolino.RData"))

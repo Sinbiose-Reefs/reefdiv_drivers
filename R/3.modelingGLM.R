@@ -1,7 +1,7 @@
 
 # ----------------------------------------------------------------------------#
 #    routine to modeling fish and benthos SR and FD  relative to environment
-#                          using GAM
+#                          using GLM
 # ----------------------------------------------------------------------------#
 
 ## chamar os pacotes
@@ -21,8 +21,11 @@ load (here ("output","random_composition_fish.RData"))
 
 load (here ("output","FD_fish_ASSi.RData"))
 load (here ("output","FD_fish_MSS.RData"))
+load (here ("output","FD_fish_lomolino.RData"))
+
 load (here ("output","FD_benthos_ASSi.RData"))
 load (here ("output","FD_benthos_MSS.RData"))
+load (here ("output","FD_benthos_lomolino.RData"))
 
 # ------------------------------------------ #
 #
@@ -30,272 +33,892 @@ load (here ("output","FD_benthos_MSS.RData"))
 
 load (here ("output","env_data.RData"))
 
+
+#################################################################
+## PROCESSING DATA FOR MODELING
+
+# ------------------------------- #
 # minimum sample size
+
+## FRIC
+
 ### fish 
-FRic_fish_MSS <- do.call (cbind ,sapply (
+FRic_fish_MSS <- sapply (
    sapply (FD_fish_MSS, "[", "Fdindexes"),"[", "FRic")
-   )
+# rm estimates that did not work
+FRic_fish_MSS <- do.call(cbind,
+                         FRic_fish_MSS [(which(unlist(lapply (lapply (FRic_fish_MSS,dim),is.null)) != TRUE))])
+
 # get the average
 av_FRic_fish_MSS <- apply (FRic_fish_MSS,1,mean,na.rm=T)
 
 ### benthos
-FRic_benthos_MSS <- do.call (cbind, sapply (
+FRic_benthos_MSS <- sapply (
    sapply (FD_benthos_MSS, "[", "Fdindexes"),"[", "FRic")
-   )
+# rm estimates that did not work
+FRic_benthos_MSS <- do.call(cbind,
+                            FRic_benthos_MSS [(which(unlist(lapply (lapply (FRic_benthos_MSS,length),is.null)) != TRUE))])
+
 # get the average
 av_FRic_benthos_MSS <- apply (FRic_benthos_MSS,1,mean,na.rm=T)
 
-# asyntotic sample size
-### fish
-FRic_fish_ASSi <- do.call (cbind, sapply (
-   sapply (FD_fish_ASSi, "[", "Fdindexes"),"[", "FRic")
-   )
+# Feve
+
+### fish 
+FEve_fish_MSS <- sapply (
+   sapply (FD_fish_MSS, "[", "Fdindexes"),"[", "FEve")
+# rm estimates that did not work
+FEve_fish_MSS <- do.call(cbind,
+                         FEve_fish_MSS [(which(unlist(lapply (lapply (FEve_fish_MSS,dim),is.null)) != TRUE))])
+
 # get the average
-av_FRic_fish_ASSi <- apply (FRic_fish_ASSi,1,mean,na.rm=T)
+av_FEve_fish_MSS <- apply (FEve_fish_MSS,1,mean,na.rm=T)
 
 ### benthos
-FRic_benthos_ASSi <- do.call (cbind, sapply (
-   sapply (FD_benthos_ASSi, "[", "Fdindexes"),"[", "FRic")
-   )
+FEve_benthos_MSS <- sapply (
+   sapply (FD_benthos_MSS, "[", "Fdindexes"),"[", "FEve")
+# rm estimates that did not work
+FEve_benthos_MSS <- do.call(cbind,
+                            FEve_benthos_MSS [(which(unlist(lapply (lapply (FEve_benthos_MSS,length),is.null)) != TRUE))])
+
 # get the average
-av_FRic_benthos_ASSi <- apply (FRic_benthos_ASSi,1,mean,na.rm=T)
+av_FEve_benthos_MSS <- apply (FEve_benthos_MSS,1,mean,na.rm=T)
+
+## FDIV
+
+### fish 
+FDiv_fish_MSS <- sapply (
+   sapply (FD_fish_MSS, "[", "Fdindexes"),"[", "FDiv")
+# rm estimates that did not work
+FDiv_fish_MSS <- do.call(cbind,
+                         FDiv_fish_MSS [(which(unlist(lapply (lapply (FDiv_fish_MSS,dim),is.null)) != TRUE))])
+
+# get the average
+av_FDiv_fish_MSS <- apply (FDiv_fish_MSS,1,mean,na.rm=T)
+
+### benthos
+FDiv_benthos_MSS <- sapply (
+   sapply (FD_benthos_MSS, "[", "Fdindexes"),"[", "FDiv")
+# rm estimates that did not work
+FDiv_benthos_MSS <- do.call(cbind,
+                            FDiv_benthos_MSS [(which(unlist(lapply (lapply (FDiv_benthos_MSS,length),is.null)) != TRUE))])
+
+# get the average
+av_FDiv_benthos_MSS <- apply (FDiv_benthos_MSS,1,mean,na.rm=T)
+
+# ------------------------------- #
+# Precision Based sample size
+
+# FRic
+### fish 
+FRic_fish_PSS <- sapply (
+   sapply (FD_fish_ASSi, "[", "Fdindexes"),"[", "FRic")
+# rm estimates that did not work
+FRic_fish_PSS <- do.call(cbind,
+                         FRic_fish_PSS [(which(unlist(lapply (lapply (FRic_fish_PSS,dim),is.null)) != TRUE))])
+
+# get the average
+av_FRic_fish_PSS <- apply (FRic_fish_PSS,1,mean,na.rm=T)
+
+### benthos
+FRic_benthos_PSS <- sapply (
+   sapply (FD_benthos_ASSi, "[", "Fdindexes"),"[", "FRic")
+# rm estimates that did not work
+FRic_benthos_PSS <- do.call(cbind,
+                            FRic_benthos_PSS [(which(unlist(lapply (lapply (FRic_benthos_PSS,length),is.null)) != TRUE))])
+
+# get the average
+av_FRic_benthos_PSS <- apply (FRic_benthos_PSS,1,mean,na.rm=T)
+
+# FEve
+
+### fish 
+FEve_fish_PSS <- sapply (
+   sapply (FD_fish_ASSi, "[", "Fdindexes"),"[", "FEve")
+# rm estimates that did not work
+FEve_fish_PSS <- do.call(cbind,
+                         FEve_fish_PSS [(which(unlist(lapply (lapply (FEve_fish_PSS,dim),is.null)) != TRUE))])
+
+# get the average
+av_FEve_fish_PSS <- apply (FEve_fish_PSS,1,mean,na.rm=T)
+
+### benthos
+FEve_benthos_PSS <- sapply (
+   sapply (FD_benthos_ASSi, "[", "Fdindexes"),"[", "FEve")
+# rm estimates that did not work
+FEve_benthos_PSS <- do.call(cbind,
+                            FEve_benthos_PSS [(which(unlist(lapply (lapply (FEve_benthos_PSS,length),is.null)) != TRUE))])
+
+# get the average
+av_FEve_benthos_PSS <- apply (FEve_benthos_PSS,1,mean,na.rm=T)
+
+# FDiv
+
+### fish 
+FDiv_fish_PSS <- sapply (
+   sapply (FD_fish_ASSi, "[", "Fdindexes"),"[", "FDiv")
+# rm estimates that did not work
+FDiv_fish_PSS <- do.call(cbind,
+                         FDiv_fish_PSS [(which(unlist(lapply (lapply (FDiv_fish_PSS,dim),is.null)) != TRUE))])
+
+# get the average
+av_FDiv_fish_PSS <- apply (FDiv_fish_PSS,1,mean,na.rm=T)
+
+### benthos
+FDiv_benthos_PSS <- sapply (
+   sapply (FD_benthos_ASSi, "[", "Fdindexes"),"[", "FDiv")
+# rm estimates that did not work
+FDiv_benthos_PSS <- do.call(cbind,
+                            FDiv_benthos_PSS [(which(unlist(lapply (lapply (FDiv_benthos_PSS,length),is.null)) != TRUE))])
+
+# get the average
+av_FDiv_benthos_PSS <- apply (FDiv_benthos_PSS,1,mean,na.rm=T)
+
+# ------------------------------- #
+# LOMOLINO'S FUNCTION
+
+# FRic
+### fish 
+FRic_fish_lomolino <- sapply (
+   sapply (FD_fish_lomolino, "[", "Fdindexes"),"[", "FRic")
+# rm estimates that did not work
+FRic_fish_lomolino <- do.call(cbind,
+                              FRic_fish_lomolino [(which(unlist(lapply (lapply (FRic_fish_lomolino,length),is.null)) != TRUE))])
+
+# get the average
+av_FRic_fish_lomolino <- apply (FRic_fish_lomolino,1,mean,na.rm=T)
+
+### benthos
+FRic_benthos_lomolino <- sapply (
+   sapply (FD_benthos_lomolino, "[", "Fdindexes"),"[", "FRic")
+# rm estimates that did not work
+FRic_benthos_lomolino <- do.call(cbind,
+                                 FRic_benthos_lomolino [(which(unlist(lapply (lapply (FRic_benthos_lomolino,dim),is.null)) != TRUE))])
+
+# get the average
+av_FRic_benthos_lomolino <- apply (FRic_benthos_lomolino,1,mean,na.rm=T)
+
+## FEve
+
+### fish 
+FEve_fish_lomolino <- sapply (
+   sapply (FD_fish_lomolino, "[", "Fdindexes"),"[", "FEve")
+# rm estimates that did not work
+FEve_fish_lomolino <- do.call(cbind,
+                              FEve_fish_lomolino [(which(unlist(lapply (lapply (FEve_fish_lomolino,length),is.null)) != TRUE))])
+
+# get the average
+av_FEve_fish_lomolino <- apply (FEve_fish_lomolino,1,mean,na.rm=T)
+
+### benthos
+FEve_benthos_lomolino <- sapply (
+   sapply (FD_benthos_lomolino, "[", "Fdindexes"),"[", "FEve")
+# rm estimates that did not work
+FEve_benthos_lomolino <- do.call(cbind,
+                                 FEve_benthos_lomolino [(which(unlist(lapply (lapply (FEve_benthos_lomolino,dim),is.null)) != TRUE))])
+
+# get the average
+av_FEve_benthos_lomolino <- apply (FEve_benthos_lomolino,1,mean,na.rm=T)
+
+## FDIV
+
+### fish 
+FDiv_fish_lomolino <- sapply (
+   sapply (FD_fish_lomolino, "[", "Fdindexes"),"[", "FDiv")
+# rm estimates that did not work
+FDiv_fish_lomolino <- do.call(cbind,
+                              FDiv_fish_lomolino [(which(unlist(lapply (lapply (FDiv_fish_lomolino,length),is.null)) != TRUE))])
+
+# get the average
+av_FDiv_fish_lomolino <- apply (FDiv_fish_lomolino,1,mean,na.rm=T)
+
+### benthos
+FDiv_benthos_lomolino <- sapply (
+   sapply (FD_benthos_lomolino, "[", "Fdindexes"),"[", "FDiv")
+# rm estimates that did not work
+FDiv_benthos_lomolino <- do.call(cbind,
+                                 FDiv_benthos_lomolino [(which(unlist(lapply (lapply (FDiv_benthos_lomolino,dim),is.null)) != TRUE))])
+
+# get the average
+av_FDiv_benthos_lomolino <- apply (FDiv_benthos_lomolino,1,mean,na.rm=T)
+
+
+# ------------------------------------------------------- #
+## bind FISH data to test correlation
+
+# MSS
+
+res_table_samples <- cbind (res_table_samples,
+       FRic=av_FRic_fish_MSS,
+       FEve=av_FEve_fish_MSS,
+       FDiv=av_FDiv_fish_MSS)
+       
+# PSSi
+
+res_sp_accum_fish_asymptote <- cbind (res_sp_accum_fish_asymptote,
+       FRic=ifelse (is.na (res_sp_accum_fish_asymptote$EST.Rich) == F,
+                  av_FRic_fish_PSS, NA),
+       FEve=ifelse (is.na (res_sp_accum_fish_asymptote$EST.Rich) == F,
+                    av_FEve_fish_PSS, NA),
+       FDiv=ifelse (is.na (res_sp_accum_fish_asymptote$EST.Rich) == F,
+                    av_FDiv_fish_PSS, NA))
+
+# lomolino
+
+res_lomolino <- cbind (res_lomolino, 
+         FRic = ifelse ( res_lomolino[,1] < res_lomolino[,2], 
+                  av_FRic_fish_lomolino, NA),
+       
+       FEve = ifelse ( res_lomolino[,1] < res_lomolino[,2], 
+                       av_FEve_fish_lomolino, NA),
+       FDiv = ifelse ( res_lomolino[,1] < res_lomolino[,2], 
+                       av_FDiv_fish_lomolino, NA))
+# ------------------------------ #       
+# correlation between indexes - FISH
+
+## MSS 
+
+cormat_MSS_fish <-  (cbind (Richness=res_table_samples$EST.Rich,
+                            FRic=res_table_samples$FRic,
+                            FEve=res_table_samples$FEve,
+                            FDiv=res_table_samples$FDiv)
+)
+
+res1 <- cor.mtest(cormat_MSS_fish, conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_MSS_fish.pdf"),width=6,heigh=5)
+corrplot(cor(cormat_MSS_fish), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+## PSSi
+cormat_PSS_fish <-   cbind (Richness= res_sp_accum_fish_asymptote$EST.Rich,
+                            FRic = res_sp_accum_fish_asymptote$FRic,
+                            FEve = res_sp_accum_fish_asymptote$FEve,
+                            FDiv = res_sp_accum_fish_asymptote$FDiv)[which(is.na(res_sp_accum_fish_asymptote$EST.Rich)!= T),]
+
+res1 <- cor.mtest(cormat_PSS_fish, conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_PSSi_fish.pdf"),width=6,heigh=5)
+corrplot(cor(cormat_PSS_fish), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+
+## lomolino's S50
+cormat_S50_fish <- cbind (Richness = res_lomolino[,"asymp"],
+                          FRic = res_lomolino [,"FRic"],
+                          FEve = res_lomolino [,"FEve"],
+                          FDiv = res_lomolino [,"FDiv"])[which(is.na(res_lomolino[,"FRic"])!= T),]
+
+res1 <- cor.mtest(cormat_S50_fish, conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_S50_fish.pdf"),width=6,heigh=5)
+corrplot(cor(cormat_S50_fish), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+# ------------------------------ #       
+# correlation between algorithms - FISH
+
+## richness 
+estimates_alg <- cbind (MSS =res_table_samples$EST.Rich,
+                        PSSi=res_sp_accum_fish_asymptote$EST.Rich,
+                        S50=res_lomolino[,"asymp"])
+
+res1 <- cor.mtest(estimates_alg[which(is.na(estimates_alg[,2] )!= T),], conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_rich_algorithm_fish.pdf"),width=6,heigh=5)
+corrplot(cor(estimates_alg[which(is.na(estimates_alg[,2] )!= T),]), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+# FRic
+
+estimates_alg_FRic <- cbind (MSS=res_table_samples$FRic,
+                             PSSi=res_sp_accum_fish_asymptote$FRic,
+                             S50=res_lomolino[,"FRic"])
+
+res1 <- cor.mtest(estimates_alg_FRic[which(is.na(estimates_alg_FRic[,2]) !=T & 
+                                              (is.na(estimates_alg_FRic[,3]) !=T)),], 
+                  conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_FRic_algorithm_fish.pdf"),width=6,heigh=5)
+corrplot(cor(estimates_alg_FRic[which(is.na(estimates_alg_FRic[,2]) !=T & 
+                                         (is.na(estimates_alg_FRic[,3]) !=T)),]), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+# FEve
+
+estimates_alg_FEve <- cbind (MSS=res_table_samples$FEve,
+                             PSSi=res_sp_accum_fish_asymptote$FEve,
+                             S50=res_lomolino[,"FEve"])
+
+res1 <- cor.mtest(estimates_alg_FEve[which(is.na(estimates_alg_FEve[,2]) !=T & 
+                                              (is.na(estimates_alg_FEve[,3]) !=T)),], 
+                  conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_FEve_algorithm_fish.pdf"),width=6,heigh=5)
+corrplot(cor(estimates_alg_FEve[which(is.na(estimates_alg_FEve[,2]) !=T & 
+                                         (is.na(estimates_alg_FEve[,3]) !=T)),]), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+
+# FDiv
+
+estimates_alg_FDiv <- cbind (MSS=res_table_samples$FDiv,
+                             PSSi=res_sp_accum_fish_asymptote$FDiv,
+                             S50=res_lomolino[,"FDiv"])
+
+res1 <- cor.mtest(estimates_alg_FDiv[which(is.na(estimates_alg_FDiv[,2]) !=T & 
+                                              (is.na(estimates_alg_FDiv[,3]) !=T)),], 
+                  conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_FDiv_algorithm_fish.pdf"),width=6,heigh=5)
+corrplot(cor(estimates_alg_FDiv[which(is.na(estimates_alg_FDiv[,2]) !=T & 
+                                         (is.na(estimates_alg_FDiv[,3]) !=T)),]), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+
+
+## average values of indexes
+
+rbind (apply(estimates_alg,2,mean,na.rm=T),
+       apply(estimates_alg_FRic,2,mean,na.rm=T),
+       apply(estimates_alg_FEve,2,mean,na.rm=T),
+       apply(estimates_alg_FDiv,2,mean,na.rm=T)
+)
+
+## sd
+rbind (apply(estimates_alg,2,sd,na.rm=T),
+       apply(estimates_alg_FRic,2,sd,na.rm=T),
+       apply(estimates_alg_FEve,2,sd,na.rm=T),
+       apply(estimates_alg_FDiv,2,sd,na.rm=T)
+)
+
+# ---------------- #
+# Benthos
+# bind benthos data to test correlation
+
+# MSS
+
+res_table_samples_bentos <- cbind (res_table_samples_bentos,
+                            FRic=av_FRic_benthos_MSS,
+                            FEve=av_FEve_benthos_MSS,
+                            FDiv=av_FDiv_benthos_MSS)
+
+# PSSi
+
+res_sp_accum_bentos_asymptote <- cbind (res_sp_accum_bentos_asymptote,
+                                      FRic=ifelse (is.na (res_sp_accum_bentos_asymptote$EST.Rich) == F,
+                                                   av_FRic_benthos_PSS, NA),
+                                      FEve=ifelse (is.na (res_sp_accum_bentos_asymptote$EST.Rich) == F,
+                                                   av_FEve_benthos_PSS, NA),
+                                      FDiv=ifelse (is.na (res_sp_accum_bentos_asymptote$EST.Rich) == F,
+                                                   av_FDiv_benthos_PSS, NA))
+
+# lomolino
+
+res_lomolino_bentos <- cbind (res_lomolino_bentos, 
+                       FRic = ifelse ( res_lomolino_bentos[,1] < res_lomolino_bentos[,2], 
+                                       av_FRic_benthos_lomolino, NA),
+                       FEve = ifelse ( res_lomolino_bentos[,1] < res_lomolino_bentos[,2], 
+                                       av_FEve_benthos_lomolino, NA),
+                       FDiv = ifelse ( res_lomolino_bentos[,1] < res_lomolino_bentos[,2], 
+                                       av_FDiv_benthos_lomolino, NA))
+
+# ------------------------------ #       
+# correlation between indexes - benthos
+
+## MSS 
+
+cormat_MSS_benthos <-  (cbind (Richness=res_table_samples_bentos$EST.Rich,
+                            FRic=res_table_samples_bentos$FRic,
+                            FEve=res_table_samples_bentos$FEve,
+                            FDiv=res_table_samples_bentos$FDiv)
+)
+
+res1 <- cor.mtest(cormat_MSS_benthos, conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_MSS_benthos.pdf"),width=6,heigh=5)
+corrplot(cor(cormat_MSS_benthos), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+## PSSi
+cormat_PSS_benthos <-   cbind (Richness= res_sp_accum_bentos_asymptote$EST.Rich,
+                            FRic = res_sp_accum_bentos_asymptote$FRic,
+                            FEve = res_sp_accum_bentos_asymptote$FEve,
+                            FDiv = res_sp_accum_bentos_asymptote$FDiv)[which(is.na(res_sp_accum_bentos_asymptote$EST.Rich)!= T),]
+
+res1 <- cor.mtest(cormat_PSS_benthos, conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_PSSi_benthos.pdf"),width=6,heigh=5)
+corrplot(cor(cormat_PSS_benthos), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+
+## lomolino's S50
+cormat_S50_benthos <- cbind (Richness = res_lomolino_bentos[,"asymp"],
+                          FRic = res_lomolino_bentos [,"FRic"],
+                          FEve = res_lomolino_bentos [,"FEve"],
+                          FDiv = res_lomolino_bentos [,"FDiv"])[which(is.na(res_lomolino_bentos[,"FRic"])!= T),]
+
+res1 <- cor.mtest(cormat_S50_benthos, conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_S50_benthos.pdf"),width=6,heigh=5)
+corrplot(cor(cormat_S50_benthos), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+# ------------------------------ #       
+# correlation between algorithms - benthos
+
+## richness 
+estimates_alg_benthos <- cbind (MSS =res_table_samples_bentos$EST.Rich,
+                        PSSi=res_sp_accum_bentos_asymptote$EST.Rich,
+                        S50=res_lomolino_bentos[,"asymp"])
+
+res1 <- cor.mtest(estimates_alg_benthos[which(is.na(estimates_alg_benthos[,2] )!= T),], conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_rich_algorithm_benthos.pdf"),width=6,heigh=5)
+corrplot(cor(estimates_alg_benthos[which(is.na(estimates_alg_benthos[,2] )!= T),]), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+# FRic
+
+estimates_alg_FRic_benthos <- cbind (MSS=res_table_samples_bentos$FRic,
+                             PSSi=res_sp_accum_bentos_asymptote$FRic,
+                             S50=res_lomolino_bentos[,"FRic"])
+
+res1 <- cor.mtest(estimates_alg_FRic_benthos[which(is.na(estimates_alg_FRic_benthos[,2]) !=T & 
+                                              (is.na(estimates_alg_FRic_benthos[,3]) !=T)),], 
+                  conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_FRic_algorithm_benthos.pdf"),width=6,heigh=5)
+corrplot(cor(estimates_alg_FRic_benthos[which(is.na(estimates_alg_FRic_benthos[,2]) !=T & 
+                                         (is.na(estimates_alg_FRic_benthos[,3]) !=T)),]), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+# FEve
+
+estimates_alg_FEve_benthos <- cbind (MSS=res_table_samples_bentos$FEve,
+                             PSSi=res_sp_accum_bentos_asymptote$FEve,
+                             S50=res_lomolino_bentos[,"FEve"])
+
+res1 <- cor.mtest(estimates_alg_FEve_benthos[which(is.na(estimates_alg_FEve_benthos[,2]) !=T & 
+                                              (is.na(estimates_alg_FEve_benthos[,3]) !=T)),], 
+                  conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_FEve_algorithm_benthos.pdf"),width=6,heigh=5)
+corrplot(cor(estimates_alg_FEve_benthos[which(is.na(estimates_alg_FEve_benthos[,2]) !=T & 
+                                         (is.na(estimates_alg_FEve_benthos[,3]) !=T)),]), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+# FDiv
+
+estimates_alg_FDiv_benthos <- cbind (MSS=res_table_samples_bentos$FDiv,
+                             PSSi=res_sp_accum_bentos_asymptote$FDiv,
+                             S50=res_lomolino_bentos[,"FDiv"])
+
+res1 <- cor.mtest(estimates_alg_FDiv_benthos[which(is.na(estimates_alg_FDiv_benthos[,2]) !=T & 
+                                              (is.na(estimates_alg_FDiv_benthos[,3]) !=T)),], 
+                  conf.level = .99)
+
+## specialized the insignificant value according to the significant level
+
+pdf (here ("output", "vectorized", "corr_FDiv_algorithm_benthos.pdf"),width=6,heigh=5)
+corrplot(cor(estimates_alg_FDiv_benthos[which(is.na(estimates_alg_FDiv_benthos[,2]) !=T & 
+                                         (is.na(estimates_alg_FDiv_benthos[,3]) !=T)),]), 
+         p.mat = res1$p, sig.level = .05,
+         insig = "pch")  # or blank to none
+dev.off()
+
+## average values of indexes
+
+rbind (apply(estimates_alg_benthos,2,mean,na.rm=T),
+       apply(estimates_alg_FRic_benthos,2,mean,na.rm=T),
+       apply(estimates_alg_FEve_benthos,2,mean,na.rm=T),
+       apply(estimates_alg_FDiv_benthos,2,mean,na.rm=T)
+)
+
+## sd
+rbind (apply(estimates_alg_benthos,2,sd,na.rm=T),
+   apply(estimates_alg_FRic_benthos,2,sd,na.rm=T),
+   apply(estimates_alg_FEve_benthos,2,sd,na.rm=T),
+   apply(estimates_alg_FDiv_benthos,2,sd,na.rm=T)
+)
 
 # ----------------------------------------- #
-#            connect with covariates
+#             covariates
 # ------------------------------------------#
-#---------------
-# fish under MMS
-#---------------
 
-cov_fish_MMS <- covariates_site$sea_data[[1]][match (res_table_samples$Site,sites_fish_complete),]
-# bind richness estimate
-cov_fish_MMS <- data.frame(cov_fish_MMS, EST.rich = res_table_samples$EST.Rich)
-# bind FD estimate
-cov_fish_MMS <- cbind(cov_fish_MMS, FD = av_FRic_fish_MSS)
-# bind coordinates
-cov_fish_MMS <- cbind(cov_fish_MMS,covariates_site$coord$coord_peixes [match(rownames(cov_fish_MMS),covariates_site$coord$coord_peixes$Group.1),2:3])
+colnames(res_lomolino)[1:3] <- c("nsamples","obs_ss", "EST.Rich")
+res_lomolino <- data.frame(res_lomolino,Site = sites_fish_complete)
+colnames(res_lomolino_bentos) <- c("nsamples","obs_ss", "EST.Rich")
+res_lomolino_bentos <- data.frame(res_lomolino_bentos,Site =sites_bentos_complete)
 
-#---------------
-# fish under ASSi
-#---------------
-cov_fish_ASSi <- covariates_site$sea_data[[1]][match (res_sp_accum_fish_asymptote$Site[which(is.na(res_sp_accum_fish_asymptote$EST.Rich)!= T)],
-                                                      sites_fish_complete),]
-# bind richness estimate
-cov_fish_ASSi <- data.frame(cov_fish_ASSi, 
-                       EST.rich = res_sp_accum_fish_asymptote$EST.Rich[which(is.na(res_sp_accum_fish_asymptote$EST.Rich)!= T)])
-# bind FD estimate
-cov_fish_ASSi <- cbind(cov_fish_ASSi, FD = av_FRic_fish_ASSi)
-# bind coordinates
-cov_fish_ASSi <- cbind(cov_fish_ASSi,covariates_site$coord$coord_peixes [match(rownames(cov_fish_ASSi),covariates_site$coord$coord_peixes$Group.1),2:3])
+## subsetting lomolino's data
 
-#-------------------
-# benthos under MMS
-#-------------------
+res_lomolino <- res_lomolino[which(res_lomolino[,1] < res_lomolino[,2]),]
+res_lomolino_bentos <- res_lomolino_bentos[which(res_lomolino_bentos[,1] < res_lomolino_bentos[,2]),]
 
-cov_benthos_MMS <- covariates_site$sea_data[[2]][match (res_table_samples_bentos$Site,sites_bentos_complete),]
-# bind richness estimate
-cov_benthos_MMS <- data.frame(cov_benthos_MMS, EST.rich = res_table_samples_bentos$EST.Rich)
-# bind FD estimate
-cov_benthos_MMS <- cbind(cov_benthos_MMS, FD = av_FRic_benthos_MSS)
-# bind coordinates
-cov_benthos_MMS <- cbind(cov_benthos_MMS,
-                         covariates_site$coord$coord_bentos [match(rownames(cov_benthos_MMS),covariates_site$coord$coord_bentos$Group.1),2:3])
+# and sites
+sites_bentos_complete <- sites_bentos_complete [which(res_lomolino_bentos[,1] < res_lomolino_bentos[,2])]
+sites_fish_complete <- sites_fish_complete [which(res_lomolino[,1] < res_lomolino[,2])]
 
-#-------------------
-# benthos under ASSi
-#-------------------
-cov_benthos_ASSi <- covariates_site$sea_data[[2]][match (res_sp_accum_bentos_asymptote$Site[which(is.na(res_sp_accum_bentos_asymptote$EST.Rich)!= T)],
-                                                         sites_bentos_complete),]
-# bind richness estimate
-cov_benthos_ASSi <- data.frame(cov_benthos_ASSi, 
-                            EST.rich = res_sp_accum_bentos_asymptote$EST.Rich[which(is.na(res_sp_accum_bentos_asymptote$EST.Rich)!= T)])
-# bind FD estimate
-cov_benthos_ASSi <- cbind(cov_benthos_ASSi, FD = av_FRic_benthos_ASSi)
-# bind coordienates
-cov_benthos_ASSi <- cbind(cov_benthos_ASSi,
-                         covariates_site$coord$coord_bentos [match(rownames(cov_benthos_ASSi),covariates_site$coord$coord_bentos$Group.1),2:3])
+# ---------------------------------------- #
+# organizing data of fishes
+# list of SR results
+list_data_fish_SR <- list (res_table_samples, res_sp_accum_fish_asymptote,
+                           res_lomolino)
+# object do indicate NAs
+list_data_fish_SR<-lapply (list_data_fish_SR[1:2], function (i)
+   
+   cbind (i,
+          maintain = ifelse (is.na(i$EST.Rich)==T, "No","Yes")
+   )
+)
+## object to indicate imprecise sample size and richness estimate of lomolino's model
+res_lomolino$maintain <- ifelse (res_lomolino$nsamples <  res_lomolino$obs_ss, "Yes","No")
 
-# ------------------------
-# inverse of temperature, standardize covarites, insert region and locality
-# ------------------------
+list_data_fish_SR <- c(list_data_fish_SR,
+                       list(res_lomolino))
 
-boltzmann_factor <- 8.62e-5
-a<-20:25 + 273.15
-plot(a, (1/boltzmann_factor * (1/mean (a) - 1/(a))))
+# list of FD results
+list_data_fish_FD <- list (av_FRic_fish_MSS, av_FRic_fish_PSS,
+                           av_FRic_fish_lomolino)
 
-# FISH
-## MMS
-temp_kelvin<- cov_fish_MMS$BO2_tempmean_ss + 273.15
-inv_temp <- 1 / boltzmann_factor * (1 / mean(temp_kelvin) - 1 / temp_kelvin)
-cov_fish_MMS <- cbind(cov_fish_MMS,
-                      inv_temp=inv_temp)
+# list of FEve results
+list_data_fish_FEve <- list (av_FEve_fish_MSS, av_FEve_fish_PSS,
+                             av_FEve_fish_lomolino)
 
-## standardize other variables
-cov_fish_MMS$BO2_tempmean_ss_std <- (cov_fish_MMS$BO2_tempmean_ss-mean(cov_fish_MMS$BO2_tempmean_ss))/sd(cov_fish_MMS$BO2_tempmean_ss)
-cov_fish_MMS$BO2_ppmean_ss_std <- (cov_fish_MMS$BO2_ppmean_ss-mean(cov_fish_MMS$BO2_ppmean_ss))/sd(cov_fish_MMS$BO2_ppmean_ss)
-cov_fish_MMS$BO2_salinitymean_ss_std <- (cov_fish_MMS$BO2_salinitymean_ss-mean(cov_fish_MMS$BO2_salinitymean_ss))/sd(cov_fish_MMS$BO2_salinitymean_ss)
-cov_fish_MMS$BO_damean_std <- (cov_fish_MMS$BO_damean-mean(cov_fish_MMS$BO_damean))/sd(cov_fish_MMS$BO_damean)
-cov_fish_MMS$inv_temp_std <- (cov_fish_MMS$inv_temp-mean(cov_fish_MMS$inv_temp))/sd(cov_fish_MMS$inv_temp)
+# list of FDiv results
+list_data_fish_FDiv <- list (av_FDiv_fish_MSS, av_FDiv_fish_PSS,
+                             av_FDiv_fish_lomolino)
 
-## region
-cov_fish_MMS <- cbind(cov_fish_MMS,
-                      Region=covariates_site$region [match(rownames(cov_fish_MMS),rownames(covariates_site$region))])
-cov_fish_MMS$Region <- as.factor (cov_fish_MMS$Region)
 
-## locality
-locality <- unlist(lapply (strsplit (covariates_site$site_names,"\\."), function (i) i[1]))
-cov_fish_MMS <- cbind(cov_fish_MMS,
-                      Locality=locality [match(rownames(cov_fish_MMS),rownames(covariates_site$region))])
-cov_fish_MMS$Locality <- as.factor (cov_fish_MMS$Locality)
+# method of rarefaction
+method <- c("MSS","PSSi","Lomolino")
 
-## ASSi
-temp_kelvin_ASSi<- cov_fish_ASSi$BO2_tempmean_ss + 273.15
-inv_temp_ASSi <- 1 / boltzmann_factor * (1 / mean(temp_kelvin_ASSi) - 1 / temp_kelvin_ASSi)
-cov_fish_ASSi <- cbind(cov_fish_ASSi,
-                      inv_temp=inv_temp_ASSi)
+# organizing data across lists
 
-## standardize other variables
-cov_fish_ASSi$BO2_tempmean_ss_std <- (cov_fish_ASSi$BO2_tempmean_ss-mean(cov_fish_ASSi$BO2_tempmean_ss))/sd(cov_fish_ASSi$BO2_tempmean_ss)
-cov_fish_ASSi$BO2_ppmean_ss_std <- (cov_fish_ASSi$BO2_ppmean_ss-mean(cov_fish_ASSi$BO2_ppmean_ss))/sd(cov_fish_ASSi$BO2_ppmean_ss)
-cov_fish_ASSi$BO2_salinitymean_ss_std <- (cov_fish_ASSi$BO2_salinitymean_ss-mean(cov_fish_ASSi$BO2_salinitymean_ss))/sd(cov_fish_ASSi$BO2_salinitymean_ss)
-cov_fish_ASSi$BO_damean_std <- (cov_fish_ASSi$BO_damean-mean(cov_fish_ASSi$BO_damean))/sd(cov_fish_ASSi$BO_damean)
-cov_fish_ASSi$inv_temp_std <- (cov_fish_ASSi$inv_temp-mean(cov_fish_ASSi$inv_temp))/sd(cov_fish_ASSi$inv_temp)
+org_data_fish <- lapply (seq(1,length(list_data_fish_FD)), function (i) {      
+   # covariates_site$sea_data[[1]] is for fishes, [[2]] is for benthos
+   cov_fish <- covariates_site$sea_data[[1]][which(list_data_fish_SR[[i]]$maintain == "Yes"),]
+   # bind richness estimate
+   cov_fish <- data.frame(cov_fish, 
+                          EST.rich = list_data_fish_SR[[i]]$EST.Rich[which(list_data_fish_SR[[i]]$maintain == "Yes")])
+   # bind FD estimate
+   cov_fish <- cbind(cov_fish, 
+                     FD = list_data_fish_FD[[i]])
+   
+   # bind Feve
+   cov_fish <- cbind(cov_fish, 
+                     FEve = list_data_fish_FEve[[i]])
+   # bind FDiv
+   cov_fish <- cbind(cov_fish, 
+                     FDiv = list_data_fish_FDiv[[i]])
+   
+   # bind coordinates
+   cov_fish <- cbind(cov_fish,
+                     covariates_site$coord$coord_peixes [match(rownames(cov_fish),covariates_site$coord$coord_peixes$Group.1),c("Lon","Lat","distance")])
+   
+   # bind organism
+   cov_fish <- cbind(cov_fish,
+                     Organism="Fishes")
+   
+   # bind method
+   cov_fish <- cbind(cov_fish,
+                     Method=method[i])
+   
+   # ------------------------
+   # organize and standardize covariates
+   # inverse of temperature, standardize covariates, insert region and locality
+   # ------------------------
+   
+   boltzmann_factor <- 8.62e-5
+   #a<-20:25 + 273.15
+   #plot(a, (1/boltzmann_factor * (1/mean (a) - 1/(a))))
+   
+   # FISH
+   ## MMS
+   temp_kelvin<- cov_fish$BO2_tempmean_ss + 273.15
+   inv_temp <- 1 / boltzmann_factor * (1 / mean(temp_kelvin) - 1 / temp_kelvin)
+   cov_fish <- cbind(cov_fish,
+                     inv_temp=inv_temp)
+   
+   ## standardize other variables
+   cov_fish$BO2_tempmean_ss_std <- (cov_fish$BO2_tempmean_ss-mean(cov_fish$BO2_tempmean_ss))/sd(cov_fish$BO2_tempmean_ss)
+   cov_fish$BO2_ppmean_ss_std <- (cov_fish$BO2_ppmean_ss-mean(cov_fish$BO2_ppmean_ss))/sd(cov_fish$BO2_ppmean_ss)
+   cov_fish$BO2_salinitymean_ss_std <- (cov_fish$BO2_salinitymean_ss-mean(cov_fish$BO2_salinitymean_ss))/sd(cov_fish$BO2_salinitymean_ss)
+   cov_fish$BO_damean_std <- (cov_fish$BO_damean-mean(cov_fish$BO_damean))/sd(cov_fish$BO_damean)
+   cov_fish$inv_temp_std <- (cov_fish$inv_temp-mean(cov_fish$inv_temp))/sd(cov_fish$inv_temp)
+   cov_fish$distanceLog <- log(cov_fish$distance)
+   cov_fish$distance_std <- (cov_fish$distanceLog-mean(cov_fish$distanceLog))/sd(cov_fish$distanceLog)
+   
+   ## region
+   cov_fish <- cbind(cov_fish,
+                     Region=covariates_site$region [match(rownames(cov_fish),rownames(covariates_site$region))])
+   cov_fish$Region <- as.factor (cov_fish$Region)
+   
+   ## locality
+   locality <- unlist(lapply (strsplit (covariates_site$site_names,"\\."), function (i) i[1]))
+   cov_fish <- cbind(cov_fish,
+                     Locality=locality [match(rownames(cov_fish),rownames(covariates_site$region))])
+   cov_fish$Locality <- as.factor (cov_fish$Locality)
+   
+   ; # return
+   
+   cov_fish
+}
+)
 
-## region
-cov_fish_ASSi <- cbind(cov_fish_ASSi,
-                      Region=covariates_site$region [match(rownames(cov_fish_ASSi),rownames(covariates_site$region))])
-cov_fish_ASSi$Region <- as.factor (cov_fish_ASSi$Region)
+# ---------------------------------------- #
+# organizing data of benthos
+# list of SR results
+list_data_benthos_SR <- list (res_table_samples_bentos, 
+                              res_sp_accum_bentos_asymptote,
+                              res_lomolino_bentos)
+# object do indicate NAs
+list_data_benthos_SR<-lapply (list_data_benthos_SR[1:2], function (i)
+   
+   cbind (i,
+          maintain = ifelse (is.na(i$EST.Rich)==T, "No","Yes")
+   )
+)
+## object to indicate imprecise sample size and richness estimate of lomolino's model
+res_lomolino_bentos$maintain <- ifelse (res_lomolino_bentos$nsamples <  res_lomolino_bentos$obs_ss, "Yes","No")
 
-## locality
-locality <- unlist(lapply (strsplit (covariates_site$site_names,"\\."), function (i) i[1]))
-cov_fish_ASSi <- cbind(cov_fish_ASSi,
-                      Locality=locality [match(rownames(cov_fish_ASSi),rownames(covariates_site$region))])
-cov_fish_ASSi$Locality <- as.factor (cov_fish_ASSi$Locality)
+list_data_benthos_SR <- c(list_data_benthos_SR,
+                          list(res_lomolino_bentos))
 
-# benthos
-## MMS
-temp_kelvinB <- cov_benthos_MMS$BO2_tempmean_ss + 273.15
-inv_tempB <- 1 / boltzmann_factor * (1 / mean(temp_kelvinB) - 1 / temp_kelvinB)
-cov_benthos_MMS <- cbind(cov_benthos_MMS,
-                      inv_temp=inv_tempB)
+# list of FD results
+list_data_benthos_FD <- list (av_FRic_benthos_MSS, 
+                              av_FRic_benthos_PSS,
+                              av_FRic_benthos_lomolino)
 
-## standardize other variables
-cov_benthos_MMS$BO2_tempmean_ss_std <- (cov_benthos_MMS$BO2_tempmean_ss-mean(cov_benthos_MMS$BO2_tempmean_ss))/sd(cov_benthos_MMS$BO2_tempmean_ss)
-cov_benthos_MMS$BO2_ppmean_ss_std <- (cov_benthos_MMS$BO2_ppmean_ss-mean(cov_benthos_MMS$BO2_ppmean_ss))/sd(cov_benthos_MMS$BO2_ppmean_ss)
-cov_benthos_MMS$BO2_salinitymean_ss_std <- (cov_benthos_MMS$BO2_salinitymean_ss-mean(cov_benthos_MMS$BO2_salinitymean_ss))/sd(cov_benthos_MMS$BO2_salinitymean_ss)
-cov_benthos_MMS$BO_damean_std <- (cov_benthos_MMS$BO_damean-mean(cov_benthos_MMS$BO_damean))/sd(cov_benthos_MMS$BO_damean)
-cov_benthos_MMS$inv_temp_std <- (cov_benthos_MMS$inv_temp-mean(cov_benthos_MMS$inv_temp))/sd(cov_benthos_MMS$inv_temp)
+# list of FEve results
+list_data_benthos_FEve <- list (av_FEve_benthos_MSS, 
+                                av_FEve_benthos_PSS,
+                                av_FEve_benthos_lomolino)
 
-## region
-cov_benthos_MMS <- cbind(cov_benthos_MMS,
-                       Region=covariates_site$region [match(rownames(cov_benthos_MMS),rownames(covariates_site$region))])
-cov_benthos_MMS$Region <- as.factor (cov_benthos_MMS$Region)
+# list of FDiv results
+list_data_benthos_FDiv <- list (av_FDiv_benthos_MSS, 
+                                av_FDiv_benthos_PSS,
+                                av_FDiv_benthos_lomolino)
 
-## locality
-locality <- unlist(lapply (strsplit (covariates_site$site_names,"\\."), function (i) i[1]))
-cov_benthos_MMS <- cbind(cov_benthos_MMS,
-                       Locality=locality [match(rownames(cov_benthos_MMS),rownames(covariates_site$region))])
-cov_benthos_MMS$Locality <- as.factor (cov_benthos_MMS$Locality)
+# organizing data across lists
 
-## ASSi
-temp_kelvinB_ASSi <- cov_benthos_ASSi$BO2_tempmean_ss + 273.15
-inv_tempB_ASSi <- 1 / boltzmann_factor * (1 / mean(temp_kelvinB_ASSi) - 1 / temp_kelvinB_ASSi)
-cov_benthos_ASSi <- cbind(cov_benthos_ASSi,
-                         inv_temp=inv_tempB_ASSi)
+org_data_benthos <- lapply (seq(1,length(list_data_benthos_FD)), function (i) {      
+   # covariates_site$sea_data[[1]] is for fishes, [[2]] is for benthos
+   cov_benthos <- covariates_site$sea_data[[2]][which(list_data_benthos_SR[[i]]$maintain == "Yes"),]
+   # bind richness estimate
+   cov_benthos <- data.frame(cov_benthos, 
+                             EST.rich = list_data_benthos_SR[[i]]$EST.Rich[which(list_data_benthos_SR[[i]]$maintain == "Yes")])
+   # bind FD estimate
+   cov_benthos <- cbind(cov_benthos, 
+                        FD = list_data_benthos_FD[[i]])
+   
+   # bind Feve
+   cov_benthos <- cbind(cov_benthos, 
+                        FEve = list_data_benthos_FEve[[i]])
+   
+   # bind FDiv
+   cov_benthos <- cbind(cov_benthos, 
+                        FDiv = list_data_benthos_FDiv[[i]])
+   
+   # bind coordinates
+   cov_benthos <- cbind(cov_benthos,
+                        covariates_site$coord$coord_bentos [match(rownames(cov_benthos),covariates_site$coord$coord_bentos$Group.1),c("Lon","Lat","distance")])
+   
+   # bind organism
+   cov_benthos <- cbind(cov_benthos,
+                        Organism="Benthos")
+   
+   # bind method
+   cov_benthos <- cbind(cov_benthos,
+                        Method=method[i])
+   
+   # ------------------------
+   # organize and standardize covariates
+   # inverse of temperature, standardize covariates, insert region and locality
+   # ------------------------
+   
+   boltzmann_factor <- 8.62e-5
+   #a<-20:25 + 273.15
+   #plot(a, (1/boltzmann_factor * (1/mean (a) - 1/(a))))
+   
+   # FISH
+   ## MMS
+   temp_kelvin<- cov_benthos$BO2_tempmean_ss + 273.15
+   inv_temp <- 1 / boltzmann_factor * (1 / mean(temp_kelvin) - 1 / temp_kelvin)
+   cov_benthos <- cbind(cov_benthos,
+                        inv_temp=inv_temp)
+   
+   ## standardize other variables
+   cov_benthos$BO2_tempmean_ss_std <- (cov_benthos$BO2_tempmean_ss-mean(cov_benthos$BO2_tempmean_ss))/sd(cov_benthos$BO2_tempmean_ss)
+   cov_benthos$BO2_ppmean_ss_std <- (cov_benthos$BO2_ppmean_ss-mean(cov_benthos$BO2_ppmean_ss))/sd(cov_benthos$BO2_ppmean_ss)
+   cov_benthos$BO2_salinitymean_ss_std <- (cov_benthos$BO2_salinitymean_ss-mean(cov_benthos$BO2_salinitymean_ss))/sd(cov_benthos$BO2_salinitymean_ss)
+   cov_benthos$BO_damean_std <- (cov_benthos$BO_damean-mean(cov_benthos$BO_damean))/sd(cov_benthos$BO_damean)
+   cov_benthos$inv_temp_std <- (cov_benthos$inv_temp-mean(cov_benthos$inv_temp))/sd(cov_benthos$inv_temp)
+   cov_benthos$distanceLog <- log(cov_benthos$distance)
+   cov_benthos$distance_std <- (cov_benthos$distanceLog-mean(cov_benthos$distanceLog))/sd(cov_benthos$distanceLog)
+   
+   ## region
+   cov_benthos <- cbind(cov_benthos,
+                        Region=covariates_site$region [match(rownames(cov_benthos),rownames(covariates_site$region))])
+   cov_benthos$Region <- as.factor (cov_benthos$Region)
+   
+   ## locality
+   locality <- unlist(lapply (strsplit (covariates_site$site_names,"\\."), function (i) i[1]))
+   cov_benthos <- cbind(cov_benthos,
+                        Locality=locality [match(rownames(cov_benthos),rownames(covariates_site$region))])
+   cov_benthos$Locality <- as.factor (cov_benthos$Locality)
+   
+   ## coordinates
+   
+   
+   ; # return
+   
+   cov_benthos
+}
+)
 
-## standardize other variables
-cov_benthos_ASSi$BO2_tempmean_ss_std <- (cov_benthos_ASSi$BO2_tempmean_ss-mean(cov_benthos_ASSi$BO2_tempmean_ss))/sd(cov_benthos_ASSi$BO2_tempmean_ss)
-cov_benthos_ASSi$BO2_ppmean_ss_std <- (cov_benthos_ASSi$BO2_ppmean_ss-mean(cov_benthos_ASSi$BO2_ppmean_ss))/sd(cov_benthos_ASSi$BO2_ppmean_ss)
-cov_benthos_ASSi$BO2_salinitymean_ss_std <- (cov_benthos_ASSi$BO2_salinitymean_ss-mean(cov_benthos_ASSi$BO2_salinitymean_ss))/sd(cov_benthos_ASSi$BO2_salinitymean_ss)
-cov_benthos_ASSi$BO_damean_std <- (cov_benthos_ASSi$BO_damean-mean(cov_benthos_ASSi$BO_damean))/sd(cov_benthos_ASSi$BO_damean)
-cov_benthos_ASSi$inv_temp_std <- (cov_benthos_ASSi$inv_temp-mean(cov_benthos_ASSi$inv_temp))/sd(cov_benthos_ASSi$inv_temp)
+## aggregate list of results across organisms by rarefaction method
 
-## region
-cov_benthos_ASSi <- cbind(cov_benthos_ASSi,
-                      Region=covariates_site$region [match(rownames(cov_benthos_ASSi),rownames(covariates_site$region))])
-cov_benthos_ASSi$Region <- as.factor (cov_benthos_ASSi$Region)
-                      
-## locality
-locality <- unlist(lapply (strsplit (covariates_site$site_names,"\\."), function (i) i[1]))
-cov_benthos_ASSi <- cbind(cov_benthos_ASSi,
-                      Locality=locality [match(rownames(cov_benthos_ASSi),rownames(covariates_site$region))])
-cov_benthos_ASSi$Locality <- as.factor (cov_benthos_ASSi$Locality)
+complete_results_for_fig2 <- lapply (seq (1,length(org_data_fish)), function (i)
+   
+   rbind(org_data_fish [[i]], org_data_benthos[[i]])
+   
+)
 
+# -----------------------------------------
 ## correlation between variables
-cor(cov_fish_MMS[,16:19])
-cor(cov_fish_ASSi[,16:19])
-cor(cov_benthos_MMS[,16:19])
-cor(cov_benthos_ASSi[,16:19])
 
-## aveerage of covariates
-apply(cov_fish_MMS [,c(1,3,5,8,14)],2,mean)
-apply(cov_fish_MMS [,c(1,3,5,8,14)],2,sd)
+lapply (org_data_fish, function (i)
+   cor (i [,c("BO2_tempmean_ss_std","BO2_ppmean_ss_std","BO2_salinitymean_ss_std",
+              "BO_damean_std","inv_temp_std", "distance_std")])
+)
 
-#
-apply(cov_fish_ASSi [,c(1,3,5,8,14)],2,mean)
-apply(cov_fish_ASSi [,c(1,3,5,8,14)],2,sd)
-#
-apply(cov_benthos_MMS [,c(1,3,5,8,14)],2,mean)
-apply(cov_benthos_MMS [,c(1,3,5,8,14)],2,sd)
-#
-apply(cov_benthos_ASSi [,c(1,3,5,8,14)],2,mean)
-apply(cov_benthos_ASSi [,c(1,3,5,8,14)],2,sd)
+# 
+lapply (org_data_benthos, function (i)
+   cor (i [,c("BO2_tempmean_ss_std","BO2_ppmean_ss_std","BO2_salinitymean_ss_std",
+              "BO_damean_std","inv_temp_std", "distance_std")])
+   )
 
-#############################################################################
-## maps of estimated values
+### go with (correlation < 0.8) for both datasets
 
-agg_fish_MMS <- aggregate (cov_fish_MMS, by = list(cov_fish_MMS$Locality), FUN="mean")
+# inv_temp_std, BO2_ppmean_ss_std, BO2_salinitymean_ss_std, BO_damean_std, distance_std
 
-## maps
-# mapa mundi
-world <- ne_countries(scale = "medium", returnclass = "sf")
-
-# cortar o mapa para ver a america do Sul e parte da central
-wm <- ggplot() + 
-   geom_sf (data=world, size = 0.1, 
-            fill= "gray90",colour="gray90") +
-   coord_sf (xlim = c(-50, -25),  ylim = c(-30, 4), expand = FALSE) +
-   theme_bw() + #xlab ("Longitude")  + ylab ("Latitude") +
-   theme(panel.border = element_blank(), 
-         panel.grid.major = element_blank(), 
-         panel.grid.minor = element_blank(),
-         panel.background = element_rect(fill = "aliceblue",#darkslategray1
-                                         colour = "aliceblue"),
-         axis.text.x = element_text(size=6),
-         axis.ticks.x=element_line(size=1),
-         axis.text.y = element_text(size=6),
-         axis.ticks.y=element_line(size=1),
-         axis.title.x = element_text(size=10),
-         axis.title.y = element_text(size=10),
-         title = element_blank(),
-         plot.margin = unit(c(0,-0.8,0,0.3), "cm")) +
-   xlab("Longitude") + ylab("Latitude")
-                            
-
-fish_MMS_map <- wm + geom_point(data = cov_fish_MMS, aes (x=Lon,y=Lat),
-                size=3, col = "red",alpha=0.2)
-                #size=cov_fish_MMS$EST.rich*0.1)
-
-fish_MMS_ASSi_map <- fish_MMS_map + 
-   geom_point(data = cov_fish_ASSi, aes (x=Lon+1,y=Lat+0.1),
-              size=3, col = "darkred",alpha=0.5)
-                          #size=cov_fish_ASSi$EST.rich*0.05)
-
-benthos_MMS_map<- fish_MMS_ASSi_map + 
-   geom_point(data = cov_benthos_MMS, aes (x=Lon,y=Lat+1),
-              size=3, col = "green",alpha=0.5)
-
-benthos_MMS_ASSi_map<- benthos_MMS_map + 
-   geom_point(data = cov_benthos_ASSi, aes (x=Lon+1,y=Lat+1),
-              size=3, col = "darkgreen",alpha=0.5)
-
-#
-
-ggsave (here ("output","vectorized","benthos_MMS_ASSi_map.pdf"))
+## save results for Figure 2
+save (complete_results_for_fig2, 
+      file=here("output", "complete_results_for_fig2.RData"))
 
 ############################################################################
 # -------------------------------------------------------------------------
-#          Non-linear models
+#          ANCOVA
+#
+#        ACCUMULATION OF FD RELATIVE TO RICHNESS
+#
+# -------------------------------------------------------------------------
+############################################################################
+
+load (here ("output", "complete_results_for_fig2.RData"))
+
+# run model (ancova)
+model.ancova <-lapply (complete_results_for_fig2, function (i)
+   
+   brm (FD ~ EST.rich*Organism,
+        data=i,
+        family = gaussian (link="identity"),
+        chains=3,
+        iter = 30000,
+        warmup = 20000,
+        thin=20)
+)
+# summary of results
+lapply (model.ancova,summary)
+
+# plotting
+lapply (seq(1,3), function (i) {
+
+   plot(conditional_effects(model.ancova[[i]],
+                         method="fitted",
+                         re_formula=NA,
+                         robust=T,
+                         effects = "EST.rich:Organism",
+                         points=T,
+                         prob = 0.95),
+     
+     theme = theme_classic() +
+        theme (axis.title = element_text(size=15),
+               axis.text = element_text(size=12),
+               legend.position = "none"),
+     points=T)
+
+ggsave (here("output",paste (i,"ancovaplot.pdf")),height = 5,width=5)
+
+})
+
+# compare slopes
+m.lst <- lapply (model.ancova, emtrends, "Organism", var="EST.rich")
+
+m.lst_tab <- lapply(m.lst,summary, point.est = mean)
+do.call(rbind,m.lst_tab)
+
+save (model.ancova,m.lst,
+      file=here("output", "ancova.RData"))
+
+############################################################################
+# -------------------------------------------------------------------------
+#          Linear models
 #
 #        Environmental drivers
 #
@@ -305,1284 +928,609 @@ ggsave (here ("output","vectorized","benthos_MMS_ASSi_map.pdf"))
 ############################################################################
 
 # ----------------
-#      FISH
+#      BENTHOS SPECIES RICHNESS
 #-----------------
 
-# MMS
+# MCMC settings
+ni <- 30000
+nb <- 20000
+nt <- 20
+nc <- 3
 
-## Richness
-model1 <- glm (EST.rich ~ 
-               poly(BO2_ppmean_ss_std,2)+
-               poly(BO2_salinitymean_ss_std,2)+
-               inv_temp_std +
-               poly(BO_damean_std,2),
-     family= Gamma (link='log'),
-     data = cov_fish_MMS,
-     na.action = na.exclude)
+# set formula (the same for benthos and fishes)
+formula <- brms::bf(log(EST.rich) ~ inv_temp +
+                       
+                       BO2_ppmean_ss_std +
+                      
+                       BO2_salinitymean_ss_std +
+                       
+                       BO_damean_std,# +
+                       
+                       #distance_std,
+                    
+                    nl = F) # nonlinear
 
-# 
-summary (model1)
+# priors for benthos
+priors_benthos <- lapply (org_data_benthos, function (i) 
+   
+   set_prior("normal(0,5)", class = "b") #+ 
+     
+     #set_prior("normal(-2,5)", coef = "inv_temp")
+      
+            
+            )
 
-# simplify
-model2 <- glm (EST.rich ~ 
-                  poly(BO2_ppmean_ss_std,2)+
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std ,
-               family= Gamma (link='log'),
-               data = cov_fish_MMS,
-               na.action = na.exclude)
+# run MCMC chains for benthos DS
+MCMC_runs_benthos_SR <- lapply ( seq (1,length (org_data_benthos)), function (i)
+   
+   
+   brms::brm(formula,
+          
+          data = org_data_benthos[[i]], 
+          
+          family = gaussian(),
+          
+          prior = priors_benthos[[i]], 
+          
+          chains = nc,
+          
+          iter = ni,
+          
+          warmup = nb,
+          
+          thin=nt
+          
+          )
+   )
 
-summary(model2)
+## save
+save (MCMC_runs_benthos_SR, file=here ("output", "MCMC_runs_benthos_SR.Rdata"))
 
-# compare them
-anova (model1,model2,test = "Chisq")
-AIC(model1,
-    model2)
+# ----------------
+#      FISH SPECIES RICHNESS
+#-----------------
 
-# simplify again
-model3 <- glm (EST.rich ~ 
-                  poly(BO2_ppmean_ss_std,2)+
-                  inv_temp_std ,
-               family= Gamma (link='log'),
-               data = cov_fish_MMS,
-               na.action = na.exclude)
+# priors for fish
+priors_fish <- lapply (org_data_fish, function (i) 
+   
+   set_prior("normal(0,5)", class = "b")# + 
+     
+     #set_prior("normal(-2,5)", coef = "inv_temp")
+   
+)
 
-summary(model3)
+# run MCMC chains for fish DS
+MCMC_runs_fishes_SR <- lapply ( seq (1,length (org_data_fish)), function (i)
+   
+   
+   brms::brm(formula,
+             
+             data = org_data_fish[[i]], 
+             
+             family = gaussian(),
+             
+             prior = priors_fish[[i]], 
+             
+             chains = nc,
+             
+             iter = ni,
+             
+             warmup = nb,
+             
+             thin=nt
+             
+   )
+)
+# save
+save (MCMC_runs_fishes_SR, file=here ("output", "MCMC_runs_fishes_SR.Rdata"))
 
-#
-anova (model2,model3, test = "Chisq")
-AIC(model2,model3)
+# ----------------
+#      BENTHOS FRIC
+#-----------------
 
-# simplify again
-model4 <- glm (EST.rich ~ 
-                  poly(BO2_ppmean_ss_std, 2),
-               family= Gamma (link='log'),
-               data = cov_fish_MMS,
-               na.action = na.exclude)
+# set formula (the same for benthos and fishes)
+formula_FRic <- brms::bf((FD) ~ inv_temp +
+                       
+                       BO2_ppmean_ss_std +
+                       
+                       BO2_salinitymean_ss_std +
+                       
+                       BO_damean_std,# +
+                       
+                       #distance_std,
+                    
+                    nl = F) # nonlinear
 
-summary(model4)
+# priors for benthos
+priors_benthos <- lapply (org_data_benthos, function (i) 
+   
+   set_prior("normal(0,5)", class = "b")# + 
+      
+      #set_prior("normal(-2,5)", coef = "inv_temp")
+   
+)
 
-#
-anova (model3,model4, test = "Chisq")
-AIC(model3,model4)
-## we can't simplify anymore
+# run MCMC chains for benthos DS
+MCMC_runs_benthos_FRic <- lapply ( seq (1,length (org_data_benthos)), function (i)
+   
+   
+   brms::brm(formula_FRic,
+             
+             data = org_data_benthos[[i]], 
+             
+             family = gaussian(),
+             
+             prior = priors_benthos[[i]], 
+             
+             chains = nc,
+             
+             iter = ni,
+             
+             warmup = nb,
+             
+             thin=nt
+             
+   )
+)
 
-## diagnose model fitpar(mfrow=c(2,2))
-par(mfrow=c(2,2))
-plot(model3) 
-
-## check coeffs and other statistics
-summary (model3)
-
-## unadjusted R2
-# help here: https://stats.stackexchange.com/questions/46345/how-to-calculate-goodness-of-fit-in-glm-r
-round (with(summary(model3), 1 - deviance/null.deviance),2)
-
-## newd
-pdf (here("output","vectorized", "fish_MMS.pdf"),height=4,width=7)
-
-plot(allEffects(model3))
-
-dev.off()
-
-## newd
-newd <- data.frame (BO2_ppmean_ss_std= 0,
-                    inv_temp_std= seq (range(cov_fish_MMS$inv_temp_std)[1],
-                                      range(cov_fish_MMS$inv_temp_std)[2],
-                                      0.01))
-
-## data to predict (based on the model)
-pred.vals <- predict (model3,
-                      newdata = newd,
-                      type="link", # predictions in the link-function scale
-                      se.fit = T)
-
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-
-plot(exp(pred.vals$fit) ~ newd$inv_temp, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-     col = "darkred",
-     type="l",
-     lwd =3,
-     ylim=c(10,40),
-     ylab = "",
-     xlab = "Inverse of temperature",
-     xaxt='n')
-axis(1,
-     at=cov_fish_MMS$inv_temp_std,
-     round(cov_fish_MMS$inv_temp,2))
-
-lines (exp(upr) ~  newd$inv_temp_std,lwd=2,col="gray50")
-lines (exp(lwr) ~  newd$inv_temp_std,lwd=2,col="gray50")
-points (cov_fish_MMS$EST.rich ~ cov_fish_MMS$inv_temp_std,
-        col=rgb(0,0,0.2,alpha=0.1),pch=19)
-
-
-## newd
-newd <- data.frame (BO2_ppmean_ss_std= seq (range(cov_fish_MMS$BO2_ppmean_ss_std)[1],
-                                                  range(cov_fish_MMS$BO2_ppmean_ss_std)[2],
-                                                  0.0001),
-                    inv_temp_std=0)
-
-## data to predict (based on the model)
-pred.vals <- predict (model3,
-                      newdata = newd,
-                      type="link", # predictions in the link-function scale
-                      se.fit = T)
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-
-plot(exp(pred.vals$fit) ~ newd$BO2_ppmean_ss_std, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-     col = "darkred",
-     type="l",
-     lwd =3,
-     ylim=c(10,70),
-     ylab = "",
-     xlab = "Salinity",
-     xaxt='n')
-axis(1,
-     at=cov_fish_MMS$BO2_ppmean_ss_std,
-     round(cov_fish_MMS$BO2_ppmean_ss,2))
-
-lines (exp(upr) ~  newd$BO2_ppmean_ss_std,lwd=2,col="gray50")
-lines (exp(lwr) ~  newd$BO2_ppmean_ss_std,lwd=2,col="gray50")
-points (cov_fish_MMS$EST.rich ~ cov_fish_MMS$BO2_ppmean_ss_std,
-        col=rgb(0,0,0.2,alpha=0.1),pch=19)
-
-
-# -------------------------
-#           ASSi
-
-## Richness
-model1 <- glm (EST.rich ~ 
-                  poly(BO2_ppmean_ss_std,2)+
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std +
-                  poly(BO_damean_std,2),
-               family= Gamma (link='log'),
-               data = cov_fish_ASSi,
-               na.action = na.exclude)
-
-# 
-summary (model1)
-
-# simplify
-model2 <- glm (EST.rich ~ 
-                  poly(BO2_ppmean_ss_std,2)+
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std ,
-               family= Gamma (link='log'),
-               data = cov_fish_ASSi,
-               na.action = na.exclude)
-
-summary(model2)
-
-# compare them
-anova (model1,model2,test = "Chisq")
-AIC(model1,model2)
-
-# simplify again
-model3 <- glm (EST.rich ~ 
-                  poly(BO2_ppmean_ss_std, 2)+
-                  inv_temp_std,
-               family= Gamma (link='log'),
-               data = cov_fish_ASSi,
-               na.action = na.exclude)
-
-summary(model3)
-
-#
-anova (model2,model3, test = "Chisq")
-AIC(model2,model3)
-
-# simplify again
-model4 <- glm (EST.rich ~ poly(BO2_ppmean_ss_std, 2),
-               family= Gamma (link='log'),
-               data = cov_fish_ASSi,
-               na.action = na.exclude)
-#
-summary(model4)
-
-#
-anova (model3,model4, test = "Chisq")
-AIC(model3,model4)
-## we can't simplify anymore
-
-## diagnose model fit
-par(mfrow=c(2,2))
-plot(model4) 
-
-## check coeffs and other statistics
-summary (model4)
-
-## unadjusted R2
-# help here: https://stats.stackexchange.com/questions/46345/how-to-calculate-goodness-of-fit-in-glm-r
-round (with(summary(model4), 1 - deviance/null.deviance),2)
-
-## newd
-pdf (here("output","vectorized", "fish_ASSi.pdf"),height=4,width=4)
-
-plot(allEffects(model4))
-
-dev.off()
+## save
+save (MCMC_runs_benthos_FRic, file=here ("output", "MCMC_runs_benthos_FRic.Rdata"))
 
 
 # ----------------
-#      BENTHOS
+#      FISH FRIC
 #-----------------
 
-# MMS
+# priors for fish
+priors_fish <- lapply (org_data_fish, function (i) 
+   
+   set_prior("normal(0,5)", class = "b") #+ 
+      
+      #set_prior("normal(-2,5)", coef = "inv_temp")
+   
+)
 
-## Richness
-model1 <- glm (EST.rich ~ 
-                  poly(BO2_ppmean_ss_std,2)+
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std +
-                  poly(BO_damean_std,2),
-               family= Gamma (link='log'),
-               data = cov_benthos_MMS,
-               na.action = na.exclude)
-
-# 
-summary (model1)
-
-# simplify
-model2 <-  glm (EST.rich ~ 
-                   poly(BO2_ppmean_ss_std,2)+
-                   poly(BO2_salinitymean_ss_std,2)+
-                   poly(BO_damean_std,2),
-                family= Gamma (link='log'),
-                data = cov_benthos_MMS,
-                na.action = na.exclude)
-
-summary(model2)
-
-# compare them
-anova (model1,model2,test = "Chisq")
-AIC(model1,model2)
-
-# simplify again
-model3 <-glm (EST.rich ~ 
-                 poly(BO2_ppmean_ss_std,2)+
-                 poly(BO2_salinitymean_ss_std,2),
-              family= Gamma (link='log'),
-              data = cov_benthos_MMS,
-              na.action = na.exclude)
-
-summary(model3)
-
-#
-anova (model2,model3, test = "Chisq")
-AIC(model2,model3)
-
-# simplify again
-model4 <- glm (EST.rich ~ 
-                  poly(BO2_salinitymean_ss_std,2),
-               family= Gamma (link='log'),
-               data = cov_benthos_MMS,
-               na.action = na.exclude)
-
-summary(model4)
-
-#
-anova (model3,model4, test = "Chisq")
-AIC(model3,model4)
-
-## we can't simplify anymore
-
-## diagnose model fit
-par(mfrow=c(2,2))
-plot(model4) 
-
-## check coeffs and other statistics
-summary (model4)
-
-## unadjusted R2
-# help here: https://stats.stackexchange.com/questions/46345/how-to-calculate-goodness-of-fit-in-glm-r
-round (with(summary(model4), 1 - deviance/null.deviance),2)
-
-## newd
-pdf (here ("output","vectorized","benthos_MMS.pdf"),height=4,width=4)
-
-plot(allEffects(model4))
-
-dev.off()
-
-# -------------------------
-#      ASSi
-
-## Richness
-model1 <- glm (EST.rich ~ 
-                  poly(BO2_ppmean_ss_std,2)+
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std +
-                  poly(BO_damean_std,2),
-               family= Gamma (link='log'),
-               data = cov_benthos_ASSi,
-               na.action = na.exclude)
-
-# 
-summary (model1)
-
-
-# simplify
-model2 <- glm (EST.rich ~ 
-                  poly(BO2_ppmean_ss_std,2)+
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std ,
-               family= Gamma (link='log'),
-               data = cov_benthos_ASSi,
-               na.action = na.exclude)
-
-summary(model2)
-
-# compare them
-anova (model1,model2,test = "Chisq")
-AIC(model1,model2)
-
-# simplify again
-model3 <- glm (EST.rich ~ 
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std ,
-               family= Gamma (link='log'),
-               data = cov_benthos_ASSi,
-               na.action = na.exclude)
-
-summary(model3)
-
-#
-anova (model2,model3, test = "Chisq")
-AIC(model2,model3)
-
-# simplify again
-model4 <- glm (EST.rich ~ 
-                  inv_temp_std,
-               family= Gamma (link='log'),
-               data = cov_benthos_ASSi,
-               na.action = na.exclude)
-
-summary(model4)
-
-#
-anova (model3,model4, test = "Chisq")
-AIC(model3,model4)
-
-## we can't simplify anymore
-
-## diagnose model fit
-plot(model4) 
-
-## check coeffs and other statistics
-summary (model4)
-
-## unadjusted R2
-# help here: https://stats.stackexchange.com/questions/46345/how-to-calculate-goodness-of-fit-in-glm-r
-round (with(summary(model4), 1 - deviance/null.deviance),2)
-
-## newd
-pdf (here("output","vectorized","benthos_ASSi.pdf"),height=4,width=4)
-
-plot(allEffects(model4))
-
-dev.off()
-
-############################################################################
-# -------------------------------------------------------------------------
-#          Non-linear models
-#
-#           FUNCTIONAL DIVERSITY
-#
-# -------------------------------------------------------------------------
-############################################################################
+# run MCMC chains for fish DS
+MCMC_runs_fishes_FRic <- lapply ( seq (1,length (org_data_fish)), function (i)
+   
+   
+   brms::brm(formula_FRic,
+             
+             data = org_data_fish[[i]], 
+             
+             family = gaussian(),
+             
+             prior = priors_fish[[i]], 
+             
+             chains = nc,
+             
+             iter = ni,
+             
+             warmup = nb,
+             
+             thin=nt
+             
+   )
+)
+# save
+save (MCMC_runs_fishes_FRic, file=here ("output", "MCMC_runs_fishes_FRic.Rdata"))
 
 # ----------------
-#      FISH
+#      BENTHOS FEVE
 #-----------------
 
-# MMS
+# set formula (the same for benthos and fishes)
+formula_FEve <- brms::bf((FEve) ~ inv_temp +
+                            
+                            BO2_ppmean_ss_std +
+                            
+                            BO2_salinitymean_ss_std +
+                            
+                            BO_damean_std,# +
+                            
+                            #distance_std,
+                         
+                         nl = F) # nonlinear
 
-## FD
-model1 <- betareg ((FD) ~ poly(BO2_ppmean_ss_std, 2)+
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std +
-                  poly(BO_damean_std, 2),
-               link = 'logit',
-               data = cov_fish_MMS,
-               na.action = na.exclude)
-#
-summary (model1)
+# priors for benthos
+priors_benthos <- lapply (org_data_benthos, function (i) 
+   
+   set_prior("normal(0,5)", class = "b")# + 
+      
+     # set_prior("normal(-2,5)", coef = "inv_temp")
+   
+)
 
-# simplify
-model2 <- betareg ((FD) ~ poly(BO2_ppmean_ss_std, 2)+
-                      inv_temp_std +
-                      poly(BO2_salinitymean_ss_std, 2),
-                   link = 'logit',
-                   data = cov_fish_MMS,
-                   na.action = na.exclude)
+# run MCMC chains for benthos DS
+MCMC_runs_benthos_FEve <- lapply ( seq (1,length (org_data_benthos)), function (i)
+   
+   
+   brms::brm(formula_FEve,
+             
+             data = org_data_benthos[[i]], 
+             
+             family = gaussian(),
+             
+             prior = priors_benthos[[i]], 
+             
+             chains = nc,
+             
+             iter = ni,
+             
+             warmup = nb,
+             
+             thin=nt
+             
+   )
+)
 
-summary(model2)
-#
-AIC (model1,model2)
-
-# simplify
-model3 <- betareg ((FD) ~ inv_temp_std +
-                      poly(BO2_salinitymean_ss_std, 2),
-                   link = 'logit',
-                   data = cov_fish_MMS,
-                   na.action = na.exclude)
-
-
-summary(model3)
-
-# compare them
-AIC(model2,
-      model3)
-
-# simplify again
-model4 <-  betareg ((FD) ~ poly(BO2_salinitymean_ss_std, 2),
-                    link = 'logit',
-                    data = cov_fish_MMS,
-                    na.action = na.exclude)
-summary(model4)
-
-#
-AIC(model3, model4)
-
-## we can't simplify anymore
-
-## diagnose model fit
-plot(model3) 
-
-## check coeffs and other statistics
-## pseudo R2
-summary(model3)
-
-## newd
-pdf(here ("output","vectorized", "fish_MMS_FD.pdf"),heigh=4,width=7)
-
-plot(allEffects(model3))
-
-dev.off()
-
-########################
-# ASSi
-
-## FD
-model1 <- betareg ((FD) ~ poly(BO2_ppmean_ss_std, 2)+
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std +
-                  poly(BO_damean_std, 2),
-               link = "logit",
-               data = cov_fish_ASSi,
-               na.action = na.exclude)
-#
-summary (model1)
-
-# simplify
-model2 <- betareg ((FD) ~  poly(BO2_salinitymean_ss_std,2)+
-                      inv_temp_std +
-                      poly(BO_damean_std, 2),
-                   link = "logit",
-                   data = cov_fish_ASSi,
-                   na.action = na.exclude)
-
-summary(model2)
-
-#
-anova (model1,model2, test = "Chisq")
-AIC(model1,model2)
-
-# simplify
-model3 <- betareg ((FD) ~  poly(BO_damean_std, 2)+
-                      inv_temp_std,
-                   link = "logit",
-                   data = cov_fish_ASSi,
-                   na.action = na.exclude)
-
-summary(model3)
-
-# compare them
-AIC(model2,
-      model3)
-
-# simplify again
-model4 <- betareg ((FD) ~  inv_temp_std,
-                   link = "logit",
-                   data = cov_fish_ASSi,
-                   na.action = na.exclude)
-
-summary(model4)
-
-#
-AIC(model3, model4)
+## save
+save (MCMC_runs_benthos_FEve, file=here ("output", "MCMC_runs_benthos_FEve.Rdata"))
 
 
-## we can't simplify anymore
+# ----------------
+#      FISH FEVE
+#-----------------
 
-## diagnose model fit
-plot(model4,pages=1) 
+# priors for fish
+priors_fish <- lapply (org_data_fish, function (i) 
+   
+   set_prior("normal(0,5)", class = "b") #+ 
+      
+     # set_prior("normal(-2,5)", coef = "inv_temp")
+   
+)
 
-## check coeffs and other statistics
-## pseudo R2
-round (with(summary(model4), 1 - deviance/null.deviance),2)
-summary(model4)
+# run MCMC chains for fish DS
+MCMC_runs_fishes_FEve <- lapply ( seq (1,length (org_data_fish)), function (i)
+   
+   
+   brms::brm(formula_FEve,
+             
+             data = org_data_fish[[i]], 
+             
+             family = gaussian(),
+             
+             prior = priors_fish[[i]], 
+             
+             chains = nc,
+             
+             iter = ni,
+             
+             warmup = nb,
+             
+             thin=nt
+             
+   )
+)
+# save
+save (MCMC_runs_fishes_FEve, file=here ("output", "MCMC_runs_fishes_FEve.Rdata"))
 
-## newd
-pdf(here ("output","vectorized","fish_ASSi_FD.pdf"),heigh=4,width=4)
 
-plot(allEffects(model4))
+# ----------------
+#      BENTHOS FDiv
+#-----------------
 
-dev.off()
+# set formula (the same for benthos and fishes)
+formula_FDiv <- brms::bf((FDiv) ~ inv_temp +
+                            
+                            BO2_ppmean_ss_std +
+                            
+                            BO2_salinitymean_ss_std +
+                            
+                            BO_damean_std,# +
+                         
+                         #distance_std,
+                         
+                         nl = F) # nonlinear
 
-########################
+# priors for benthos
+priors_benthos <- lapply (org_data_benthos, function (i) 
+   
+   set_prior("normal(0,5)", class = "b")# + 
+   
+   # set_prior("normal(-2,5)", coef = "inv_temp")
+   
+)
+
+# run MCMC chains for benthos DS
+MCMC_runs_benthos_FDiv <- lapply ( seq (1,length (org_data_benthos)), function (i)
+   
+   
+   brms::brm(formula_FDiv,
+             
+             data = org_data_benthos[[i]], 
+             
+             family = gaussian(),
+             
+             prior = priors_benthos[[i]], 
+             
+             chains = nc,
+             
+             iter = ni,
+             
+             warmup = nb,
+             
+             thin=nt
+             
+   )
+)
+
+## save
+save (MCMC_runs_benthos_FDiv, file=here ("output", "MCMC_runs_benthos_FDiv.Rdata"))
+
+
+# ----------------
+#      FISH FDIV
+#-----------------
+
+# priors for fish
+priors_fish <- lapply (org_data_fish, function (i) 
+   
+   set_prior("normal(0,5)", class = "b") #+ 
+   
+   # set_prior("normal(-2,5)", coef = "inv_temp")
+   
+)
+
+# run MCMC chains for fish DS
+MCMC_runs_fishes_FDiv <- lapply ( seq (1,length (org_data_fish)), function (i)
+   
+   
+   brms::brm(formula_FDiv,
+             
+             data = org_data_fish[[i]], 
+             
+             family = gaussian(),
+             
+             prior = priors_fish[[i]], 
+             
+             chains = nc,
+             
+             iter = ni,
+             
+             warmup = nb,
+             
+             thin=nt
+             
+   )
+)
+# save
+save (MCMC_runs_fishes_FDiv, file=here ("output", "MCMC_runs_fishes_FDiv.Rdata"))
+
+
+# -----------------------------------------------
+
+## List of results for figure 3
+
+## fish results
+load (here ("output","MCMC_runs_fishes_SR.RData"))
+load (here ("output","MCMC_runs_fishes_FRic.RData"))
+load (here ("output","MCMC_runs_fishes_FEve.RData"))
+load (here ("output","MCMC_runs_fishes_FDiv.RData"))
+
 # benthos
+load (here ("output","MCMC_runs_benthos_SR.RData"))
+load (here ("output","MCMC_runs_benthos_FRic.RData"))
+load (here ("output","MCMC_runs_benthos_FEve.RData"))
+load (here ("output","MCMC_runs_benthos_FDiv.RData"))
 
-# MMS
-
-model1 <- betareg ((FD) ~ poly(BO2_ppmean_ss_std, 2)+
-                      poly(BO2_salinitymean_ss_std,2)+
-                      inv_temp_std +
-                      poly(BO_damean_std, 2),
-                   link = "logit",
-                   data = cov_benthos_MMS,
-                   na.action = na.exclude)
-summary (model1)
-
-# simplify
-
-model2 <- betareg ((FD) ~ poly(BO2_ppmean_ss_std, 2)+
-                      poly(BO2_salinitymean_ss_std,2)+
-                      inv_temp_std ,
-                   link = "logit",
-                   data = cov_benthos_MMS,
-                   na.action = na.exclude)
-summary(model2)
-
-#
-anova (model1,model2, test = "Chisq")
-AIC(model1,model2)
+# FISH
+## coefficients
+list_of_results_fish <- list(MCMC_runs_fishes_SR,
+                             MCMC_runs_fishes_FRic, 
+                             MCMC_runs_fishes_FEve,
+                             MCMC_runs_fishes_FDiv
+)
 
 
-# simplify
+# set names in indexes
+names(list_of_results_fish) <- c("SR", "FRic", "FEve", "FDiv")
+# set names of algorithms within indexes 
+list_of_results_fish <- lapply (list_of_results_fish, function (i) {
+   names (i) <- c("MSS","PSS", "Lomolino");
+   i
+})
 
-model3 <- betareg ((FD) ~ poly(BO2_salinitymean_ss_std,2)+
-                      inv_temp_std ,
-                   link = "logit",
-                   data = cov_benthos_MMS,
-                   na.action = na.exclude)
-summary(model3)
+## organizing results (coeficients)
 
-# compared
-AIC(model2,model3)
+org_results <- lapply (seq(1,length (list_of_results_fish)), function (i)
+   lapply (seq (length(list_of_results_fish[[1]])), function (k)
+      
+      data.frame (
+         fixef(list_of_results_fish[[i]][[k]],
+               summary = TRUE,
+               robust = FALSE,
+               probs = c(0.025, 0.975)
+         ), 
+         "Algorithm" = names(list_of_results_fish[[i]])[k],
+         "Index" = names(list_of_results_fish)[i])
+   ))
 
-plot(model2)
+# melt list 
+org_results <- do.call(rbind, 
+                       
+                       lapply (org_results, function (i)
+                          
+                          do.call(rbind , i)
+                          
+                       )
+)
 
-pdf(here ("output","vectorized","benthos_MMS_FD_betareg.pdf"))
+# bind parameter
+org_results$Parameter <- c("Intercept",
+                           "Temperature",
+                           "Productivity",
+                           "Salinity",
+                           "Turbidity")
+# bind organism
+org_results$Organism <- "Fishes"
 
-plot(allEffects(model2))
+# -----------------------------------------------
+# BENTHOS
 
-dev.off()
+## coefficients
+list_of_results_benthos <- list(MCMC_runs_benthos_SR,
+                                MCMC_runs_benthos_FRic, 
+                                MCMC_runs_benthos_FEve,
+                                MCMC_runs_benthos_FDiv
+)
 
-###############
-## ASSi
 
-model1 <- betareg ((FD) ~ poly(BO2_ppmean_ss_std, 2)+
-                  poly(BO2_salinitymean_ss_std,2)+
-                  inv_temp_std +
-                  poly(BO_damean_std, 2),
-               link = "logit",
-               data = cov_benthos_ASSi,
-               na.action = na.exclude)
+# set names in indexes
+names(list_of_results_benthos) <- c("SR", "FRic", "FEve", "FDiv")
+# set names of algorithms within indexes 
+list_of_results_benthos <- lapply (list_of_results_benthos, function (i) {
+   names (i) <- c("MSS","PSS", "Lomolino");
+   i
+})
 
-summary(model1)
+## organizing results (coeficients)
 
-# simplify
-model2 <- betareg ((FD) ~ poly(BO_damean_std, 2)+
-                      poly(BO2_salinitymean_ss_std,2)+
-                      inv_temp_std,
-                   link = "logit",
-                   data = cov_benthos_ASSi,
-                   na.action = na.exclude)
-summary(model2)
-#
-anova (model1,model2, test = "Chisq")
-AIC(model1,model2)
+org_results_benthos <- lapply (seq(1,length (list_of_results_benthos)), function (i)
+   lapply (seq (length(list_of_results_benthos[[1]])), function (k)
+      
+      data.frame (
+         fixef(list_of_results_benthos[[i]][[k]],
+               summary = TRUE,
+               robust = FALSE,
+               probs = c(0.025, 0.975)
+         ), 
+         "Algorithm" = names(list_of_results_benthos[[i]])[k],
+         "Index" = names(list_of_results_benthos)[i])
+   ))
 
-# simplify
-model3 <- betareg ((FD) ~ poly(BO2_salinitymean_ss_std,2)+
-                      poly(BO_damean_std, 2),
-                   link = "logit",
-                   data = cov_benthos_ASSi,
-                   na.action = na.exclude)
-summary(model3)
+# melt list 
+org_results_benthos <- do.call(rbind, 
+                               
+                               lapply (org_results_benthos, function (i)
+                                  
+                                  do.call(rbind , i)
+                                  
+                               )
+)
 
-AIC(model2,model3)
+# bind parameter
+org_results_benthos$Parameter <- c("Intercept",
+                                   "Temperature",
+                                   "Productivity",
+                                   "Salinity",
+                                   "Turbidity")
+# bind organism
+org_results_benthos$Organism <- "Benthos"
 
-# simplify
+## bind fish and benthos data
 
-model4 <- betareg ((FD) ~ poly(BO_damean_std, 2),
-                   link = "logit",
-                   data = cov_benthos_ASSi,
-                   na.action = na.exclude)
-summary(model4)
+complete_results <- rbind (org_results,
+                           org_results_benthos)
 
-AIC(model3,model4)
+# adjusting
+colnames (complete_results)[3:4] <- c("lower","upper")
 
-## we can't simplify anymore
+complete_results$Index <- factor (complete_results$Index,
+                                  levels = c("SR", "FRic","FEve", "FDiv"))
 
-## diagnose model fit
-plot(model4) 
+## save results
+save (complete_results, file=here("output", "complete_results_for_fig3.RData"))
 
-## check coeffs and other statistics
-## pseudo R2
-summary(model4)
 
-pdf(here ("output","vectorized","benthos_ASSi_FD_betareg.pdf"),heigh=4,width=4)
+### check of goodness of fit
 
-plot(allEffects(model4))
-
-dev.off()
-
-##------------------------------------------------- #
-# 
-# Relationship between fish fd and bethos fd
-#
-# --------------------------------------------------#
-
-# help here
-# https://stats.stackexchange.com/questions/33013/what-test-can-i-use-to-compare-slopes-from-two-or-more-regression-models
+## fit we want to check
+# fishes
 # MSS
-data.ancova.MSS <- rbind(data.frame (EST.rich=cov_benthos_MMS$EST.rich,
-            FD=cov_benthos_MMS$FD,
-            Organism="Benthos"),
-data.frame (EST.rich=cov_fish_MMS$EST.rich,
-            FD=cov_fish_MMS$FD,
-            Organism="Fishes"))
+loo_test_fish_MSS <- lapply (list(MCMC_runs_fishes_SR[[1]],
+             MCMC_runs_fishes_FRic[[1]],
+             MCMC_runs_fishes_FEve[[1]],
+             MCMC_runs_fishes_FDiv[[1]]),
+             
+             loo)
 
-model.ancova <-glm (FD ~ EST.rich*Organism,
-                    data.ancova.MSS,
-     family = gaussian (link="identity"))
-summary(model.ancova)
-anova(model.ancova)
 
-m.lst <- emtrends(model.ancova, "Organism", var="EST.rich")
-m.lst
-# ASSi
-data.ancova.ASSi <- rbind(data.frame (EST.rich=cov_benthos_ASSi$EST.rich,
-                                     FD=cov_benthos_ASSi$FD,
-                                     Organism="Benthos"),
-                         data.frame (EST.rich=cov_fish_ASSi$EST.rich,
-                                     FD=cov_fish_ASSi$FD,
-                                     Organism="Fishes"))
+do.call(rbind, 
+        lapply (loo_test_fish_MSS, function (i) i$estimates [2,]))
 
-model.ancova.ASSi <-glm (FD ~ EST.rich*Organism,
-                    data.ancova.ASSi,
-                    family = gaussian (link="identity"))
-summary(model.ancova.ASSi)
-anova(model.ancova.ASSi)
+# all pareto's k lower than 0.5
 
-m.lst.ASSi <- emtrends(model.ancova.ASSi, "Organism", var="EST.rich")
-m.lst.ASSi
+lapply (loo_test_fish_MSS, pareto_k_table)
 
-## plottign results
-pdf(here("output","vectorized","rel_fish_benthos.pdf"),height = 6,width=8)
-par (mfrow = c(1,2),mar = c(7,4,7,1))
-## MSS 
-m1 <- glm (FD ~ EST.rich,
-                data = cov_benthos_MMS,
-          family = gaussian (link="identity"))
+# PSSi
+loo_test_fish_PSSi <- lapply (list(MCMC_runs_fishes_SR[[2]],
+             MCMC_runs_fishes_FRic[[2]],
+             MCMC_runs_fishes_FEve[[2]],
+             MCMC_runs_fishes_FDiv[[2]]),
+             
+             loo)
 
-# data to predict (based on the model)
-newd <- data.frame (EST.rich = seq(5.5,25,0.5))
-pred.vals <- predict (m1,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
+do.call(rbind, 
+        lapply (loo_test_fish_PSSi, function (i) i$estimates [2,]))
 
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+# all pareto's k lower than 0.5
 
-# plotting 
-plot(NA,
-     ylim=c(-0.03,0.8),
-     xlim=c(0,50),
-     ylab = "Functional diversity",
-     xlab = "Species richness",
-     main = "Minimum Sample Size (MSS)")
-lines((pred.vals$fit) ~ newd$EST.rich, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-     col = "green",
-     lwd =3)
+lapply (loo_test_fish_PSSi, pareto_k_table)
 
-#
-lines (upr ~  newd$EST.rich,lwd=2,col="gray50")
-lines (lwr ~  newd$EST.rich,lwd=2,col="gray50")
-points (cov_benthos_MMS$FD ~ cov_benthos_MMS$EST.rich,
-        col=rgb(0,0.2,0,alpha=0.4),pch=19)
+## Lomolino's 
 
-m2 <- glm (FD ~ poly(EST.rich,2),
-           data = cov_fish_MMS,
-           family = gaussian (link="identity"))
+# PSSi
+loo_test_fish_lomolino <- lapply (list(MCMC_runs_fishes_SR[[3]],
+                                   MCMC_runs_fishes_FRic[[3]],
+                                   MCMC_runs_fishes_FEve[[3]],
+                                   MCMC_runs_fishes_FDiv[[3]]),
+                              
+                              loo)
 
-# data to predict (based on the model)
-newd <- data.frame (EST.rich = seq(12,50,0.5))
-pred.vals <- predict (m2,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
+do.call(rbind, 
+        lapply (loo_test_fish_lomolino, function (i) i$estimates [2,]))
 
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+# all pareto's k lower than 0.5
 
-# plotting 
+lapply (loo_test_fish_lomolino, pareto_k_table)
 
-lines((pred.vals$fit) ~ newd$EST.rich, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-     col = "red",
-     type="l",
-     lwd =3,
-     ylab = "Functional diversity",
-     xlab = "Species richness")
+## benthos
 
-#
-lines (upr ~  newd$EST.rich,lwd=2,col="gray50")
-lines (lwr ~  newd$EST.rich,lwd=2,col="gray50")
-points (cov_fish_MMS$FD ~ cov_fish_MMS$EST.rich,
-        col=rgb(0.2,0,0,alpha=0.4),pch=19)
+# MSS
+loo_test_benthos_MSS <- lapply (list(MCMC_runs_benthos_SR[[1]],
+                                  MCMC_runs_benthos_FRic[[1]],
+                                  MCMC_runs_benthos_FEve[[1]],
+                                  MCMC_runs_benthos_FDiv[[1]]),
+                                
+                                loo)
 
-# ASSi
 
-m1 <- glm (FD ~ EST.rich,
-           data = cov_benthos_ASSi,
-           family = gaussian (link="identity"))
+do.call(rbind, 
+        lapply (loo_test_benthos_MSS, function (i) i$estimates [2,]))
 
-# data to predict (based on the model)
-newd <- data.frame (EST.rich = seq(7,26,0.5))
-pred.vals <- predict (m1,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
+# all pareto's k lower than 0.5
 
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+lapply (loo_test_benthos_MSS, pareto_k_table)
 
-# plotting 
-plot(NA,
-     ylim=c(-0.03,0.8),
-     xlim=c(0,90),
-     ylab = "",
-     xlab = "Species richness",
-     main = "Asymptotic Sample Size (ASSi)")
-lines((pred.vals$fit) ~ newd$EST.rich, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "darkgreen",
-      lwd =3)
+# PSSi
+loo_test_benthos_PSSi <- lapply (list(MCMC_runs_benthos_SR[[2]],
+                                   MCMC_runs_benthos_FRic[[2]],
+                                   MCMC_runs_benthos_FEve[[2]],
+                                   MCMC_runs_benthos_FDiv[[2]]),
+                                 
+                                 loo)
 
-#
-lines (upr ~  newd$EST.rich,lwd=2,col="gray50")
-lines (lwr ~  newd$EST.rich,lwd=2,col="gray50")
-points (cov_benthos_ASSi$FD ~ cov_benthos_ASSi$EST.rich,
-        col=rgb(0,0.2,0,alpha=0.4),pch=19)
+do.call(rbind, 
+        lapply (loo_test_benthos_PSSi, function (i) i$estimates [2,]))
 
-m2 <- glm (FD ~ poly(EST.rich,2),
-           data = cov_fish_ASSi,
-           family = gaussian (link="identity"))
+# all pareto's k lower than 0.5
 
-# data to predict (based on the model)
-newd <- data.frame (EST.rich = seq(14,90,0.5))
-pred.vals <- predict (m2,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
+lapply (loo_test_benthos_PSSi, pareto_k_table)
 
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
+## lomolino
 
-# plotting 
+loo_test_benthos_lomolino <- lapply (list(MCMC_runs_benthos_SR[[3]],
+                                      MCMC_runs_benthos_FRic[[3]],
+                                      MCMC_runs_benthos_FEve[[3]],
+                                      MCMC_runs_benthos_FDiv[[3]]),
+                                 
+                                 loo)
 
-lines((pred.vals$fit) ~ newd$EST.rich, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "darkred",
-      type="l",
-      lwd =3)
+do.call(rbind, 
+        lapply (loo_test_benthos_lomolino, function (i) i$estimates [2,]))
 
-#
-lines (upr ~  newd$EST.rich,lwd=2,col="gray50")
-lines (lwr ~  newd$EST.rich,lwd=2,col="gray50")
-points (cov_fish_ASSi$FD ~ cov_fish_ASSi$EST.rich,
-        col=rgb(0.2,0,0,alpha=0.4),pch=19)
+# all pareto's k lower than 0.5
 
-
-legend ("topleft", legend = c("Benthos", "Fishes"),
-        lwd = 3, col =c("darkgreen","darkred"),
-        bty="n")
-
-dev.off()
-
-# ---------------------------------------------------
-# latitudinal variation
-
-# bind richness data from MSS and ASSi
-# fish
-bind.rich.data <- rbind (data.frame (Lat= cov_fish_MMS$Lat,
-                                     EST.rich = cov_fish_MMS$EST.rich,
-                                     Organism="Fishes"),
-                         data.frame (Lat= cov_benthos_MMS$Lat,
-                                     EST.rich = cov_benthos_MMS$EST.rich,
-                                     Organism="Benthos"))
-
-## test of slopes
-
-model.SR.MMS <-glm (EST.rich ~ poly(Lat,2)*Organism,
-                       bind.rich.data,
-                         family = gaussian (link="identity"))
-summary(model.SR.MMS)
-anova(model.SR.MMS)
-
-m.lst.SR.MMS <- emtrends(model.SR.MMS, "Organism", var="Lat")
-m.lst.SR.MMS
-
-## plottign results
-pdf(here("output","vectorized","rel_lat_fish_benthos.pdf"),height = 6,width=8)
-par (mfrow = c(1,2),mar = c(7,4,7,1))
-## MSS 
-m1 <- glm (EST.rich ~ poly(Lat,2),
-           data = cov_benthos_MMS,
-           family = gaussian (link="identity"))
-
-# data to predict (based on the model)
-newd <- data.frame (Lat = seq(-27.85,1,0.5))
-pred.vals <- predict (m1,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
-
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-plot(NA,
-     ylim=c(0,50),
-     xlim=c(-28,1),
-     ylab = "Species richness",
-     xlab = "Latitude",
-     main = "Minimum Sample Size (MSS)")
-lines((pred.vals$fit) ~ newd$Lat, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "green",
-      lwd =3)
-
-#
-lines (upr ~  newd$Lat,lwd=2,col="gray50")
-lines (lwr ~  newd$Lat,lwd=2,col="gray50")
-points (cov_benthos_MMS$EST.rich ~ cov_benthos_MMS$Lat,
-        col=rgb(0,0.2,0,alpha=0.4),pch=19)
-
-m2 <- glm (EST.rich ~ poly(Lat,2),
-           data = cov_fish_MMS,
-           family = gaussian (link="identity"))
-
-# data to predict (based on the model)
-newd <- data.frame (Lat = seq(-27.85,1,0.5))
-pred.vals <- predict (m2,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
-
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-
-lines((pred.vals$fit) ~ newd$Lat, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "red",
-      type="l",
-      lwd =3)
-
-#
-lines (upr ~  newd$Lat,lwd=2,col="gray50")
-lines (lwr ~  newd$Lat,lwd=2,col="gray50")
-points (cov_fish_MMS$EST.rich ~ cov_fish_MMS$Lat,
-        col=rgb(0.2,0,0,alpha=0.4),pch=19)
-
-# ASSi
-bind.rich.data.ASSi <- rbind (data.frame (Lat= cov_fish_ASSi$Lat,
-                                     EST.rich = cov_fish_ASSi$EST.rich,
-                                     Organism="Fishes"),
-                         data.frame (Lat= cov_benthos_ASSi$Lat,
-                                     EST.rich = cov_benthos_ASSi$EST.rich,
-                                     Organism="Benthos"))
-
-model.SR.ASSi <-glm (EST.rich ~ Lat*Organism,
-                       bind.rich.data.ASSi,
-                      family = gaussian (link="identity"))
-summary(model.SR.ASSi)
-anova(model.SR.ASSi)
-
-m.lst.SR.ASSi <- emtrends(model.SR.ASSi, "Organism", var="Lat")
-m.lst.SR.ASSi
-
-## model
-m1 <- glm (EST.rich ~ poly(Lat,2),
-           data = cov_benthos_ASSi,
-           family = gaussian (link="identity"))
-
-# data to predict (based on the model)
-newd <- data.frame (Lat = seq(-27.85,1,0.5))
-pred.vals <- predict (m1,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
-
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-plot(NA,
-     ylim=c(0,90),
-     xlim=c(-28,1),
-     ylab = "",
-     xlab = "Latitude",
-     main = "Asymptotic Sample Size (ASSi)")
-lines((pred.vals$fit) ~ newd$Lat, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "darkgreen",
-      lwd =3)
-
-#
-lines (upr ~  newd$Lat,lwd=2,col="gray50")
-lines (lwr ~  newd$Lat,lwd=2,col="gray50")
-points (cov_benthos_ASSi$EST.rich ~ cov_benthos_ASSi$Lat,
-        col=rgb(0,0.2,0,alpha=0.4),pch=19)
-
-m2 <- glm (EST.rich ~ poly(Lat,2),
-           data = cov_fish_ASSi,
-           family = gaussian (link="identity"))
-
-# data to predict (based on the model)
-newd <- data.frame (Lat = seq(-27.85,1,0.5))
-pred.vals <- predict (m2,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
-
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-
-lines((pred.vals$fit) ~ newd$Lat, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "darkred",
-      type="l",
-      lwd =3)
-
-#
-lines (upr ~  newd$Lat,lwd=2,col="gray50")
-lines (lwr ~  newd$Lat,lwd=2,col="gray50")
-points (cov_fish_ASSi$EST.rich ~ cov_fish_ASSi$Lat,
-        col=rgb(0.2,0,0,alpha=0.4),pch=19)
-
-
-legend ("topright", legend = c("Benthos", "Fishes"),
-        lwd = 3, col =c("darkgreen","darkred"),
-        bty="n")
-
-dev.off()
-
-############################################
-### FD
-
-# bind FD data from MSS and ASSi
-# fish
-bind.FD.data <- rbind (data.frame (Lat= cov_fish_MMS$Lat,
-                                     FD = cov_fish_MMS$FD,
-                                     Organism="Fishes"),
-                         data.frame (Lat= cov_benthos_MMS$Lat,
-                                     FD = cov_benthos_MMS$FD,
-                                     Organism="Benthos"))
-
-## test of slopes
-
-model.FD.MMS <-glm (FD ~ poly(Lat,2)*Organism,
-                    bind.FD.data,
-                      family = gaussian (link="identity"))
-summary(model.FD.MMS)
-anova(model.FD.MMS)
-
-m.lst.FD.MMS <- emtrends(model.FD.MMS, "Organism", var="Lat")
-m.lst.FD.MMS
-
-## plottign results
-pdf(here("output","vectorized","rel_lat_FD_fish_benthos.pdf"),height = 6,width=8)
-par (mfrow = c(1,2),mar = c(7,4,7,1))
-## MSS 
-m1 <- glm (FD ~ poly(Lat,2),
-           data = cov_benthos_MMS,
-           family = gaussian (link="identity"))
-
-# data to predict (based on the model)
-newd <- data.frame (Lat = seq(-27.85,1,0.5))
-pred.vals <- predict (m1,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
-
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-plot(NA,
-     ylim=c(0,0.7),
-     xlim=c(-28,1),
-     ylab = "Functional diversity",
-     xlab = "Latitude",
-     main = "Minimum Sample Size (MSS)")
-lines((pred.vals$fit) ~ newd$Lat, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "green",
-      lwd =3)
-
-#
-lines (upr ~  newd$Lat,lwd=2,col="gray50")
-lines (lwr ~  newd$Lat,lwd=2,col="gray50")
-points (cov_benthos_MMS$FD ~ cov_benthos_MMS$Lat,
-        col=rgb(0,0.2,0,alpha=0.4),pch=19)
-
-m2 <- glm (FD ~ poly(Lat,2),
-           data = cov_fish_MMS,
-           family = gaussian (link="identity"))
-
-# data to predict (based on the model)
-newd <- data.frame (Lat = seq(-27.85,1,0.5))
-pred.vals <- predict (m2,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
-
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-
-lines((pred.vals$fit) ~ newd$Lat, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "red",
-      type="l",
-      lwd =3)
-
-#
-lines (upr ~  newd$Lat,lwd=2,col="gray50")
-lines (lwr ~  newd$Lat,lwd=2,col="gray50")
-points (cov_fish_MMS$FD ~ cov_fish_MMS$Lat,
-        col=rgb(0.2,0,0,alpha=0.4),pch=19)
-
-# ASSi
-bind.FD.data.ASSi <- rbind (data.frame (Lat= cov_fish_ASSi$Lat,
-                                          FD = cov_fish_ASSi$FD,
-                                          Organism="Fishes"),
-                              data.frame (Lat= cov_benthos_ASSi$Lat,
-                                          FD = cov_benthos_ASSi$FD,
-                                          Organism="Benthos"))
-
-model.FD.ASSi <-glm (FD ~ poly(Lat,2)*Organism,
-                       bind.FD.data.ASSi,
-                       family = gaussian (link="identity"))
-summary(model.FD.ASSi)
-anova(model.FD.ASSi)
-
-m.lst.FD.ASSi <- emtrends(model.FD.ASSi, "Organism", var="Lat")
-m.lst.FD.ASSi
-
-## model
-m1 <- glm (FD ~ poly(Lat,2),
-           data = cov_benthos_ASSi,
-           family = gaussian (link="identity"))
-
-# data to predict (based on the model)
-newd <- data.frame (Lat = seq(-27.85,1,0.5))
-pred.vals <- predict (m1,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
-
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-plot(NA,
-     ylim=c(0,0.7),
-     xlim=c(-28,1),
-     ylab = "",
-     xlab = "Latitude",
-     main = "Asymptotic Sample Size (ASSi)")
-lines((pred.vals$fit) ~ newd$Lat, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "darkgreen",
-      lwd =3)
-
-#
-lines (upr ~  newd$Lat,lwd=2,col="gray50")
-lines (lwr ~  newd$Lat,lwd=2,col="gray50")
-points (cov_benthos_ASSi$FD ~ cov_benthos_ASSi$Lat,
-        col=rgb(0,0.2,0,alpha=0.4),pch=19)
-
-m2 <- glm (FD ~ poly(Lat,2),
-           data = cov_fish_ASSi,
-           family = gaussian (link="identity"))
-
-# data to predict (based on the model)
-newd <- data.frame (Lat = seq(-27.85,1,0.5))
-pred.vals <- predict (m2,
-                      newdata = newd,
-                      type="response", # predictions in the link-function scale
-                      se.fit = T)
-
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-
-lines((pred.vals$fit) ~ newd$Lat, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-      col = "darkred",
-      type="l",
-      lwd =3)
-
-#
-lines (upr ~  newd$Lat,lwd=2,col="gray50")
-lines (lwr ~  newd$Lat,lwd=2,col="gray50")
-points (cov_fish_ASSi$FD ~ cov_fish_ASSi$Lat,
-        col=rgb(0.2,0,0,alpha=0.4),pch=19)
-
-
-legend ("topright", legend = c("Benthos", "Fishes"),
-        lwd = 3, col =c("darkgreen","darkred"),
-        bty="n")
-
-dev.off()
-
-
-
-
-
-
-
-#############################
-
-par(mfrow=c(2,2))
-
-newd <- data.frame (BO2_salinitymean_ss_std= 0,
-                    inv_temp_std=0,
-                    BO2_ppmean_ss_std=seq (range(cov_fish_MMS$BO_damean_std)[1],
-                                           range(cov_fish_MMS$BO_damean_std)[2],
-                                           0.05))
-
-## data to predict (based on the model)
-pred.vals <- predict (model3,
-                      newdata = newd,
-                      type="link", # predictions in the link-function scale
-                      se.fit = T)
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-
-plot(exp(pred.vals$fit) ~ newd$BO2_ppmean_ss_std, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-     col = "darkred",
-     type="l",
-     lwd =3,
-     ylim=c(10,90),
-     ylab = "Estimated fish richness",
-     xlab = "Productivity",
-     xaxt='n')
-axis(1,
-     at=cov_fish_ASSi$BO2_ppmean_ss_std,
-     round(cov_fish_ASSi$BO2_ppmean_ss,3))
-
-lines (exp(upr) ~  newd$BO2_ppmean_ss_std,lwd=2,col="gray50")
-lines (exp(lwr) ~  newd$BO2_ppmean_ss_std,lwd=2,col="gray50")
-points (cov_fish_ASSi$EST.rich ~ cov_fish_ASSi$BO2_ppmean_ss_std,
-        col=rgb(0,0,0.2,alpha=0.1),pch=19)
-
-#
-
-## newd
-newd <- data.frame (BO2_salinitymean_ss_std= 0,
-                    inv_temp_std=seq (range(cov_fish_MMS$inv_temp_std)[1],
-                                      range(cov_fish_MMS$inv_temp_std)[2],
-                                      0.05),
-                    BO2_ppmean_ss_std=0)
-
-## data to predict (based on the model)
-pred.vals <- predict (model3,
-                      newdata = newd,
-                      type="link", # predictions in the link-function scale
-                      se.fit = T)
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-
-plot(exp(pred.vals$fit) ~ newd$inv_temp_std, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-     col = "darkred",
-     type="l",
-     lwd =3,
-     ylim=c(10,150),
-     ylab = "",
-     xlab = "Inverse of temperature",
-     xaxt='n')
-axis(1,
-     at=cov_fish_ASSi$inv_temp_std,
-     round(cov_fish_ASSi$inv_temp,2))
-
-lines (exp(upr) ~  newd$inv_temp_std,lwd=2,col="gray50")
-lines (exp(lwr) ~  newd$inv_temp_std,lwd=2,col="gray50")
-points (cov_fish_ASSi$EST.rich ~ cov_fish_ASSi$inv_temp_std,
-        col=rgb(0,0,0.2,alpha=0.1),pch=19)
-
-
-## newd
-newd <- data.frame (BO2_salinitymean_ss_std= seq (range(cov_fish_MMS$BO2_salinitymean_ss_std)[1],
-                                                  range(cov_fish_MMS$BO2_salinitymean_ss_std)[2],
-                                                  0.05),
-                    inv_temp_std=0,
-                    BO2_ppmean_ss_std=0)
-
-## data to predict (based on the model)
-pred.vals <- predict (model3,
-                      newdata = newd,
-                      type="link", # predictions in the link-function scale
-                      se.fit = T)
-# get confidence interval (in the link-function scale)
-upr <- pred.vals$fit + (1.96 * pred.vals$se.fit)
-lwr <- pred.vals$fit - (1.96 * pred.vals$se.fit)
-
-# plotting 
-
-plot(exp(pred.vals$fit) ~ newd$BO2_salinitymean_ss_std, ## exp is because the inverse of log-link in its exponential - see basics of GLM Poisson 
-     col = "darkred",
-     type="l",
-     lwd =3,
-     ylim=c(10,70),
-     ylab = "",
-     xlab = "Salinity",
-     xaxt='n')
-axis(1,
-     at=cov_fish_ASSi$BO2_salinitymean_ss_std,
-     round(cov_fish_ASSi$BO2_salinitymean_ss,2))
-
-lines (exp(upr) ~  newd$BO2_salinitymean_ss_std,lwd=2,col="gray50")
-lines (exp(lwr) ~  newd$BO2_salinitymean_ss_std,lwd=2,col="gray50")
-points (cov_fish_ASSi$EST.rich ~ cov_fish_ASSi$BO2_salinitymean_ss_std,
-        col=rgb(0,0,0.2,alpha=0.1),pch=19)
-
+lapply (loo_test_benthos_lomolino, pareto_k_table)

@@ -19,7 +19,7 @@ gen_lomolino_inits <- function(data) {
 
                            data = data)
 
-  inits <- vector(mode = "list", length = 4)
+  inits <- vector(mode = "list", length = nc)
 
   for (i in seq_along(inits)) {
 
@@ -49,25 +49,36 @@ run_lomolino_model <- function(lomolino_data) {
 
                         log(1 + (exp(lnslope) ^ log(exp(lnxmid) / sample))),
 
-                      lnasym + lnslope + lnxmid ~ 1 + (1 | iter),
+                      lnasym + lnslope + lnxmid ~ 1,
 
                       nl = TRUE)
 
   my_inits <- gen_lomolino_inits(lomolino_data)
 
-  priors <- brms::prior(normal(0, 1), nlpar = "lnasym") +
+  priors <- 
+            brms::prior(normal(0, 1), nlpar = "lnasym") +
 
             brms::prior(normal(0, 1), nlpar = "lnslope") +
 
             brms::prior(normal(0, 1), nlpar = "lnxmid")
 
+  
+  
   brms::brm(formula,
 
             data = lomolino_data, family = gaussian(),
 
             prior = priors, inits = my_inits,
 
-            chains = 0)
+            chains = nc,
+            
+            iter = ni,
+            
+            warmup = nb,
+            
+            thin=nt
+            
+  )
 
 }
 

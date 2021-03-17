@@ -50,5 +50,6 @@ require(effects)
 
 require(brms)
 require(loo)
+require(iNEXT)
 
 
