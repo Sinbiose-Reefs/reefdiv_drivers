@@ -1224,8 +1224,6 @@ do.call(rbind,
 lapply (loo_test_fish_PSSi, pareto_k_table)
 
 ## Lomolino's 
-
-# PSSi
 loo_test_fish_lomolino <- lapply (list(MCMC_runs_fishes_SR[[3]],
                                        MCMC_runs_fishes_FRic[[3]],
                                        MCMC_runs_fishes_FEve[[3]],
