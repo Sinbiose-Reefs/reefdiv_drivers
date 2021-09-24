@@ -1,10 +1,9 @@
 
 # ------------------------------------------------------------------- #
-#         organizacao de dados, e analises para o manuscrito 
-#                 "Diversity patterns and drivers" 
+#         Organizing data for the MS "Diversity patterns and drivers" 
 #-------------------------------------------------------------------- #
 
-## call packages
+## load packages and functions
 source("R/packages.R")
 source("R/functions.R")
 source("R/function_lomolino_richness.R")
@@ -12,13 +11,13 @@ source("R/function_lomolino_richness.R")
 # Load data
 
 # ------------------------------ #
-#        benthos data
+#        Benthic data
 # ------------------------------ #
 
 bentos <- read.xlsx(here("data","detection","Updated_compiled_quadrats_allsites.xlsx"),
                     sheet = 1, colNames = TRUE,detectDates=F)
 
-## converter data em data - bug do pacote openxlsx
+## adjust data - bug of openxlsx
 bentos$eventDate <-convertToDate(bentos$eventDate)
 
 # Remove benthos from dataset as below
@@ -27,61 +26,50 @@ rm_sp <- c("Areia.e.Cascalho","Desconhecido","Estrela","ourico1","ourico2",
            "Outro.hydrozoa","Quadrado","Outro.crustaceo","Sombra")
 
 bentos <- bentos[which(bentos$Taxon %in% rm_sp == F),]
-# to lower these names 
+# to lower case  
 bentos$Taxon <- tolower (bentos$Taxon)
 
-## dados dos peixes
+# -----------------------------
+#       Fish data
+# -----------------------------
+
 peixes <- read.xlsx(here("data","detection","UpdatedData_RMorais_et_al_2017.xlsx"),
                     sheet = 1, colNames = TRUE,detectDates=F)
 
-## converter data em data - bug do pacote openxlsx
+## adjust data
 peixes$eventDate <-convertToDate(peixes$eventDate)
 
-## filtrar os dados de peixes de acordo com o minimo de ano de bentos
-# peixes <- peixes [which(peixes$eventYear >= min (bentos$eventYear) & peixes$eventYear <= max (bentos$eventYear)),]
-
-## modificar o eventID removendo o ano, desde que escolhemos um lapso temporal que cobre 2010 a 2014, 
-## de modo que possamos analisar os dados se peixes foi coletado em 2012 e bentos em 2014, por exemplo 
-
+# obtain an event ID (it is the ID of each site) 
 bentos$eventID_MOD <- substr(bentos$eventID, 1,nchar(as.character(bentos$eventID))-5) 
 peixes$eventID_MOD  <- substr(peixes$eventID, 1,nchar(as.character(peixes$eventID))-5) 
 
-## fazer um histograma pra saber o numero de eventIDS por ano
+## sensitivity analyzes could be done for sites present in both data sets
+peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
+#peixes_subset <- peixes # but now we work with all data per taxa
 
-barplot_function(df1=bentos,#bentos
-                 df2= peixes #peixes
-                 )
-
-## se quiser o subset de sitios que correspondem em ambos os data sets
-## subset entre os datasets, desde que peixes ou bentos foram amostrados nos mesmos locais
-# peixes_subset <- peixes [which(peixes$eventID_MOD %in% bentos$eventID_MOD),]
-peixes_subset <- peixes
-
-## da mesma forma, pegar o subset de ID de bentos que estao nos dados de peixes
-# bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
-bentos_subset <- bentos
-##  criar uma ID numerica para o observador
+## the same for benthos
+bentos_subset <- bentos [which(bentos$eventID_MOD %in% peixes$eventID_MOD),]
+#bentos_subset <- bentos # complete dataset
+##  Observer ID (number)
 peixes_subset$ID.observer <- as.numeric(as.factor(peixes_subset$Observer))
 
-## ID para o sitio (peixes)
+## ID for sites
+peixes_subset$locality_site <- paste(peixes_subset$Locality,  # fishes
+                                     peixes_subset$Site,
+                                     peixes_subset$eventDepth,
+                                     sep=".")
+#
+bentos_subset$locality_site <- paste(bentos_subset$Locality, # benthos
+                                     bentos_subset$Site,
+                                     bentos_subset$eventDepth,
+                                     sep=".")
 
-peixes_subset$locality_site <- paste(peixes_subset$Locality, 
-                                     peixes_subset$Site,sep=".")
-
-
-## ID para o sitio (bentos)
-
-bentos_subset$locality_site <- paste(bentos_subset$Locality, 
-                                     bentos_subset$Site,sep=".")
-
-### mapa para conferir a posicao dos sitios - com base no subset dos dados que correspondem
-## tem um monte de pontos porque tem todos os eventIDs ai
-
-initial_map_function (df1 = bentos_subset,# red
-                      df2 = peixes_subset) # black
+# REMOVE ISLAND SITES
+peixes_subset <- peixes_subset[which(peixes_subset$Region != "oc_isl"),]
+bentos_subset <- bentos_subset[which(bentos_subset$Region != "oc_isl"),]
 
 #---------------------------------------------------#
-#             dados de composicao                   #
+#             composition data                      #
 #---------------------------------------------------#
 
 #########################################
@@ -89,30 +77,43 @@ initial_map_function (df1 = bentos_subset,# red
 #########################################
 
 comp_peixes <-  cast(peixes_subset,
-                     formula = Site  ~ ScientificName,
+                     formula = locality_site  ~ ScientificName,
+                     #formula = Locality  ~ ScientificName,
                      value= "IndCounting",
                      fun.aggregate = sum)
+
+comp_peixes <- comp_peixes[order (comp_peixes$locality_site,decreasing=F),]
+#comp_peixes <- comp_peixes[order (comp_peixes$Locality,decreasing=F),]
 
 ###########################################################################
 ## data for SAC (species accumulation curve, site  x transect x spp)
 ###########################################################################
 
 # unuique sites
-sites_fish_complete <- unique (peixes_subset$Site)
+sites_fish_complete <- unique (peixes_subset$locality_site)
 sites_fish_complete <- sites_fish_complete[order(sites_fish_complete,decreasing=F)]
 
 # tables per site
 rar_peixes <- lapply (sites_fish_complete, function (i)
     
-    cast (peixes_subset [which (peixes_subset$Site == i),],
+    cast (peixes_subset [which (peixes_subset$locality_site == i),],
           formula = Transect_id ~ ScientificName,
           value="IndCounting",
           fun.aggregate = sum)[,-1]
     )
 
+# which sites have more than 2 transects
+enough_transects <- which(unlist(lapply(rar_peixes,nrow))>2)
+
+# rm sites with too few samples
+sites_fish_complete <- sites_fish_complete[enough_transects]
+
+# also from rarefaction data
+rar_peixes <- rar_peixes[enough_transects]
+
 # SAC based on the number of samples,
 # nrandom samples  (for all analysis)
-niter <- 999
+niter <- 1000
 rarefied_richness_fish <- lapply (rar_peixes, 
                                   specaccum,
                                   method="random", 
@@ -121,7 +122,7 @@ rarefied_richness_fish <- lapply (rar_peixes,
 ### plotting 
 par (mfrow=c(1,1))
 plot(NA,
-     xlim=c(0,250),
+     xlim=c(0,150),
      ylim=c(-5,100),
      xlab = "Number of samples",
      ylab = "Fish richness")
@@ -153,6 +154,7 @@ total_samples <- sapply (rarefied_richness_fish,"[[","sites")
 total_samples <- unlist (lapply (total_samples, max))
 
 # res table
+
 res_table_samples <- data.frame (Site = sites_fish_complete,
                                  EST.Rich=unlist(est_rich),
                                  SD.Rich=unlist(sd_rich),
@@ -167,8 +169,9 @@ res_table_samples <- data.frame (Site = sites_fish_complete,
 # -------------------------------#
 
 # obtain random compositions
-nc <- 3
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
+
+ncores <- 3
+cl <- makeCluster(ncores) ## number of cores = generally ncores -1
 
 # exportar pacote para os cores
 
@@ -181,7 +184,8 @@ clusterExport(cl, c("niter",
 rdm_composition <- parLapply (cl, seq(1,niter), function (k)
                            lapply(rar_peixes, function (i)
   
-                fc_random_composition(data = i,nsamples = min_samples,
+                fc_random_composition(data = i,
+                                      nsamples = min_samples,
                                       replace= F)
                 
 
@@ -213,201 +217,12 @@ rdm_composition_complete <-lapply (rdm_composition, function (i)
 
 })))
 
-rdm_composition_complete
+# saving
 
-# -------------------------------------------------------------------- #
-# 2) random sample based on asymptote 
-#  (Standard deviation of estimates > 1 and != 0)
-#--------------------------------------------------------------------- #
-
-## df with extracted estimates
-# a site get the asymptote when richness sd was < 1 species  (no overall difference after that)
-sp_accum_fish_asymptote <- lapply (seq (1,length(rarefied_richness_fish)), function (i){
-  # extract statistics
-  df_res <- data.frame (
-    Site = sites_fish_complete[i],
-    # estimated richness
-    EST.Rich = rarefied_richness_fish[[i]]$richness[max(which(rarefied_richness_fish[[i]]$sd < 1 & rarefied_richness_fish[[i]]$sd > 0))],
-    # standard deviation 
-    SD.Rich = rarefied_richness_fish[[i]]$sd[max(which(rarefied_richness_fish[[i]]$sd < 1 & rarefied_richness_fish[[i]]$sd > 0))],
-    # nsites to achieve good estimate
-    n_samples = rarefied_richness_fish[[i]]$sites[max(which(rarefied_richness_fish[[i]]$sd < 1 & rarefied_richness_fish[[i]]$sd > 0))],
-    # total number of samples
-    tot_samples = length (rarefied_richness_fish[[i]]$sites)
-  )
-  # bind confidence intervals
-  df_res$upper <- df_res$EST.Rich+1.96*(df_res$SD.Rich/df_res$n_samples)
-  df_res$lower <- df_res$EST.Rich-1.96*(df_res$SD.Rich/df_res$n_samples )
-  
-  ; # return
-  df_res
-  
-})
-
-# list into  table
-res_sp_accum_fish_asymptote <- do.call(rbind,sp_accum_fish_asymptote)
-
-# remove those sites that did not reach asymptote
-rar_peixes_asymptote <- rar_peixes[which(is.na(res_sp_accum_fish_asymptote$n_samples)!= T)]
-
-# sample size
-nsamples_asymptote_fish <- res_sp_accum_fish_asymptote$n_samples[which(is.na(res_sp_accum_fish_asymptote$n_samples) !=T)]
-
-# obtain random compositions
-
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
-
-# exportar pacote para os cores
-
-# export your data and function
-clusterExport(cl, c("niter", 
-                    "fc_random_composition",
-                    "rar_peixes_asymptote",
-                    "nsamples_asymptote_fish"))
-
-rdm_composition_asymptote <- parLapply (cl, seq(1,niter), function (k)
-  
-                                lapply(seq(1,length(rar_peixes_asymptote)), function (i)
-    
-                              fc_random_composition(data = rar_peixes_asymptote[[i]],
-                                                    nsamples = nsamples_asymptote_fish[i],
-                                                    replace = F)
-                                  )
-                              )
-                          
-stopCluster(cl)
-
-## complete with missing species
-rdm_composition_asymptote_complete <-lapply (rdm_composition_asymptote, function (i)
-  do.call(rbind, lapply (i, function (k) {
-    
-    bind_to_rdm_composition <- matrix(0, 
-                                      ncol = length(which (list_spp %in% colnames (k)  == F)),
-                                      dimnames = list (NULL,
-                                                       list_spp[which (list_spp %in% colnames (k)  == F)]
-                                      ))
-    # cbind
-    bind_rdm_composition <- cbind(k,bind_to_rdm_composition)
-    # ordering by sp name to avoid problems when combining samples from diff sites
-    bind_rdm_composition <- bind_rdm_composition [,order (colnames(bind_rdm_composition))];
-    bind_rdm_composition
-    
-  })))
-
-
-############################################################################
-####     rarefaction based on Lomolino function (from Diego Barneche)
-#############################################################################
-
-vegan_data <- lapply (rarefied_richness_fish, function (i)
-  
-  data.frame(ln_richness = log(i$richness), 
-             sample = i$sites))
-
-# MCMC settings
-ni <- 30000
-nb <- 20000
-nt <- 20
-nc <- 3
-
-test <- run_lomolino_model(vegan_data[[14]][,-1])
-exp(fixef(test)["lnxmid_Intercept", "Estimate"])
-
-model_lomolino <- lapply(vegan_data,run_lomolino_model)
-#save(model_lomolino, file = here ("output", "model_lomolino_fish.RData"))
-load(here ("output", "model_lomolino_fish.RData"))
-
-# Desse modelo voc? pode extrair a estimativa m?dia de lnasym, que representa a riqueza m?xima estimada daquele s?tio.
-
-# asymp
-asymp <- lapply (model_lomolino, function (i) 
-  exp(fixef(i)["lnasym_Intercept", "Estimate"]))
-
-# xmid = xmid is the area where half of the maximum richness is achieved
-xmid <- lapply (model_lomolino, function (i) 
-  exp(fixef(i)["lnxmid_Intercept", "Estimate"])
-)
-
-xmid<- lapply(xmid,round)
-
-# df response lomolino
-res_lomolino <- cbind (xmid=unlist(xmid),
-                       obs_ss = unlist(lapply (rar_peixes,nrow)),
-                       asymp = unlist(asymp ))
-
-#subsetting for those sites with goood S50 estimates 
-
-rar_peixes_lomolino <- rar_peixes [which(res_lomolino[,1] < res_lomolino[,2])]
-xmid <- xmid[which(res_lomolino[,1] < res_lomolino[,2])]
-
-# apply (res_lomolino[which(res_lomolino[,1] < res_lomolino[,2]),],2,mean)
-# apply (res_lomolino[which(res_lomolino[,1] < res_lomolino[,2]),],2,sd)
-
-# obtain composition based on lomolino function
-
-# obtain random compositions
-nc <- 3
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
-
-# exportar pacote para os cores
-
-# export your data and function
-clusterExport(cl, c("niter", 
-                    "fc_random_composition",
-                    "rar_peixes_lomolino",
-                    "xmid"))
-
-
-rdm_composition_lomolino <-
-  
-  parLapply (cl,seq(1,niter), function (k) {
-    
-    tryCatch (
-      
-      lapply(seq(1,length(rar_peixes_lomolino)), function (i)
-        
-        fc_random_composition(data = rar_peixes_lomolino[[i]],
-                              nsamples = xmid [[i]],
-                              replace =F)), 
-      error = function (e)
-        return (e))})
-
-
-stopCluster(cl)
-
-
-# list of species to adjust cols
-list_spp <- unique(unlist(lapply (rar_peixes_lomolino, function (k)
-  colnames(k))))
-
-## complete with missing species
-rdm_composition_lomolino_complete <-lapply (rdm_composition_lomolino, function (i)
-  do.call(rbind, lapply (i, function (k) {
-    
-    bind_to_rdm_composition <- matrix(0, 
-                                      ncol = length(which (list_spp %in% colnames (k)  == F)),
-                                      dimnames = list (NULL,
-                                                       list_spp[which (list_spp %in% colnames (k)  == F)]
-                                      ))
-    # cbind
-    bind_rdm_composition <- cbind(k,bind_to_rdm_composition)
-    # ordering by sp name to avoid problems when combining samples from diff sites
-    bind_rdm_composition <- bind_rdm_composition [,order (colnames(bind_rdm_composition))];
-    bind_rdm_composition
-    
-  })))
-
-#
-
-save (rar_peixes,# observed data
-      rar_peixes_asymptote,
-      rar_peixes_lomolino,
+save (comp_peixes,# composition per site (not rarefied)
+      rar_peixes,# observed data
       rdm_composition_complete, # random composition based on min samples
-      rdm_composition_asymptote_complete,## random composition based on SD criteria
-      rdm_composition_lomolino_complete,# random composition baed on xmid
       res_table_samples, # results of estimates based on min samples
-      res_sp_accum_fish_asymptote, # results of estimates based on SD
-      res_lomolino, # results based on lomolino
       sites_fish_complete, # analyzed sites
       file = here("output", "random_composition_fish.RData"))
 
@@ -417,30 +232,47 @@ save (rar_peixes,# observed data
 #########################################
 
 comp_bentos <-  cast(bentos_subset,
-                     formula = Sites  ~ Taxon,
+                     formula = locality_site  ~ Taxon,
+                     #formula = Locality  ~ Taxon,
                      value= "Cover",
                      fun.aggregate = mean)
-#
+
+comp_bentos<- comp_bentos[order(comp_bentos$locality_site,decreasing=F),]
+#comp_bentos<- comp_bentos[order(comp_bentos$Locality,decreasing=F),]
+
+# save benthos and fish composition (non-rarefied)
+#save (comp_peixes, comp_bentos,
+#      file=here ("output","composition_non_rarefied.RData"))
+
 ###################################################################
 ## data for SAC (species accumulation curve, site  x video x spp)
 ###################################################################
-sites_bentos_complete <- unique (bentos_subset$Site)
+sites_bentos_complete <- unique (bentos_subset$locality_site)
 sites_bentos_complete <- sites_bentos_complete [order(sites_bentos_complete,decreasing = F)]
 
+# create one table of samples per speices x site 
 rar_bentos <- lapply (sites_bentos_complete, function (i)
   
-  cast (bentos_subset [which (bentos_subset$Site == i),],
+  cast (bentos_subset [which (bentos_subset$locality_site == i),],
         formula = Video_number ~ Taxon,
         value="Cover",
         fun.aggregate = max)[,-1])
 
+# which sites have more than 2 videos
+enough_videos <- which(unlist(lapply(rar_bentos,nrow))>2)
+
+# rm sites with too few samples
+sites_bentos_complete <- sites_bentos_complete[enough_videos]
+
+# rm also from rarefaction data
+rar_bentos <- rar_bentos[enough_videos]
+
 ## SAC based on the number of samples
-niter<-999
+
 rarefied_richness_bentos<- lapply (rar_bentos, 
                                   specaccum,
                                   method="random", ## method="rarefaction" - based on individuals
                                   permutations=niter)
-
 
 ### plotting 
 par (mfrow=c(1,1))
@@ -490,8 +322,8 @@ res_table_samples_bentos <- data.frame (Site = sites_bentos_complete,
 # ----------------------------------------#
 
 # obtain random compositions
-nc <- 3
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
+
+cl <- makeCluster(ncores) ## number of cores = generally ncores -1
 
 # exportar pacote para os cores
 
@@ -503,7 +335,7 @@ clusterExport(cl, c("niter",
 
 rdm_composition_bentos <- parLapply (cl, seq(1,niter), function (k)
   lapply(rar_bentos, function (i)
-    fc_random_composition(data = i[,-1],
+    fc_random_composition(data = i,
                           nsamples = min_samples_bentos,
                           replace= F)
   ))
@@ -519,272 +351,101 @@ list_spp <- unique(unlist(lapply (rar_bentos, function (k)
 rdm_composition_complete_bentos <-lapply (rdm_composition_bentos, function (i)
   do.call(rbind, lapply (i, function (k) {
     
-    bind_to_rdm_composition <- matrix(0, 
+	if (length(which (list_spp %in% colnames (k)  == F))==0){k}
+	
+	else {
+	
+	    bind_to_rdm_composition <- matrix(0, 
                                       ncol = length(which (list_spp %in% colnames (k)  == F)),
                                       dimnames = list (NULL,
-                                                       list_spp[which (list_spp %in% colnames (k)  == F)]
-                                      ))
+                                                       list_spp[which (list_spp %in% colnames (k)  == F)]                                      ))
+    
     # cbind
     bind_rdm_composition <- cbind(k,bind_to_rdm_composition)
     # ordering by sp name to avoid problems when combining samples from diff sites
     bind_rdm_composition <- bind_rdm_composition [,order (colnames(bind_rdm_composition))];
     bind_rdm_composition
+	
+	}
+ ;k
     
   })))
 
-rdm_composition_complete_bentos
+# rm first column
+# save
 
-# -------------------------------------------------------------------- #
-# 2) random sample based on min samples
-# based on asymptote (Standard deviation of estimates > 1 and != 0)
-#--------------------------------------------------------------------- #
-
-## df with extracted estimates
-# a site get the asymptote when richness sd was < 1 species  (no overall difference after that)
-sp_accum_bentos_asymptote <- lapply (seq (1,length(rarefied_richness_bentos)), function (i){
-  # extract statistics
-  df_res <- data.frame (
-    Site = sites_bentos_complete[i],
-    # estimated richness
-    EST.Rich = rarefied_richness_bentos[[i]]$richness[max(which(rarefied_richness_bentos[[i]]$sd < 1 & rarefied_richness_bentos[[i]]$sd > 0))],
-    # standard deviation 
-    SD.Rich = rarefied_richness_bentos[[i]]$sd[max(which(rarefied_richness_bentos[[i]]$sd < 1 & rarefied_richness_bentos[[i]]$sd > 0))],
-    # nsites to achieve good estimate
-    n_samples = rarefied_richness_bentos[[i]]$sites[max(which(rarefied_richness_bentos[[i]]$sd < 1 & rarefied_richness_bentos[[i]]$sd > 0))],
-    # total number of samples
-    tot_samples = length (rarefied_richness_bentos[[i]]$sites)
-  )
-  # bind confidence intervals
-  df_res$upper <- df_res$EST.Rich+1.96*(df_res$SD.Rich/df_res$n_samples)
-  df_res$lower <- df_res$EST.Rich-1.96*(df_res$SD.Rich/df_res$n_samples )
-  
-  ; # return
-  df_res
-  
-})
-
-# list into  table
-res_sp_accum_bentos_asymptote <- do.call(rbind,sp_accum_bentos_asymptote)
-
-# remove those sites that did not reach asymptote
-rar_bentos_asymptote <- rar_bentos[which(is.na(res_sp_accum_bentos_asymptote$n_samples)!= T)]
-
-# sample size
-nsamples_asymptote_bentos <- res_sp_accum_bentos_asymptote$n_samples[which(is.na(res_sp_accum_bentos_asymptote$n_samples) !=T)]
-
-# obtain random compositions
-nc <- 3
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
-
-# exportar pacote para os cores
-
-# export your data and function
-clusterExport(cl, c("niter", 
-                    "fc_random_composition",
-                    "rar_bentos_asymptote",
-                    "nsamples_asymptote_bentos"))
-
-rdm_composition_asymptote_bentos <- parLapply (cl, seq(1,niter), function (k)
-  lapply(seq(1,length(rar_bentos_asymptote)), function (i)
-    
-    fc_random_composition(data = rar_bentos_asymptote[[i]][,-1],
-                          nsamples = nsamples_asymptote_bentos[i],
-                          replace= F)
-  ))
-
-stopCluster(cl)
-
-## complete with missing species
-rdm_composition_asymptote_complete_bentos <-lapply (rdm_composition_asymptote_bentos, function (i)
-  do.call(rbind, lapply (i, function (k) {
-    
-    bind_to_rdm_composition <- matrix(0, 
-                                      ncol = length(which (list_spp %in% colnames (k)  == F)),
-                                      dimnames = list (NULL,
-                                                       list_spp[which (list_spp %in% colnames (k)  == F)]
-                                      ))
-    # cbind
-    bind_rdm_composition <- cbind(k,bind_to_rdm_composition)
-    # ordering by sp name to avoid problems when combining samples from diff sites
-    bind_rdm_composition <- bind_rdm_composition [,order (colnames(bind_rdm_composition))];
-    bind_rdm_composition
-    
-  })))
-
-
-############################################################################
-####     rarefaction based on Lomolino function (from Diego Barneche)
-#############################################################################
-
-vegan_data <- lapply (rarefied_richness_bentos, function (i)
-  
-  data.frame(ln_richness = log(i$richness), 
-             sample = i$sites))
-
-# run model
-
-model_lomolino <- lapply(vegan_data,run_lomolino_model)
-#save(model_lomolino, file = here ("output", "model_lomolino_benthos.RData"))
-load(here ("output", "model_lomolino_benthos.RData"))
-
-#Desse modelo voc? pode extrair a estimativa m?dia de lnasym, que representa a riqueza m?xima estimada daquele s?tio.
-
-# asymp
-asymp <- lapply (model_lomolino, function (i) 
-  exp(fixef(i)["lnasym_Intercept", "Estimate"]))
-
-# xmid = xmid is the area where half of the maximum richness is achieved
-xmid <- lapply (model_lomolino, function (i) 
-  exp(fixef(i)["lnxmid_Intercept", "Estimate"])
-)
-xmid<- lapply(xmid,round)
-
-
-# df response lomolino
-res_lomolino_bentos <- cbind (xmid=unlist(xmid),
-                              obs_ss = unlist(lapply (rar_bentos,nrow)),
-                              asymp = unlist(asymp ))
-
-#subsetting for those sites with goood S50 estimates 
-
-rar_bentos_lomolino <- rar_bentos [which(res_lomolino_bentos[,1] < res_lomolino_bentos[,2])]
-xmid <- xmid[which(res_lomolino_bentos[,1] < res_lomolino_bentos[,2])]
-
-table(res_lomolino_bentos[,1] > res_lomolino_bentos[,2])
-
-# obtain composition based on lomolino function
-# basic statistics
-
-apply (res_lomolino_bentos[which(res_lomolino_bentos[,1] < res_lomolino_bentos[,2]),],2,mean)
-apply (res_lomolino_bentos[which(res_lomolino_bentos[,1] < res_lomolino_bentos[,2]),],2,sd)
-
-# number of iterations to get niter random compositions
-niter <- 999
-
-# obtain random compositions
-nc <- 3
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
-
-# exportar pacote para os cores
-
-# export your data and function
-clusterExport(cl, c("niter", 
-                    "fc_random_composition",
-                    "rar_bentos_lomolino",
-                    "xmid"))
-
-
-rdm_composition_lomolino_bentos <- parLapply (cl,seq(1,niter), function (k){
-  
-  tryCatch (
-    lapply(seq(1,length(rar_bentos_lomolino)), function (i)
-      fc_random_composition(data = rar_bentos_lomolino[[i]][,-1],
-                            nsamples = xmid [[i]],
-                            replace=F)),
-    error = function (e)
-      return (e))
-}
-
-)
-
-stopCluster(cl)
-
-
-# list of species to adjust cols
-list_spp <- unique(unlist(lapply (rar_bentos_lomolino, function (k)
-  colnames(k))))
-
-## complete with missing species
-rdm_composition_lomolino_complete_bentos <-lapply (rdm_composition_lomolino_bentos, function (i)
-  do.call(rbind, lapply (i, function (k) {
-    
-    bind_to_rdm_composition <- matrix(0, 
-                                      ncol = length(which (list_spp %in% colnames (k)  == F)),
-                                      dimnames = list (NULL,
-                                                       list_spp[which (list_spp %in% colnames (k)  == F)]
-                                      ))
-    # cbind
-    bind_rdm_composition <- cbind(k,bind_to_rdm_composition)
-    # ordering by sp name to avoid problems when combining samples from diff sites
-    bind_rdm_composition <- bind_rdm_composition [,order (colnames(bind_rdm_composition))];
-    bind_rdm_composition
-    
-  })))
-
-#
-
-save (
+save (comp_bentos,
       rar_bentos,
-      rar_bentos_asymptote,
-      rar_bentos_lomolino,
       rdm_composition_complete_bentos, # random composition based on min samples
-      rdm_composition_asymptote_complete_bentos,## random composition based on SD criteria
-      rdm_composition_lomolino_complete_bentos, # random composition based on lomolino 
       res_table_samples_bentos, # results of estimates based on min samples
-      res_sp_accum_bentos_asymptote, # results of estimates based on SD
-      res_lomolino_bentos, #results of estimates based on lomolino
       sites_bentos_complete, # analyzed sites
       file = here("output", "random_composition_bentos.RData"))
 
 
 #######################################################################################
-#######################################################################################
-################         covariaveis de sitio                   #######################
-#######################################################################################
+################         ENVIRONMENTAL PREDICTORS               #######################
 #######################################################################################
 
-## de sitio (aquelas que variam por sitio)
-
-## sitios do nordeste
+## REGION
+# northeastern
 nord <- cast(peixes_subset,
-             formula = Site  ~ Region,
+             formula = locality_site ~ Region,
              value= "IndCounting",
              fun.aggregate = sum)
+nord<- nord[which(nord$locality_site %in% sites_fish_complete),]
+regiao <- ifelse (nord$ne_reefs>0,"northeastern","southern")
 
-## regiao 
-regiao <- matrix(NA, nrow(nord),ncol = 1,
-                 dimnames=list(nord$Site,
-                               "Region"))
+# depth
+prof <- cast(peixes_subset,
+                     formula = locality_site ~ eventDepth,
+                     value= "IndCounting",
+                     fun.aggregate = sum)
+prof<- prof[which(prof$locality_site %in% sites_fish_complete),]
+prof <- ifelse (prof$fundo>0,"fundo","raso")
 
-regiao [nord [,3] >0] <-  "Oceanic Islands"
-regiao [nord [,2] >0] <- "Northeastern"
-regiao [nord [,4] >0]<- "Southeastern"
+# ---------
+# effort
 
-## numero de transeccoes e videos (esforço)
-
-#lista_sitios_peixes <- unique(comp_peixes$locality_site)
-
-# encontrando o ID das transeccoes unicas, e vendo seu length == numero de transectos
+# unique transection IDs, checking length == n trans
 n_transeccoes <- lapply (sites_fish_complete, function (i)
-  length (unique (peixes_subset [which(peixes_subset$Site == i),"Transect_id"]))
+  length (unique (peixes_subset [which(peixes_subset$locality_site == i),"Transect_id"]))
 )
-# encontrando numero de videos unicos por sitio
+
+# unique videos per site
 # fish site names as comparison
-n_videos <- lapply (sites_fish_complete, function (i)
-  length (unique (bentos_subset [which(bentos_subset$Sites == i),"Video_number"]))
+n_videos <- lapply (sites_bentos_complete, function (i)
+  length (unique (bentos_subset [which(bentos_subset$locality_site == i),"Video_number"]))
 )
 
-# montando uma tabela
-tabela_esforco <- data.frame (Site = sites_fish_complete,
-                              n_transectos_peixes = unlist(n_transeccoes),
-                              n_videos_bentos = unlist(n_videos))
-## lista de dados
-
+# effort table
+tabela_esforco <- list(fish=data.frame (sites_fish_complete = sites_fish_complete,
+                              n_transectos_peixes = unlist(n_transeccoes)),
+                       benthos = data.frame (sites_bentos_complete = sites_bentos_complete,
+                              n_videos_bentos = unlist(n_videos)))
+## list of data
+# complete
+comp_peixes <- comp_peixes[which(comp_peixes$locality_site %in% sites_fish_complete),]
+comp_bentos <- comp_bentos [which(comp_bentos$locality_site %in% sites_bentos_complete),]
 dados_peixes_bentos <- list(peixes = comp_peixes,
-                            bentos = comp_bentos)
+                            riq_peixes = rowSums (comp_peixes[,-1]>0),
+                            bentos = comp_bentos,
+                            riq_bentos=rowSums (comp_bentos[,-1]>0))
 
-## coordenadas geográficas para os mapas e analises
-# peixes
+## geo coordinates
+# fish
 coordenadas_peixes <- aggregate(peixes_subset, 
-                                by= list (peixes_subset$Site), 
+                                by= list (peixes_subset$locality_site), 
                                 FUN=mean)[c("Group.1","Lon","Lat")]
+coordenadas_peixes<- coordenadas_peixes[which(coordenadas_peixes$Group.1 %in% sites_fish_complete),]
 
-# bentos
+# benthos
 coordenadas_bentos <- aggregate(bentos_subset, 
-                         by= list (bentos_subset$Site), 
+                         by= list (bentos_subset$locality_site), 
                          FUN=mean)[c("Group.1","Lon","Lat")]
+coordenadas_bentos<- coordenadas_bentos[which(coordenadas_bentos$Group.1 %in% sites_bentos_complete),]
 
-### BiO Oracle covariates
+# -----------------------
+# BiO Oracle - extracting covariate data
 # Explore datasets in the package
 # devtools::install_github("lifewatch/sdmpredictors")
 layers <- list_layers()
@@ -795,21 +456,27 @@ layers <- list_layers()
 options(sdmpredictors_datadir=here ("data","environment"))
 
 ## chlorophil has different extent - loading and extracting in two steps         
-layers_oracle <- load_layers(c("BO2_tempmean_ss","BO2_temprange_ss",
-                               "BO2_ppmean_ss", "BO2_pprange_ss",
-                               "BO2_salinitymean_ss", "BO2_salinityrange_ss",
-                               "BO_damax","BO_damean","BO_damin"))
+layers_oracle <- load_layers(c("BO2_tempmean_ss",
+                               #"BO2_temprange_ss",
+                               "BO2_ppmean_ss", 
+                               #"BO2_pprange_ss",
+                               "BO2_salinitymean_ss", 
+                               #"BO2_salinityrange_ss",
+                               #"BO_damax",
+                               "BO_damean"
+                               #,"BO_damin"
+                               ))
 
 ## these data have different extent
 #layers_oracle_Chl <- load_layers (c("BO2_chlomean_ss","BO2_chlorange_ss"))
 
 ## coordinates to spatial points
-# ajustando uma coordenada
-coordenadas_peixes [84,2] <- as.numeric(-35.082658) ## perua preta
-#
+# adjusting one coordinate
+coordenadas_peixes [grep("perua",coordenadas_peixes$Group.1),2] <- as.numeric(-35.082658) ## perua preta
+# list of points
 sp_points <- list(coordenadas_peixes,
                   coordenadas_bentos)
-
+# coord to sppoints df
 spdf <- lapply (sp_points, function (i) 
   
   SpatialPointsDataFrame(coords = i[,2:3], data = i,
@@ -830,44 +497,43 @@ extracted_sea_data<-lapply (seq(1,length(extracted_sea_data)), function (i) {
 ## binding these dfs
 #extracted_sea_data <- cbind(extracted_sea_data,
 
-###### distance to the coast areas
-
-# BR coast, download from here https://mapcruzin.com/free-brazil-arcgis-maps-shapefiles.htm
+# ------------------------------
+#  distance offshore
+# BR coastline, download from here https://mapcruzin.com/free-brazil-arcgis-maps-shapefiles.htm
 
 BR <- readOGR(dsn=here("data", "environment","brazil-coastline"), "brazil_coastline")
 crs(BR) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
 BR <- spTransform(BR, CRS("+init=epsg:4326"))
 
 # use dist2Line from geosphere - only works for WGS84 
-#data bentos
+# data benthos
 sp_data <- SpatialPoints(coordenadas_bentos[,2:3])
 crs(sp_data) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
 sp_data <- spTransform(sp_data, CRS("+init=epsg:4326"))
 
-# measure distance
+# measuring the distance
 dist_bentos <- geosphere::dist2Line(p = sp_data, 
                              line = (BR))
-
+# binding coords
 coordenadas_bentos <- cbind (coordenadas_bentos, dist_bentos)
-
+# plot
 ggplot(data = world) +
   geom_sf() +
   geom_point(data=coordenadas_bentos, 
              aes(x=Lon, y=Lat, col =distance)) +
   coord_sf(xlim = c(-55, -20), ylim = c(-33,0 ), expand = FALSE)
 
-
-## peixes
+## fish
 sp_data <- SpatialPoints(coordenadas_peixes[,2:3])
 crs(sp_data) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
 sp_data <- spTransform(sp_data, CRS("+init=epsg:4326"))
 
-# measure distance
+# measuring distance
 dist_peixes <- geosphere::dist2Line(p = sp_data, 
                                     line = (BR))
-
+# bind coords and distance
 coordenadas_peixes <- cbind (coordenadas_peixes, dist_peixes)
-
+#plot to check
 ggplot(data = world) +
   geom_sf() +
   geom_point(data=coordenadas_peixes, 
@@ -875,23 +541,22 @@ ggplot(data = world) +
   coord_sf(xlim = c(-55, -20), ylim = c(-33,0 ), expand = FALSE)
 
 
-## lista de covariaveis
-
-covariates_site <- list (region = regiao,
-                         site_names = sites_fish_complete,
+## list with predictors
+covariates_site <- list (site_names = sites_fish_complete,
+                         regiao = regiao,
+                         prof = prof,
                          coord = list(coord_bentos=coordenadas_bentos,
                                       coord_peixes = coordenadas_peixes),
                          sea_data = extracted_sea_data)
-
+# effort
 covariates_effort <- list(effort = tabela_esforco)
 
-###############################################
-# # # # # # # # #  SAVE # # # # # # # # # # # #
-###############################################
-
-### save data - para os modelos de coral
+# SAVE
 
 save (covariates_site , ### dados de covariaveis das bases de dados
       covariates_effort, ## variaveis de esforco
       dados_peixes_bentos, ## dados de composicao 
       file=here ("output","env_data.RData"))
+
+
+rm(list=ls())
