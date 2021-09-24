@@ -2,11 +2,11 @@
 ## ------------------------------------------------------------ ##
 ##                 Analysis of functional diversity             ##
 ## ------------------------------------------------------------ ##
-
-## chamar os pacotes
+## laoding packages
 source("R/packages.R")
 source("R/functions.R")
-## function to test space quality
+
+## function to test space quality (from Maire et al. 2015)
 source("R/quality_funct_space_fromdist2.R")
 
 # ------------------------------------------ #
@@ -44,7 +44,7 @@ fish_traits <- fish_traits [which(is.na(fish_traits$Diet) ==F),]
 fish_traits<-fish_traits [-which(fish_traits$Diet == ""),]
 
 ### Select fish species from Atlantic database to match UVCs
-UVS_spp <- unique(unlist(lapply (rdm_composition_asymptote_complete, colnames)))
+UVS_spp <- unique(unlist(lapply (rdm_composition_complete, colnames)))
 fish_traits <- fish_traits[which(fish_traits$Name %in% UVS_spp),]
 
 ### df with sp names
@@ -101,9 +101,9 @@ schooling <-ordered (schooling)
 ### all traits into a dataframe
 fish_traits_ord <-data.frame (Size=ordered(size), 
                               Mobility=ordered (mobility), 
-                              Activity=as.factor (fish_traits2$Diel_activity), 
+                              #Activity=as.factor (fish_traits2$Diel_activity), 
                               Schooling=ordered (schooling), 
-                              Level=ordered (level), 
+                              #Level=ordered (level), 
                               #Diet=as.factor(fish_traits2$Diet), 
                               Body_shape=as.factor(fish_traits2$Body_shape),
                               Caudal_fin=as.factor(fish_traits2$Caudal_fin), 
@@ -155,7 +155,6 @@ bent_traits_ord <-data.frame (body_size=ordered (benthos_body_size),
 
 rownames(bent_traits_ord) <- rownames(bent_traits2)
 
-
 # --------------------------------------------------------------------- #
 #    Functional diversity per site, data set, and sample size def
 # --------------------------------------------------------------------- #
@@ -175,13 +174,14 @@ clusterEvalQ(cl, library(cluster))
 # export your data and function
 clusterExport(cl, c("rdm_composition_complete", 
                     "fish_traits_ord",
-                    "function_FD",
+                    "function_FD_fish",
                     "quality_funct_space_fromdist"))
 
 FD_fish_MSS <- parLapply (cl, 
                           rdm_composition_complete, function (i) {
    
-                           tryCatch ( function_FD (i, fish_traits_ord),
+                           tryCatch ( 
+                              function_FD_fish (i, fish_traits_ord),
                                       error = function (e)
                                         return (e)
                            )
@@ -190,60 +190,8 @@ FD_fish_MSS <- parLapply (cl,
 
 stopCluster (cl)
 
+# save it
 save (FD_fish_MSS, file=here("output","FD_fish_MSS.RData"))
-
-### tests using composition obtained by the asymptotic sample size (ASSi)
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
-
-# exportar pacote para os cores
-clusterEvalQ(cl, library(FD))
-clusterEvalQ(cl, library(cluster))
-
-# export your data and function
-clusterExport(cl, c("rdm_composition_asymptote_complete", 
-                    "fish_traits_ord",
-                    "function_FD",
-                    "quality_funct_space_fromdist"))
-
-FD_fish_ASSi <- parLapply (cl, 
-                           rdm_composition_asymptote_complete, function (i) {
-                             
-                             tryCatch (function_FD (i, fish_traits_ord),
-                                       error = function (e)
-                                         return (e)
-                                       )
-                           })
-
-stopCluster (cl)
-
-save (FD_fish_ASSi, file=here("output","FD_fish_ASSi.RData"))
-
-
-### tests using composition obtained by Lomolino function
-nc<-3
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
-
-# exportar pacote para os cores
-clusterEvalQ(cl, library(FD))
-clusterEvalQ(cl, library(cluster))
-
-# export your data and function
-clusterExport(cl, c("rdm_composition_lomolino_complete", 
-                    "fish_traits_ord",
-                    "function_FD",
-                    "quality_funct_space_fromdist"))
-
-FD_fish_lomolino <- parLapply (cl, 
-                               rdm_composition_lomolino_complete, function (i) {
-                                  
-                                  tryCatch (function_FD (i, fish_traits_ord),
-                                            error = function (e) 
-                                               return (e))
-                               })
-
-stopCluster (cl)
-
-save (FD_fish_lomolino, file=here("output","FD_fish_lomolino.RData"))
 
 # ------
 # Benthos
@@ -259,13 +207,13 @@ clusterEvalQ(cl, library(cluster))
 # export your data and function
 clusterExport(cl, c("rdm_composition_complete_bentos", 
                     "bent_traits_ord",
-                    "function_FD",
+                    "function_FD_benthos",
                     "quality_funct_space_fromdist"))
 
 FD_benthos_MSS <- parLapply (cl, 
                            rdm_composition_complete_bentos, function (i){
                                  
-                                 tryCatch (function_FD (i, bent_traits_ord),
+                                 tryCatch (function_FD_benthos (i, bent_traits_ord),
                                             error = function (e) 
                                               return (e))
                                  }
@@ -276,58 +224,3 @@ stopCluster (cl)
 
 save (FD_benthos_MSS, file=here("output","FD_benthos_MSS.RData"))
 
-### tests using composition obtained by the asymptotic sample size (ASSi)
-
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
-
-# exportar pacote para os cores
-clusterEvalQ(cl, library(FD))
-clusterEvalQ(cl, library(cluster))
-
-# export your data and function
-clusterExport(cl, c("rdm_composition_asymptote_complete_bentos", 
-                    "bent_traits_ord",
-                    "function_FD",
-                    "quality_funct_space_fromdist"))
-
-FD_benthos_ASSi <- parLapply (cl, 
-                             rdm_composition_asymptote_complete_bentos, function (i){
-                                 
-                                 tryCatch (function_FD (i, bent_traits_ord),
-                                            error = function (e) 
-                                              return (e))
-                                 }
-                             
-)
-
-stopCluster (cl)
-
-save (FD_benthos_ASSi, file=here("output","FD_benthos_ASSi.RData"))
-
-## function lomolino
-
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
-
-# exportar pacote para os cores
-clusterEvalQ(cl, library(FD))
-clusterEvalQ(cl, library(cluster))
-
-# export your data and function
-clusterExport(cl, c("rdm_composition_lomolino_complete_bentos", 
-                    "bent_traits_ord",
-                    "function_FD",
-                    "quality_funct_space_fromdist"))
-
-FD_benthos_lomolino <- parLapply (cl, 
-                                  rdm_composition_lomolino_complete_bentos, function (i){
-                                     
-                                     tryCatch (function_FD (i, bent_traits_ord),
-                                               error = function (e) 
-                                                  return (e))
-                                  }
-                                  
-)
-
-stopCluster (cl)
-
-save (FD_benthos_lomolino, file=here("output","FD_benthos_lomolino.RData"))
