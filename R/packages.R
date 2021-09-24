@@ -50,6 +50,10 @@ require(effects)
 
 require(brms)
 require(loo)
-require(iNEXT)
+require (corrplot)
+
+# plot
+require(viridis)
+require(rasterVis)
 
 
