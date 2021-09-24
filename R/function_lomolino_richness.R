@@ -76,7 +76,9 @@ run_lomolino_model <- function(lomolino_data) {
             
             warmup = nb,
             
-            thin=nt
+            thin=nt,
+              
+            control = list(adapt_delta = 0.99)
             
   )
 
