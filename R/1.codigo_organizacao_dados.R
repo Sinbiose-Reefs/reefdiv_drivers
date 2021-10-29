@@ -68,6 +68,15 @@ bentos_subset$locality_site <- paste(bentos_subset$Locality, # benthos
 peixes_subset <- peixes_subset[which(peixes_subset$Region != "oc_isl"),]
 bentos_subset <- bentos_subset[which(bentos_subset$Region != "oc_isl"),]
 
+# total number of belt transects
+length(unique(peixes_subset$Transect_id))
+# total number of videos
+sum(
+  rowSums(
+    table(bentos_subset$locality_site, 
+          bentos_subset$Video_number)>0)
+  )
+  
 #---------------------------------------------------#
 #             composition data                      #
 #---------------------------------------------------#
