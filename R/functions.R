@@ -146,7 +146,7 @@ function_FD_fish <- function (site.data, spp.trait.data) {
 function_FD_benthos <- function (site.data, spp.trait.data) {
   
   #---------------------------------------------------#
-  # Adjust fish abundance data to relative abundance
+  # Adjust benthic incidence
   #-------------------------------------------------- #
   
   abund_matrix <- site.data[,which(colnames(site.data) %in% rownames(spp.trait.data))] 
@@ -262,7 +262,7 @@ function_FD_fish_abundW <- function (site.data, spp.trait.data) {
   #-------------------------------------------------- #
   
   abund_matrix <- site.data[,which(colnames(site.data) %in% rownames(spp.trait.data))] 
-  rel_abund <- abund_matrix/rowSums(abund_matrix) # relative abundance/cover
+  rel_abund <- abund_matrix#/rowSums(abund_matrix) # relative abundance/cover
   quais_sitios_manter <-which(is.na (rowSums (rel_abund))!= T) 
   rel_abund <- rel_abund [quais_sitios_manter,]
   rel_abund <- rel_abund [,which(colSums (rel_abund) > 0)]
@@ -365,12 +365,11 @@ function_FD_fish_abundW <- function (site.data, spp.trait.data) {
 function_FD_benthos_abundW <- function (site.data, spp.trait.data) {
   
   #---------------------------------------------------#
-  # Adjust fish abundance data to relative abundance
+  # Adjust benthic cover data 
   #-------------------------------------------------- #
   
   abund_matrix <- site.data[,which(colnames(site.data) %in% rownames(spp.trait.data))] 
   rel_abund <- abund_matrix [,which(colSums (abund_matrix) > 0)]
-  #rel_abund [rel_abund>0]<-1
   rel_abund<-data.matrix(rel_abund)
   
   # and match fish spp in both datasets
