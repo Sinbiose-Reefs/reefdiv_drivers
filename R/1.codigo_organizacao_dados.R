@@ -122,7 +122,7 @@ rar_peixes <- rar_peixes[enough_transects]
 
 # SAC based on the number of samples,
 # nrandom samples  (for all analysis)
-niter <- 1000
+niter <- niter
 rarefied_richness_fish <- lapply (rar_peixes, 
                                   specaccum,
                                   method="random", 
@@ -179,7 +179,7 @@ res_table_samples <- data.frame (Site = sites_fish_complete,
 
 # obtain random compositions
 
-ncores <- 3
+ncores <- ncores
 cl <- makeCluster(ncores) ## number of cores = generally ncores -1
 
 # exportar pacote para os cores
