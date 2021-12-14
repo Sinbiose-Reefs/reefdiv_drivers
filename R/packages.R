@@ -36,6 +36,8 @@ require(parallel)
 require(vegan)
 require(FD)
 require(cluster)
+require(clue)
+
 # 
 require("sdmpredictors")
 require("leaflet")
