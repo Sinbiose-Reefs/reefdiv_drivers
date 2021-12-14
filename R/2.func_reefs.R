@@ -164,8 +164,7 @@ rownames(bent_traits_ord) <- rownames(bent_traits2)
 #-------
 
 ### tests using composition obtained by the minimum sample size (MSS)
-nc <- 3
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
+cl <- makeCluster(ncores) ## number of cores = generally ncores -1
 
 # exportar pacote para os cores
 clusterEvalQ(cl, library(FD))
@@ -198,7 +197,7 @@ save (FD_fish_MSS, file=here("output","FD_fish_MSS.RData"))
 #-------
 
 ### tests using composition obtained by the minimum sample size (MSS)
-cl <- makeCluster(nc) ## number of cores = generally ncores -1
+cl <- makeCluster(ncores) ## number of cores = generally ncores -1
 
 # exportar pacote para os cores
 clusterEvalQ(cl, library(FD))
