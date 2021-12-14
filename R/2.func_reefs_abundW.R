@@ -170,6 +170,7 @@ cl <- makeCluster(nc) ## number of cores = generally ncores -1
 # exportar pacote para os cores
 clusterEvalQ(cl, library(FD))
 clusterEvalQ(cl, library(cluster))
+clusterEvalQ(cl, library(clue))
 
 # export your data and function
 clusterExport(cl, c("rdm_composition_complete", 
@@ -203,6 +204,7 @@ cl <- makeCluster(nc) ## number of cores = generally ncores -1
 # exportar pacote para os cores
 clusterEvalQ(cl, library(FD))
 clusterEvalQ(cl, library(cluster))
+clusterEvalQ(cl, library(clue))
 
 # export your data and function
 clusterExport(cl, c("rdm_composition_complete_bentos", 
