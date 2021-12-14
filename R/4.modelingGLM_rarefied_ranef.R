@@ -43,7 +43,7 @@ bind_fish_benthos<- cbind (cov_fish,
                             FDiv_benthos = cov_benthos$FDiv)
 
 # bind region
-bind_fish_benthos$Region <- ifelse (bind_fish_benthos$Lat > -22, "Tropical", "Subtropical")
+bind_fish_benthos$Region <- ifelse (bind_fish_benthos$Lat > -20, "Tropical", "Subtropical")
 
 # average values of metrics to present in the Results
 round(apply(bind_fish_benthos[,c(1:4,22:25)],2,mean,na.rm=T),3)
