@@ -9,6 +9,11 @@ source("R/packages.R")
 source("R/functions.R")
 
 
+# -----------------------------------------
+## correlation between variables
+
+load(here("output", "data_to_modeling_GLM.RData"))
+
 # ------------------------------------------ #
 # Load rarefied data of fishes and benthos
 # sites x transect / video x species
@@ -134,134 +139,6 @@ a
 ggsave (file=here("output","vectorized","Fig2_abundW.pdf"),width=4,height=3)
 
 
-# ------------------------------------------------ # 
-# Fig 3
-## correlation between indexes
-
-corr_res <- VarCorr(res$best_model[[1]])$residual__$cor
-
-# correlation between organisms
-correlation_between <- corr_res[1:4,1,grep("benthos",dimnames(corr_res)[[3]])]
-# extract credible intervals
-correlation_between_p <- corr_res[1:4,,grep("benthos",dimnames(corr_res)[[3]])]
-# if lower and upper CI did not overlap 0, then return a sum==2
-p_between_high <- apply(correlation_between_p[,3:4,]>0, c(1,3),sum)==2
-p_between_low <- apply(correlation_between_p[,3:4,]<0, c(1,3),sum)==2
-# now sum to have the corr diff from zero
-p_between<- p_between_high + p_between_low
-# now say that 1 is the significant value
-p_between <- ifelse(p_between ==1,0,1)
-
-#corrplot
-pdf (here ("output", "vectorized", "correlation_between-abundW.pdf"),height = 4,width=4)
-corrplot(corr=correlation_between,
-         method = "square",
-         type= "full",
-         is.corr=T,
-         p.mat = p_between,
-         sig.level = 0.05,
-         insig = "label_sig",
-         addCoef.col = "black")
-dev.off()
-
-#########################################################3
-# Fig 4
-
-# correlation within fish
-correlation_within_fish <- corr_res[1:4,1,-grep("benthos",dimnames(corr_res)[[3]])]
-# extract credible intervals
-correlation_within_fish_p <- corr_res[1:4,,-grep("benthos",dimnames(corr_res)[[3]])]
-# if lower and upper CI did not overlap 0, then return a sum==2
-p_within_fish_high <- apply(correlation_within_fish_p[,3:4,]>0, c(1,3),sum)==2
-p_within_fish_high <- ifelse (p_within_fish_high==T,0,1)
-p_within_fish_low <- apply(correlation_within_fish_p[,3:4,]<0, c(1,3),sum)==2
-p_within_fish_low <- ifelse (p_within_fish_low==T,0,1)
-# now multiplicate to have the corr diff from zero
-p_within_fish <- p_within_fish_high * p_within_fish_low
-
-# colors
-# https://developer.r-project.org/Blog/public/2019/04/01/hcl-based-color-palettes-in-grdevices/
-
-col.fish <- hcl.colors(10, "Blues", rev = TRUE)
-
-pdf (here ("output", "vectorized", "correlation_within_fish_abundW.pdf"),height = 4,width=4)
-
-corrplot(corr=correlation_within_fish,
-         method = "square",
-         type= "full",
-         is.corr=T,
-         diag=T,
-         p.mat = p_within_fish,
-         sig.level = 0.05,
-         insig = "label_sig",
-         addCoef.col = "black",
-         #col.lim = c(20, 30), 
-         col = col.fish)
-dev.off()
-
-# correlation within benthos
-correlation_within_benthos <- corr_res[5:8,1,grep("benthos",dimnames(corr_res)[[3]])]
-# extract credible intervals
-correlation_within_benthos_p <- corr_res[5:8,,grep("benthos",dimnames(corr_res)[[3]])]
-# if lower and upper CI did not overlap 0, then return a sum==2
-# if lower and upper CI did not overlap 0, then return a sum==2
-p_within_benthos_high <- apply(correlation_within_benthos_p[,3:4,]>0, c(1,3),sum)==2
-p_within_benthos_high <- ifelse (p_within_benthos_high==T,0,1)
-p_within_benthos_low <- apply(correlation_within_benthos_p[,3:4,]<0, c(1,3),sum)==2
-p_within_benthos_low <- ifelse (p_within_benthos_low==T,0,1)
-# now multiplicate to have the corr diff from zero
-p_within_benthos <- p_within_benthos_high * p_within_benthos_low
-
-# colors
-# https://developer.r-project.org/Blog/public/2019/04/01/hcl-based-color-palettes-in-grdevices/
-col.benthos <- hcl.colors(10, "Oranges", rev = TRUE)
-
-pdf (here ("output", "vectorized", "correlation_within_benthos_abundW.pdf"),height = 4,width=4)
-corrplot(corr=correlation_within_benthos,
-         method = "square",
-         type= "full",
-         is.corr=T,
-         diag=T,
-         p.mat = p_within_benthos,
-         sig.level = 0.05,
-         insig = "label_sig",
-         addCoef.col = "black",
-         col = col.benthos)
-dev.off()
-
-
-# --------------------------------------------------------
-# correlation between the metrics
-
-# Load data to modeling
-
-load (here ("output","data_to_modeling_GLM_abundW.RData"))
-
-# name of metrics
-metrics <- c("EstRich","FRic", "FEve", "FDiv")
-
-plot_FB<-lapply (metrics, function (i) {
-    
-    # df with metrics
-    data_plot <- data.frame (Benthos = cov_benthos[,i], 
-                              Fishes = cov_fish[,i])
-    
-    plot_FB <- ggplot (data = data_plot, aes (x=Benthos,y=Fishes)) + 
-      geom_point(size=3)+theme_classic()+
-      #geom_smooth(method="lm")+
-      ggtitle(i) + 
-      theme(axis.title = element_text(size=15))
-  ; # return
-    plot_FB
-    })
-    
-# composition of plots
-pdf(here ("output","vectorized","correlation_between_metrics_scatter_abundW.pdf"),height=4,width=4)
-grid.arrange(plot_FB[[1]],plot_FB[[2]],
-             plot_FB[[3]], plot_FB[[4]])
-dev.off()
-# end
-
 # ---------------------------------------------
 # correlation between metrics and CWM
 
@@ -313,7 +190,7 @@ corr_FDiv_neg <- correlation_metrics_cwm[3,][order(correlation_metrics_cwm[3,],d
 # now obtaining a df with the variation in cwm across the richness gradient (as done for each functional metric)
 # first cbind richness and cwm correlated to each functional metric
 # correlated to FRic
-df_FRic_cwm <- data.frame (EstRich = cov_fish$EstRich,
+df_FRic_cwm <- data.frame (EstRich = cov_fish$BO2_tempmean_ss,
                           mean_cwm_fish[,which(colnames(mean_cwm_fish) %in% c(names(corr_FRic),names(corr_FRic_neg)))]
        )
 df_FRic_cwm <- cbind(melt(df_FRic_cwm,"EstRich"),
@@ -321,7 +198,7 @@ df_FRic_cwm <- cbind(melt(df_FRic_cwm,"EstRich"),
                      Metric = "FRic")
                      
 # correlated to FEve
-df_FEve_cwm <- data.frame (EstRich = cov_fish$EstRich,
+df_FEve_cwm <- data.frame (EstRich = cov_fish$BO2_tempmean_ss,
                            mean_cwm_fish[,which(colnames(mean_cwm_fish) %in% c(names(corr_FEve),names(corr_FEve_neg)))]
 )
 df_FEve_cwm <- cbind(melt(df_FEve_cwm,"EstRich"),
@@ -329,7 +206,7 @@ df_FEve_cwm <- cbind(melt(df_FEve_cwm,"EstRich"),
                      Metric = "FEve")
 
 # correlated to FDiv
-df_FDiv_cwm <- data.frame (EstRich = cov_fish$EstRich,
+df_FDiv_cwm <- data.frame (EstRich = cov_fish$BO2_tempmean_ss,
                            mean_cwm_fish[,which(colnames(mean_cwm_fish) %in% c(names(corr_FDiv),names(corr_FDiv_neg)))]
 )
 df_FDiv_cwm <- cbind(melt(df_FDiv_cwm,"EstRich"),
@@ -382,7 +259,7 @@ corr_FDiv_benthos_neg <- correlation_metrics_cwm_benthos[3,][order(correlation_m
 # now plotting the variation in cwm across the richness gradient (as done for each functional metric)
 # first cbind richness and cwm correlated to each functional metric
 # correlated to FRic
-df_FRic_cwm_benthos <- data.frame (EstRich = cov_benthos$EstRich,
+df_FRic_cwm_benthos <- data.frame (EstRich = cov_benthos$BO2_tempmean_ss,
                                   mean_cwm_benthos[,which(colnames(mean_cwm_benthos) %in% c(names(corr_FRic_benthos),names(corr_FRic_benthos_neg)))]
 )
 df_FRic_cwm_benthos <- cbind(melt(df_FRic_cwm_benthos,"EstRich"),
@@ -390,7 +267,7 @@ df_FRic_cwm_benthos <- cbind(melt(df_FRic_cwm_benthos,"EstRich"),
                              Metric = "FRic")
                              
 # correlated to FEve
-df_FEve_cwm_benthos <- data.frame (EstRich = cov_benthos$EstRich,
+df_FEve_cwm_benthos <- data.frame (EstRich = cov_benthos$BO2_tempmean_ss,
                                   mean_cwm_benthos[,which(colnames(mean_cwm_benthos) %in% c(names(corr_FEve_benthos),names(corr_FEve_benthos_neg)))]
 )
 df_FEve_cwm_benthos <- cbind(melt(df_FEve_cwm_benthos,"EstRich"),
@@ -398,7 +275,7 @@ df_FEve_cwm_benthos <- cbind(melt(df_FEve_cwm_benthos,"EstRich"),
                              Metric = "FEve")
                              
 # correlated to FDiv
-df_FDiv_cwm_benthos <- data.frame (EstRich = cov_benthos$EstRich,
+df_FDiv_cwm_benthos <- data.frame (EstRich = cov_benthos$BO2_tempmean_ss,
                                  mean_cwm_benthos[,which(colnames(mean_cwm_benthos) %in% c(names(corr_FDiv_benthos),names(corr_FDiv_benthos_neg)))]
 )
 df_FDiv_cwm_benthos <- cbind(melt(df_FDiv_cwm_benthos,"EstRich"),
