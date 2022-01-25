@@ -86,7 +86,7 @@ function_FD_fish <- function (site.data, spp.trait.data) {
       dev.set(dev.next())
       
       quality<-quality_funct_space_fromdist( gower_matrix,  nbdim=10,   
-                                             plot="quality_funct_space_I") 
+                                             plot="quality_funct_space_I_fish") 
       
       ### the minimal value corresponds to the best space to use (min SD)
       axes_to_choose <- which(quality$meanSD == min(quality$meanSD)) 
@@ -192,7 +192,7 @@ function_FD_benthos <- function (site.data, spp.trait.data) {
   dev.set(dev.next())
   
   quality<-quality_funct_space_fromdist( gower_matrix,  nbdim=10,   
-                                         plot="quality_funct_space_I") 
+                                         plot="quality_funct_space_I_benthos") 
   
   ### the minimal value corresponds to the best space to use (min SD)
   axes_to_choose <- which(quality$meanSD == min(quality$meanSD)) 
@@ -305,7 +305,7 @@ function_FD_fish_abundW <- function (site.data, spp.trait.data) {
   #dev.set(dev.next())
   
   quality<-quality_funct_space_fromdist( gower_matrix,  nbdim=10,   
-                                         plot="quality_funct_space_I") 
+                                         plot="quality_funct_space_I_fish_abund") 
   
   ### the minimal value corresponds to the best space to use (min SD)
   axes_to_choose <- which(quality$meanSD == min(quality$meanSD)) 
@@ -410,7 +410,7 @@ function_FD_benthos_abundW <- function (site.data, spp.trait.data) {
   #dev.set(dev.next())
   
   quality<-quality_funct_space_fromdist( gower_matrix,  nbdim=10,   
-                                         plot="quality_funct_space_I") 
+                                         plot="quality_funct_space_I_benthos_abund") 
   
   ### the minimal value corresponds to the best space to use (min SD)
   axes_to_choose <- which(quality$meanSD == min(quality$meanSD)) 
