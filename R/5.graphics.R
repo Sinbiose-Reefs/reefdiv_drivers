@@ -123,6 +123,34 @@ eff_obsrich_plot_benthos <- ggplot(eff_data_bentos, aes(x=Lat)) +
 
 eff_obsrich_plot_benthos
 
+# temperature
+
+data_lat_temp <- data.frame(Lat=covariates_site$coord$coord_bentos$Lat,
+                            SST =covariates_site$sea_data[[1]][,"BO2_tempmean_ss"])
+# plot
+SST <- ggplot(data_lat_temp, aes(x=Lat,y=SST)) +
+  
+  geom_point(alpha=0.2,col="#8E0505") +
+  
+  geom_smooth(method = "glm", 
+              formula = y ~ poly(x, 2), 
+              size = 1,col ="#8E0505",
+              fill="#8E0505",alpha=0.1) +
+  
+  scale_y_continuous(name="SST",sec.axis=sec_axis(~./scaleFactorB,name="Number of photo quadrats")) +
+  theme_classic() +
+  theme (axis.title.y = element_blank(),
+         axis.text.y = element_blank(),
+         axis.ticks.y = element_blank(),
+         axis.line.y = element_blank(),
+         axis.text.x = element_text(size=8),
+         axis.title.x = element_text(size=10),
+         plot.margin = unit(c(0,0.3,0,0.3), "cm")
+  ) +
+  coord_flip()
+
+SST
+
 ## maps
 # mapa mundi
 world <- ne_countries(scale = "medium", returnclass = "sf")
@@ -159,16 +187,17 @@ pdf(file=here("output","vectorized","FigS1.pdf"),height=5,width=9)
 grid.arrange(map_peixes_bentos, 
              eff_obsrich_plot,
              eff_obsrich_plot_benthos,
-             ncol=8,nrow=11,
-             layout_matrix = rbind (c(1,1,1,1,2,2,3,3),
-                                    c(1,1,1,1,2,2,3,3),
-                                    c(1,1,1,1,2,2,3,3),
-                                    c(1,1,1,1,2,2,3,3),
-                                    c(1,1,1,1,2,2,3,3),
-                                    c(1,1,1,1,2,2,3,3),
-                                    c(1,1,1,1,2,2,3,3),
-                                    c(1,1,1,1,2,2,3,3),
-                                    c(1,1,1,1,2,2,3,3)))
+             SST,
+             ncol=10,nrow=11,
+             layout_matrix = rbind (c(1,1,1,1,2,2,3,3,4,4),
+                                    c(1,1,1,1,2,2,3,3,4,4),
+                                    c(1,1,1,1,2,2,3,3,4,4),
+                                    c(1,1,1,1,2,2,3,3,4,4),
+                                    c(1,1,1,1,2,2,3,3,4,4),
+                                    c(1,1,1,1,2,2,3,3,4,4),
+                                    c(1,1,1,1,2,2,3,3,4,4),
+                                    c(1,1,1,1,2,2,3,3,4,4),
+                                    c(1,1,1,1,2,2,3,3,4,4)))
 
 dev.off()
 
@@ -176,8 +205,6 @@ dev.off()
 # ------------------------------------------ #
 #
 #     Load results of the rarefaction
-
-
 
 # -----------------------------------------------
 
@@ -440,7 +467,7 @@ effects_model<- fixef(res$best_model[[1]],
 effects_model90<-fixef(res$best_model[[1]],
         summary = TRUE,
         robust = FALSE,
-        probs = c(0.05, 0.95))
+        probs = c(0.15, 0.85))
 
 
 # bind algorithm name
@@ -488,7 +515,7 @@ a <- ggplot (complete_results[which (complete_results$Parameter == "Temperature"
              size=1.5)+ 
   
   geom_vline(xintercept = 0, linetype="dashed", 
-             color = "gray50", size=0.5)+
+             color = "gray90", size=0.5)+
   
   #facet_wrap(~Algorithm+Index,scale="free",ncol=4) + 
 
@@ -505,135 +532,6 @@ a <- ggplot (complete_results[which (complete_results$Parameter == "Temperature"
 a
 
 ggsave (file=here("output","vectorized","Fig2.pdf"),width=4,height=3)
-
-
-# ------------------------------------------------ # 
-# Fig 3
-## correlation between indexes
-
-corr_res <- VarCorr(res$best_model[[1]])$residual__$cor
-
-# correlation between organisms
-correlation_between <- corr_res[1:4,1,grep("benthos",dimnames(corr_res)[[3]])]
-# extract credible intervals
-correlation_between_p <- corr_res[1:4,,grep("benthos",dimnames(corr_res)[[3]])]
-# if lower and upper CI did not overlap 0, then return a sum==2
-p_between_high <- apply(correlation_between_p[,3:4,]>0, c(1,3),sum)==2
-p_between_low <- apply(correlation_between_p[,3:4,]<0, c(1,3),sum)==2
-# now sum to have the corr diff from zero
-p_between<- p_between_high + p_between_low
-# now say that 1 is the significant value
-p_between <- ifelse(p_between ==1,0,1)
-
-#corrplot
-pdf (here ("output", "vectorized", "correlation_between.pdf"),height = 4,width=4)
-corrplot(corr=correlation_between,
-         method = "square",
-         type= "full",
-         is.corr=T,
-         p.mat = p_between,
-         sig.level = 0.05,
-         insig = "label_sig",
-         addCoef.col = "black")
-dev.off()
-
-#########################################################3
-# Fig 4
-
-# correlation within fish
-correlation_within_fish <- corr_res[1:4,1,-grep("benthos",dimnames(corr_res)[[3]])]
-# extract credible intervals
-correlation_within_fish_p <- corr_res[1:4,,-grep("benthos",dimnames(corr_res)[[3]])]
-# if lower and upper CI did not overlap 0, then return a sum==2
-p_within_fish_high <- apply(correlation_within_fish_p[,3:4,]>0, c(1,3),sum)==2
-p_within_fish_high <- ifelse (p_within_fish_high==T,0,1)
-p_within_fish_low <- apply(correlation_within_fish_p[,3:4,]<0, c(1,3),sum)==2
-p_within_fish_low <- ifelse (p_within_fish_low==T,0,1)
-# now multiplicate to have the corr diff from zero
-p_within_fish <- p_within_fish_high * p_within_fish_low
-
-# colors
-# https://developer.r-project.org/Blog/public/2019/04/01/hcl-based-color-palettes-in-grdevices/
-
-col.fish <- hcl.colors(10, "Blues", rev = TRUE)
-
-pdf (here ("output", "vectorized", "correlation_within_fish.pdf"),height = 4,width=4)
-
-corrplot(corr=correlation_within_fish,
-         method = "square",
-         type= "full",
-         is.corr=T,
-         diag=T,
-         p.mat = p_within_fish,
-         sig.level = 0.05,
-         insig = "label_sig",
-         addCoef.col = "black",
-         #col.lim = c(20, 30), 
-         col = col.fish)
-dev.off()
-
-# correlation within benthos
-correlation_within_benthos <- corr_res[5:8,1,grep("benthos",dimnames(corr_res)[[3]])]
-# extract credible intervals
-correlation_within_benthos_p <- corr_res[5:8,,grep("benthos",dimnames(corr_res)[[3]])]
-# if lower and upper CI did not overlap 0, then return a sum==2
-# if lower and upper CI did not overlap 0, then return a sum==2
-p_within_benthos_high <- apply(correlation_within_benthos_p[,3:4,]>0, c(1,3),sum)==2
-p_within_benthos_high <- ifelse (p_within_benthos_high==T,0,1)
-p_within_benthos_low <- apply(correlation_within_benthos_p[,3:4,]<0, c(1,3),sum)==2
-p_within_benthos_low <- ifelse (p_within_benthos_low==T,0,1)
-# now multiplicate to have the corr diff from zero
-p_within_benthos <- p_within_benthos_high * p_within_benthos_low
-
-# colors
-# https://developer.r-project.org/Blog/public/2019/04/01/hcl-based-color-palettes-in-grdevices/
-col.benthos <- hcl.colors(10, "Oranges", rev = TRUE)
-
-pdf (here ("output", "vectorized", "correlation_within_benthos.pdf"),height = 4,width=4)
-corrplot(corr=correlation_within_benthos,
-         method = "square",
-         type= "full",
-         is.corr=T,
-         diag=T,
-         p.mat = p_within_benthos,
-         sig.level = 0.05,
-         insig = "label_sig",
-         addCoef.col = "black",
-         col = col.benthos)
-dev.off()
-
-
-# --------------------------------------------------------
-# correlation between the metrics
-
-# Load data to modeling
-
-load (here ("output","data_to_modeling_GLM.RData"))
-
-# name of metrics
-metrics <- c("EstRich","FRic", "FEve", "FDiv")
-
-plot_FB<-lapply (metrics, function (i) {
-    
-    # df with metrics
-    data_plot <- data.frame (Benthos = cov_benthos[,i], 
-                              Fishes = cov_fish[,i])
-    
-    plot_FB <- ggplot (data = data_plot, aes (x=Benthos,y=Fishes)) + 
-      geom_point(size=3)+theme_classic()+
-      #geom_smooth(method="lm")+
-      ggtitle(i) + 
-      theme(axis.title = element_text(size=15))
-  ; # return
-    plot_FB
-    })
-    
-# composition of plots
-pdf(here ("output","vectorized","correlation_between_metrics_scatter.pdf"),height=4,width=4)
-grid.arrange(plot_FB[[1]],plot_FB[[2]],
-             plot_FB[[3]], plot_FB[[4]])
-dev.off()
-# end
 
 # ---------------------------------------------
 # correlation between metrics and CWM
@@ -686,7 +584,7 @@ corr_FDiv_neg <- correlation_metrics_cwm[3,][order(correlation_metrics_cwm[3,],d
 # now obtaining a df with the variation in cwm across the richness gradient (as done for each functional metric)
 # first cbind richness and cwm correlated to each functional metric
 # correlated to FRic
-df_FRic_cwm <- data.frame (EstRich = cov_fish$EstRich,
+df_FRic_cwm <- data.frame (EstRich = cov_fish$BO2_tempmean_ss,
                           mean_cwm_fish[,which(colnames(mean_cwm_fish) %in% c(names(corr_FRic),names(corr_FRic_neg)))]
        )
 df_FRic_cwm <- cbind(melt(df_FRic_cwm,"EstRich"),
@@ -694,7 +592,7 @@ df_FRic_cwm <- cbind(melt(df_FRic_cwm,"EstRich"),
                      Metric = "FRic")
                      
 # correlated to FEve
-df_FEve_cwm <- data.frame (EstRich = cov_fish$EstRich,
+df_FEve_cwm <- data.frame (EstRich = cov_fish$BO2_tempmean_ss,
                            mean_cwm_fish[,which(colnames(mean_cwm_fish) %in% c(names(corr_FEve),names(corr_FEve_neg)))]
 )
 df_FEve_cwm <- cbind(melt(df_FEve_cwm,"EstRich"),
@@ -702,7 +600,7 @@ df_FEve_cwm <- cbind(melt(df_FEve_cwm,"EstRich"),
                      Metric = "FEve")
 
 # correlated to FDiv
-df_FDiv_cwm <- data.frame (EstRich = cov_fish$EstRich,
+df_FDiv_cwm <- data.frame (EstRich = cov_fish$BO2_tempmean_ss,
                            mean_cwm_fish[,which(colnames(mean_cwm_fish) %in% c(names(corr_FDiv),names(corr_FDiv_neg)))]
 )
 df_FDiv_cwm <- cbind(melt(df_FDiv_cwm,"EstRich"),
@@ -755,7 +653,7 @@ corr_FDiv_benthos_neg <- correlation_metrics_cwm_benthos[3,][order(correlation_m
 # now plotting the variation in cwm across the richness gradient (as done for each functional metric)
 # first cbind richness and cwm correlated to each functional metric
 # correlated to FRic
-df_FRic_cwm_benthos <- data.frame (EstRich = cov_benthos$EstRich,
+df_FRic_cwm_benthos <- data.frame (EstRich = cov_benthos$BO2_tempmean_ss,
                                   mean_cwm_benthos[,which(colnames(mean_cwm_benthos) %in% c(names(corr_FRic_benthos),names(corr_FRic_benthos_neg)))]
 )
 df_FRic_cwm_benthos <- cbind(melt(df_FRic_cwm_benthos,"EstRich"),
@@ -763,7 +661,7 @@ df_FRic_cwm_benthos <- cbind(melt(df_FRic_cwm_benthos,"EstRich"),
                              Metric = "FRic")
                              
 # correlated to FEve
-df_FEve_cwm_benthos <- data.frame (EstRich = cov_benthos$EstRich,
+df_FEve_cwm_benthos <- data.frame (EstRich = cov_benthos$BO2_tempmean_ss,
                                   mean_cwm_benthos[,which(colnames(mean_cwm_benthos) %in% c(names(corr_FEve_benthos),names(corr_FEve_benthos_neg)))]
 )
 df_FEve_cwm_benthos <- cbind(melt(df_FEve_cwm_benthos,"EstRich"),
@@ -771,7 +669,7 @@ df_FEve_cwm_benthos <- cbind(melt(df_FEve_cwm_benthos,"EstRich"),
                              Metric = "FEve")
                              
 # correlated to FDiv
-df_FDiv_cwm_benthos <- data.frame (EstRich = cov_benthos$EstRich,
+df_FDiv_cwm_benthos <- data.frame (EstRich = cov_benthos$BO2_tempmean_ss,
                                  mean_cwm_benthos[,which(colnames(mean_cwm_benthos) %in% c(names(corr_FDiv_benthos),names(corr_FDiv_benthos_neg)))]
 )
 df_FDiv_cwm_benthos <- cbind(melt(df_FDiv_cwm_benthos,"EstRich"),
@@ -842,7 +740,7 @@ p1<-ggplot(df_plot_cwm, aes(x=EstRich,y=value,
           color="white", fill="white", size=1.5, linetype="solid"
         ))+
   facet_wrap(~Metric)+
-  xlab("Species richness") + 
+  xlab("Temperature") + 
   ylab ("Trait frequency (CWM)") +
   scale_size(range=c(1, 1), guide=FALSE)
 
