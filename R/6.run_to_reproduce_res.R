@@ -8,15 +8,15 @@ source("R/packages.R")
 source("R/functions.R")
 
 # define the number of iterations for rarefaction
-niter <- 10
+niter <- 1000
 
 # ncores for parallel processing
 ncores <- 3
 
 # MCMC settings (for models)
-ni <- 10#000 
-nb <- 8#000
-nt <- 1#4
+ni <- 10000 
+nb <- 8000
+nt <- 4
 nc <- ncores
 
 # code for organizing data
