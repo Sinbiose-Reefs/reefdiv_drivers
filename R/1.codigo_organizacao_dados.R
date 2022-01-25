@@ -6,7 +6,7 @@
 ## load packages and functions
 source("R/packages.R")
 source("R/functions.R")
-source("R/function_lomolino_richness.R")
+#source("R/function_lomolino_richness.R")
 
 # Load data
 
@@ -28,6 +28,9 @@ rm_sp <- c("Areia.e.Cascalho","Desconhecido","Estrela","ourico1","ourico2",
 bentos <- bentos[which(bentos$Taxon %in% rm_sp == F),]
 # to lower case  
 bentos$Taxon <- tolower (bentos$Taxon)
+
+# proportion of not identified taxa (family was considered identified)
+1-(74/95)
 
 # -----------------------------
 #       Fish data
