@@ -117,17 +117,17 @@ priors <-  c(set_prior("normal(0,5)",class = "b",coef = "",
               set_prior("normal(0,5)",class = "Intercept",coef = "",
                 resp=c("logEstRich","logFDiv","logFEve","logFRic",
                      "logEstRichbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos")),
-              set_prior("cauchy(0,2)", class = "sd",
+              set_prior("cauchy(0,4)", class = "sd",
                         resp = c("logEstRich","logFDiv","logFEve","logFRic",
                                  "logEstRichbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos"))
   )
 
 
 # MCMC settings
-ni <- ni 
-nb <- nb
-nt <- nt
-nc <- nc
+ni <- 50000#ni 
+nb <- 40000#nb
+nt <- 10#nt
+nc <- 3#nc
 
 # run MCMC chains across different organisms and models
 MCMC_runs <- lapply (list(formula,formulaA1,formulaA2, formulaA3), function(k) #ACROSS MODELS
@@ -158,7 +158,8 @@ MCMC_runs <- lapply (list(formula,formulaA1,formulaA2, formulaA3), function(k) #
     )
   )
 
-
+save(MCMC_runs,
+	file=here("output","MCMC_runs_ranef.RData"))
 
 # LOO model fit checking   
 # run loo fit test
