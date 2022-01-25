@@ -11,7 +11,7 @@ require(ggplot2)
 require(gridExtra)
 require(ggrepel)
 require (scatterpie)
-require(sf)
+#require(sf)
 require(rgeos)
 
 ## pacotes para carregar os dados
