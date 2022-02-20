@@ -9,4 +9,4 @@ data/environment
 *.JPEG
 output
 MS
-R/*_abundW*
+R/abundance
