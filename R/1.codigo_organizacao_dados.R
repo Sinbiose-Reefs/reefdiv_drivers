@@ -626,7 +626,7 @@ to_raster <-  raster (extent(BR_reefs),
 grd_raster <- projectRaster(grd_raster, to_raster)
 
 # southe maerica map
-southAme<- readOGR(dsn= here("data","South_America"),encoding="latin1", 
+southAme<- readOGR(dsn= here("data","environment","South_America"),encoding="latin1", 
                    layer="South_America")
 southAme <- spTransform(southAme, 
                         "+proj=laea +lat_0=0 +lon_0=0 +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
