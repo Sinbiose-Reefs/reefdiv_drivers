@@ -92,7 +92,7 @@ FRic_fish<-  data.frame (do.call(cbind, FRic_fish),
               res_table_samples[,"Site"])
 
 # adjust colnames
-colnames(FRic_fish) <- c("FRic","FEve","FDiv","EstRich","Sites");
+colnames(FRic_fish) <- c("FRic","FEve","FDiv","EstRich","Sites")
 
 # -------------------------------------------------------------------------- #
 # Benthos
@@ -122,7 +122,7 @@ FRic_benthos <-  data.frame (do.call(cbind,FRic_benthos),
                             res_table_samples_bentos[,"Site"])
 
 # adjust colnames
-colnames(FRic_benthos) <- c("FRic","FEve","FDiv","EstRich","Sites");
+colnames(FRic_benthos) <- c("FRic","FEve","FDiv","EstRich","Sites")
 
 
 # ----------------------------------------------- #
@@ -153,7 +153,7 @@ cov_fish$BO2_salinitymean_ss_std <- (cov_fish$BO2_salinitymean_ss-mean(cov_fish$
 cov_fish$BO_damean_std <- (cov_fish$BO_damean-mean(cov_fish$BO_damean))/sd(cov_fish$BO_damean)
 cov_fish$distanceLog <- log(cov_fish$distance)
 cov_fish$distance_std <- (cov_fish$distanceLog-mean(cov_fish$distanceLog))/sd(cov_fish$distanceLog)
-
+cov_fish$area <- (covariates_site$reef_area-mean(covariates_site$reef_area))/sd(covariates_site$reef_area)
 
 # depth
 cov_fish <- cbind(cov_fish,
@@ -189,7 +189,7 @@ cov_benthos$BO2_salinitymean_ss_std <- (cov_benthos$BO2_salinitymean_ss-mean(cov
 cov_benthos$BO_damean_std <- (cov_benthos$BO_damean-mean(cov_benthos$BO_damean))/sd(cov_benthos$BO_damean)
 cov_benthos$distanceLog <- log(cov_benthos$distance)
 cov_benthos$distance_std <- (cov_benthos$distanceLog-mean(cov_benthos$distanceLog))/sd(cov_benthos$distanceLog)
-
+cov_benthos$area <- (covariates_site$reef_area-mean(covariates_site$reef_area))/sd(covariates_site$reef_area)
 
 # depth
 cov_benthos <- cbind(cov_benthos,
@@ -207,4 +207,4 @@ save (data_to_modeling_GLM,
       cov_benthos,
       file=here("output", "data_to_modeling_GLM.RData"))
 
-rm(list=list=ls())
+rm(list=ls())

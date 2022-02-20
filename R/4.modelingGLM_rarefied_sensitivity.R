@@ -12,15 +12,13 @@ source("R/functions.R")
 # ------------------------------------------ #
 # Load data to modeling
 
-load (here ("output","data_to_modeling_GLM.RData"))
+load (here ("output_sensitivity","data_to_modeling_GLM.RData"))
 
 
-ggplot(data_to_modeling_GLM,aes(x=,BO2_tempmean_ss_std ,y=log(EstRich))) + geom_point() + 
+ggplot(data_to_modeling_GLM,aes(x=BO2_tempmean_ss_std ,y=log(EstRich))) + geom_point() + 
   geom_smooth(method="lm",formula = y ~ x)
-
-ggplot(data_to_modeling_GLM,aes(x=,area ,y=log(EstRich))) + geom_point() + 
+ggplot(data_to_modeling_GLM,aes(x=area ,y=log(EstRich))) + geom_point() + 
   geom_smooth(method="lm",formula = y ~ x)
-
 
 ############################################################################
 # -------------------------------------------------------------------------
@@ -56,7 +54,7 @@ round(apply(bind_fish_benthos[,c(1:4,22:25)],2,sd,na.rm=T),3)
 
 # set formula (the same for benthos and fishes)
 # complete model
-formula <- brms::bf(mvbind (log(EstRich),
+formulaA1 <- brms::bf(mvbind (log(EstRich),
                               log(FRic),
                               log(FEve),
                               log(FDiv),
@@ -66,23 +64,7 @@ formula <- brms::bf(mvbind (log(EstRich),
                               log(FDiv_benthos)) ~ BO2_tempmean_ss_std +
                         distance_std +
                         area +  
-                        BO_damean_std + 
-                      Depth,
-                      nl = F) +
-  set_rescor(TRUE)# nonlinear
-
-# alternative 1
-formulaA1 <- brms::bf(mvbind (log(EstRich),
-                              log(FRic),
-                              log(FEve),
-                              log(FDiv),
-                              log(EstRich_benthos),
-                              log(FRic_benthos),
-                              log(FEve_benthos),
-                              log(FDiv_benthos)) ~ BO2_tempmean_ss_std +
-                                                    distance_std +
-                                                    area +  
-                                                    BO_damean_std ,
+                        BO_damean_std ,
                       nl = F) +
   set_rescor(TRUE)# nonlinear
 
@@ -95,8 +77,8 @@ formulaA2 <- brms::bf(mvbind (log(EstRich),
                               log(FRic_benthos),
                               log(FEve_benthos),
                               log(FDiv_benthos)) ~ BO2_tempmean_ss_std + 
-                                                    distance_std +
-                                                    area,
+                        distance_std +
+                        area,
                       nl = F) +
   set_rescor(TRUE)# nonlinear
 
@@ -140,12 +122,12 @@ formulaA5 <- brms::bf(mvbind (log(EstRich),
 
 #setting priors 
 priors <-  c(set_prior("normal(0,5)",class = "b",coef = "",
-                resp=c("logEstRich","logFDiv","logFEve","logFRic",
-                     "logEstRichbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos")),
-              set_prior("normal(0,5)",class = "Intercept",coef = "",
-                resp=c("logEstRich","logFDiv","logFEve","logFRic",
-                     "logEstRichbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos"))
-  )
+                       resp=c("logEstRich","logFDiv","logFEve","logFRic",
+                              "logEstRichbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos")),
+             set_prior("normal(0,5)",class = "Intercept",coef = "",
+                       resp=c("logEstRich","logFDiv","logFEve","logFRic",
+                              "logEstRichbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos"))
+)
 
 
 # MCMC settings
@@ -155,65 +137,64 @@ nt <- nt
 nc <- nc
 
 # run MCMC chains across different organisms and models
-MCMC_runs <- lapply (list(formula,
-                          formulaA1,
+MCMC_runs <- lapply (list(formulaA1,
                           formulaA2, 
                           formulaA3,
                           formulaA4,
                           formulaA5), function(k) #ACROSS MODELS
-    
-    
-    brms::brm(k, # for each model / formula
-              
-              data = bind_fish_benthos, 
-              
-              family = gaussian(),
-              
-              prior = priors, 
-              
-              chains = nc,
-              
-              cores = nc,
-
-              iter = ni,
-              
-              warmup = nb,
-              
-              thin=nt,
-
-              save_pars = save_pars(all = TRUE),
-              
-              control = list(adapt_delta = 0.99) # to avoid disagreement in chain mixing
-              
-    )
-  )
+                            
+                            
+                            brms::brm(k, # for each model / formula
+                                      
+                                      data = bind_fish_benthos, 
+                                      
+                                      family = gaussian(),
+                                      
+                                      prior = priors, 
+                                      
+                                      chains = nc,
+                                      
+                                      cores = nc,
+                                      
+                                      iter = ni,
+                                      
+                                      warmup = nb,
+                                      
+                                      thin=nt,
+                                      
+                                      save_pars = save_pars(all = TRUE),
+                                      
+                                      control = list(adapt_delta = 0.99) # to avoid disagreement in chain mixing
+                                      
+                            )
+)
 
 
 
 # LOO model fit checking   
 # run loo fit test
-loo_test <- lapply (MCMC_runs[-6],loo, moment_match=T,reloo=T)
+loo_test <- lapply (MCMC_runs,loo, moment_match=T,reloo=T)
 # extract estimates
 loo_sel <- lapply (loo_test, function (i)
-         i$estimates[which(rownames(i$estimates) == "looic"),"Estimate"])
+  i$estimates[which(rownames(i$estimates) == "looic"),"Estimate"])
 # extract looic (like AIC)
 tab_mod_sel <- do.call(rbind,lapply (loo_test, function (i)
-         i$estimates[which(rownames(i$estimates) == "looic"),]))
+  i$estimates[which(rownames(i$estimates) == "looic"),]))
 # extract estimated number of parameters (model adequacy)
 tab_mod_fit <- do.call(rbind,lapply (loo_test, function (i)
-         i$estimates[which(rownames(i$estimates) == "p_loo"),]))
+  i$estimates[which(rownames(i$estimates) == "p_loo"),]))
 # select the model with lowest looic
 sel_model <- MCMC_runs[which(loo_sel == min(unlist(loo_sel)))]
-   
+
 # list of results 
 res <- list (looic = tab_mod_sel,
              param= tab_mod_fit,
              best_model = sel_model
-                   )
+)
 
 ## save
 save ( MCMC_runs,res, 
-       file=here ("output", 
+       file=here ("output_sensitivity", 
                   "MCMC_runs_multivariate_rarefied_no_aut.Rdata"))
 
 
@@ -267,7 +248,7 @@ m.lst <- emtrends (model.ancova, "Organism", var="EstRich")
 m.lst_tab <- summary(m.lst,point.est = mean)
 
 save (model.ancova,m.lst,
-      file=here("output", "ancovaFRic.RData"))
+      file=here("output_sensitivity", "ancovaFRic.RData"))
 
 ############################################################################
 # -------------------------------------------------------------------------
@@ -290,8 +271,6 @@ model.ancova.FEve <-  brm (FEve ~ EstRich*Organism,
 
 # summary of results
 summary (model.ancova.FEve)
-
-
 
 # plotting
 p2<-plot(conditional_effects(model.ancova.FEve,
@@ -319,7 +298,7 @@ m.lst.FEve <- emtrends (model.ancova.FEve,  "Organism", var="EstRich")
 m.lst_tab.FEve <- summary(m.lst.FEve,point.est = mean)
 
 save (model.ancova.FEve,m.lst.FEve,
-      file=here("output", "ancovaFEve.RData"))
+      file=here("output_sensitivity", "ancovaFEve.RData"))
 
 
 ############################################################################
@@ -371,10 +350,10 @@ m.lst_tab.FDiv <- summary(m.lst.FDiv, point.est = mean)
 
 # save
 save (model.ancova.FDiv,m.lst.FDiv,
-      file=here("output", "ancovaFDiv.RData"))
+      file=here("output_sensitivity", "ancovaFDiv.RData"))
 
 ## arrange these plots into a panel
-pdf (here ("output","vectorized","glm_slope"),width=7,height=5)
+pdf (here ("output_sensitivity","glm_slope.pdf"),width=7,height=5)
 grid.arrange(p1,p2,p3,
              ncol=3,nrow=2)
 

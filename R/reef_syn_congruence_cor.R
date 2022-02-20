@@ -9,22 +9,21 @@ require(tidybayes)
 
 # load results
 load(here ("Output","MCMC_runs_multivariate_rarefied_no_aut.rdata"))
-load(here ("Output","MCMC_runs_multivariate_rarefied_no_aut_abundW.rdata"))
 
 # recompile model with more iterations and chains
 nd <- res$best_model[[1]]$data %>%
-  dplyr::select(-BO2_tempmean_ss_std) %>%
+  dplyr::select(-BO2_tempmean_ss_std,  -area) %>%
   dplyr::mutate(dplyr::across(tidyselect::everything(), log)) %>%
   dplyr::rename_with(~paste0("log", .x)) %>%
-  dplyr::mutate(sst = res$best_model[[1]]$data$BO2_tempmean_ss_std)
+  dplyr::mutate(sst = res$best_model[[1]]$data$BO2_tempmean_ss_std,
+                area = res$best_model[[1]]$data$area)
 model <- brms::brm(
-  mvbind(logEstRich, logFRic, logFEve, logFDiv, logEstRich_benthos, logFRic_benthos, logFEve_benthos, logFDiv_benthos) ~ sst,
-  data = nd, cores = nc, chains = nc, iter = ni, warmup = nb,
-  save_all_pars = T
+  mvbind(logEstRich, logFRic, logFEve, logFDiv, logEstRich_benthos, logFRic_benthos, logFEve_benthos, logFDiv_benthos) ~ sst + area,
+  data = nd, cores = nc, chains = nc, iter = ni, warmup = nb
 )
 
 # bayesian R2
-br2<- bayes_R2(model) # mean for each reponse
+br2<- bayes_R2(model) # mean for each response
 round(br2,3)
 mean(br2 [,'Estimate']) # average across responses
 
@@ -70,7 +69,8 @@ vline.data <- cor_out %>%
 # plot posterior distribution of each pair as histogram
 post_cors_plot <- ggplot(data = cor_out) +
   geom_histogram(mapping = aes(x = correlation_r), fill = "dodgerblue2",
-                 colour = "grey30") +
+                 colour = "grey30",
+                 bins=60) +
   geom_vline(xintercept = 0, linetype = 3, colour = "grey60") +
   labs(x = "Pearson correlation", y = "Frequency") +
   facet_wrap(~cor_pair) +
@@ -100,6 +100,7 @@ post_cor_means <- cor_out %>%
 cor_orig <- nd %>%
   dplyr::select(-sst) %>%
   dplyr::rename_with(~gsub("^log", "", .x)) %>%
+  exp %>%
   cor
 ind <- which(upper.tri(cor_orig, diag = TRUE), arr.ind = TRUE)
 nn <- dimnames(cor_orig)
@@ -116,31 +117,142 @@ merged_cor$cor_pair <- gsub ("benthos", "Benthos",merged_cor$cor_pair )
 merged_cor$cor_pair <- gsub ("fish", "Fish",merged_cor$cor_pair )
 merged_cor$cor_pair <- gsub ("_", "",merged_cor$cor_pair )
 
+# bind residual correlations
+require(reshape)
+corr_res <- VarCorr(model)$residual__$cor # residals coor
+corr_res <- melt(corr_res[,1,]) # melt
+corr_res <- corr_res[which(corr_res$value != 1),]# rm corr == 1
+# edit labels
+# var1
+#corr_res$Var1<-gsub ("_","",corr_res$Var1)
+corr_res$X1<-gsub ("log","",corr_res$X1)
+corr_res$X1 <- gsub ("EstRich", "SR",corr_res$X1)
+corr_res$X1 <- gsub ("benthos", "Benthos",corr_res$X1)
+corr_res$X1 <- gsub ("fish", "Fish",corr_res$X1 )
+corr_res$X1 <- gsub ("_", "",corr_res$X1 )
+corr_res$X1[which(corr_res$X1 == "SR")] <- "SRFish"
+corr_res$X1[which(corr_res$X1 == "FRic")] <- "FRicFish"
+corr_res$X1[which(corr_res$X1 == "FEve")] <- "FEveFish"
+corr_res$X1[which(corr_res$X1 == "FDiv")] <- "FDivFish"
+# var2
+corr_res$X2<-gsub ("_","",corr_res$X2)
+corr_res$X2<-gsub ("log","",corr_res$X2)
+corr_res$X2 <- gsub ("EstRich", "SR",corr_res$X2)
+corr_res$X2 <- gsub ("benthos", "Benthos",corr_res$X2)
+corr_res$X2 <- gsub ("fish", "Fish",corr_res$X2)
+corr_res$X2 <- gsub ("_", "",corr_res$X2)
+corr_res$X2 [which(corr_res$X2 == "SR")] <- "SRFish"
+corr_res$X2[which(corr_res$X2 == "FRic")] <- "FRicFish"
+corr_res$X2[which(corr_res$X2 == "FEve")] <- "FEveFish"
+corr_res$X2[which(corr_res$X2 == "FDiv")] <- "FDivFish"
+# bind
+corr_res$var3 <- paste (corr_res$X1, corr_res$X2, sep= " ~ ")
+corr_res <- corr_res[which(corr_res$var3 %in% merged_cor$cor_pair),]
+
+# bind resid corr
+merged_cor$corr_res <- corr_res$value[match (merged_cor$cor_pair,corr_res$var3)] #== merged_cor$cor_pair
+
 # plot
 scatter_cor <- ggplot(data = merged_cor) +
   geom_point(mapping = aes(y = obs_cor_r, x = mean_post_r), shape = 21,
              size = 3, fill = "grey90") +
   theme_classic() +
   geom_abline(slope = 1, linetype = 3) +
-  labs(y = "Observed Pearson correlation",
-       x = "Mean posterior Pearson correlation") +
+  labs(y = "Observed Pearson's correlation",
+       x = "Posterior mean of predicted Pearson's correlation") +
   theme(axis.title = element_text(size = 14),
         axis.text = element_text(size = 10)) +
   xlim(-0.6, 1) + ylim(-0.6, 1)
 
 require (ggrepel)
-scatter_cor + geom_text_repel(data = merged_cor, aes (y = obs_cor_r, x = mean_post_r,
+scatter_cor<-scatter_cor + geom_text_repel(data = merged_cor, aes (y = obs_cor_r, x = mean_post_r,
                                                       label = cor_pair),
                                                       box.padding = 0.6, 
                                                       max.overlaps = Inf,
                                                     size=3)
 
-ggsave("scatter_cor", scatter_cor, width = 6.5, height = 6)
+ggsave(here ("output","vectorized","scatter_cor.pdf"), 
+       scatter_cor, width = 6.5, height = 6)
 
-# param prob
+
+# resid corr
+# plot
+scatter_cor_res <- ggplot(data = merged_cor) +
+  geom_point(mapping = aes(y = obs_cor_r, x = corr_res), 
+             shape = 21,
+             size = 3, fill = "grey90") +
+  theme_classic() +
+  geom_abline(slope = 1, linetype = 3) +
+  labs(y = "Observed Pearson correlation",
+       x = "Posterior mean of Pearson's residual correlation") +
+  theme(axis.title = element_text(size = 14),
+        axis.text = element_text(size = 10)) +
+  xlim(-0.6, 1) + ylim(-0.6, 1)
+
+require (ggrepel)
+scatter_cor_res + geom_text_repel(data = merged_cor, aes (y = obs_cor_r, x = corr_res,
+                                                      label = cor_pair),
+                              box.padding = 0.6, 
+                              max.overlaps = Inf,
+                              size=3)
+
+# predicted vs residual
+scatter_cor_res <- ggplot(data = merged_cor) +
+  geom_point(mapping = aes(y = mean_post_r, x = corr_res), 
+             shape = 21,
+             size = 3, fill = "grey90") +
+  theme_classic() +
+  geom_abline(slope = 1, linetype = 3) +
+  labs(y = "Posterior mean of predicted Pearson's correlation",
+       x = "Posterior mean of Pearson's residual correlation") +
+  theme(axis.title = element_text(size = 14),
+        axis.text = element_text(size = 10)) +
+  xlim(-0.6, 1) + ylim(-0.6, 1)
+
+require (ggrepel)
+scatter_cor_res + geom_text_repel(data = merged_cor, aes (y = mean_post_r, 
+                                                          x = corr_res,
+                                                          label = cor_pair),
+                                  box.padding = 0.6, 
+                                  max.overlaps = Inf,
+                                  size=3)
+
+# absolute diff
+
+merged_cor<- cbind(merged_cor, 
+  diff = (abs(merged_cor$mean_post_r) - abs(merged_cor$corr_res)))
+merged_cor<- cbind(merged_cor, 
+                   diff2 = (abs(merged_cor$mean_post_r) - abs(merged_cor$obs_cor_r)))
+
+merged_cor<-melt(merged_cor)
+colnames(merged_cor)[which(colnames(merged_cor) == "variable")] <- "Correlation"
+levels(merged_cor$Correlation)[which(levels(merged_cor$Correlation) == "obs_cor_r")] <- "Observed"
+levels(merged_cor$Correlation)[which(levels(merged_cor$Correlation) == "corr_res")] <- "Residual"
+levels(merged_cor$Correlation)[which(levels(merged_cor$Correlation) == "mean_post_r")] <- "Predicted"
+
+# plot diff
+
+a<- ggplot (merged_cor[which(merged_cor$Correlation %in% c("Observed", "Residual", "Predicted")),], 
+            aes(x= value,
+                        y= reorder(cor_pair, - value),
+                        group = cor_pair,
+                        color = Correlation
+                        )) + 
+  #geom_point(size=2) + 
+  geom_jitter(width = 0.1, height=0,size=2)+
+  theme_classic()  +
+  xlab("Pearson's correlation") + 
+  ylab ("Pairs of diversity metrics")+
+  theme(legend.position = c(0.8,0.8)) + 
+  geom_vline(aes(xintercept =0),alpha =0.5,size=1,col = "gray") +
+  xlim(c(-1,1))
+
+a
+
+# ==============================================================
+# param probability
 
 vars_ext<-get_variables(model)[grep("sst",get_variables(model))]
-
 
 # sst SR fish
 model %>%
@@ -199,6 +311,68 @@ model %>%
                    prob_pos = sum(b_logFDivbenthos_sst > 0) / n(),
                    prob_neg = sum(b_logFDivbenthos_sst < 0) / n())
 
+
+# ===========================================
+# area
+
+vars_ext<-get_variables(model)[grep("area",get_variables(model))]
+
+# sst SR fish
+model %>%
+  spread_draws(b_logEstRich_area) %>% 
+  dplyr::summarise(ggdist::median_hdci(b_logEstRich_area),
+                   prob_pos = sum(b_logEstRich_area > 0) / n(),
+                   prob_neg = sum(b_logEstRich_area < 0) / n())
+
+# sst SR benthos
+model %>%
+  spread_draws(b_logEstRichbenthos_area) %>% 
+  dplyr::summarise(ggdist::median_hdci(b_logEstRichbenthos_area),
+                   prob_pos = sum(b_logEstRichbenthos_area > 0) / n(),
+                   prob_neg = sum(b_logEstRichbenthos_area < 0) / n())
+
+# sst Fric fish
+model %>%
+  spread_draws(b_logFRic_area) %>% 
+  dplyr::summarise(ggdist::median_hdci(b_logFRic_area),
+                   prob_pos = sum(b_logFRic_area > 0) / n(),
+                   prob_neg = sum(b_logFRic_area < 0) / n())
+
+# sst fric benthos
+model %>%
+  spread_draws(b_logFRicbenthos_area) %>% 
+  dplyr::summarise(ggdist::median_hdci(b_logFRicbenthos_area),
+                   prob_pos = sum(b_logFRicbenthos_area > 0) / n(),
+                   prob_neg = sum(b_logFRicbenthos_area < 0) / n())
+
+# sst FEve fish
+model %>%
+  spread_draws(b_logFEve_area) %>% 
+  dplyr::summarise(ggdist::median_hdci(b_logFEve_area),
+                   prob_pos = sum(b_logFEve_area > 0) / n(),
+                   prob_neg = sum(b_logFEve_area < 0) / n())
+
+# sst FEve benthos
+model %>%
+  spread_draws(b_logFEvebenthos_area) %>% 
+  dplyr::summarise(ggdist::median_hdci(b_logFEvebenthos_area),
+                   prob_pos = sum(b_logFEvebenthos_area > 0) / n(),
+                   prob_neg = sum(b_logFEvebenthos_area < 0) / n())
+
+
+# sst Fdiv fish
+model %>%
+  spread_draws(b_logFDiv_area) %>% 
+  dplyr::summarise(ggdist::median_hdci(b_logFDiv_area),
+                   prob_pos = sum(b_logFDiv_area > 0) / n(),
+                   prob_neg = sum(b_logFDiv_area < 0) / n())
+
+# sst fdiv benthos
+model %>%
+  spread_draws(b_logFDivbenthos_area) %>% 
+  dplyr::summarise(ggdist::median_hdci(b_logFDivbenthos_area),
+                   prob_pos = sum(b_logFDivbenthos_area > 0) / n(),
+                   prob_neg = sum(b_logFDivbenthos_area < 0) / n())
 
 
   

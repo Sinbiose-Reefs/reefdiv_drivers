@@ -12,11 +12,18 @@ source("R/functions.R")
 # ------------------------------------------ #
 # Load data to modeling
 
-load (here ("output","data_to_modeling_GLM.RData"))
+load (here ("output_no_resampling","data_to_modeling_GLM.RData"))
 
 
-ggplot(data_to_modeling_GLM,aes(x=,BO2_tempmean_ss_std ,y=log(EstRich))) + geom_point() + 
-  geom_smooth(method="glm",formula = y ~ splines::ns(x, 2))
+ggplot(data_to_modeling_GLM,aes(x=,BO2_tempmean_ss_std ,y=log(SR))) + geom_point() + 
+  geom_smooth(method="lm",formula = y ~ x)
+
+ggplot(data_to_modeling_GLM,aes(x=,area ,y=log(SR))) + geom_point() + 
+  geom_smooth(method="lm",formula = y ~ x)
+
+ggplot(data_to_modeling_GLM,aes(x=,SamplingArea_std,y=log(SR))) + geom_point() + 
+  geom_smooth(method="lm",formula = y ~ x)
+
 
 ############################################################################
 # -------------------------------------------------------------------------
@@ -37,13 +44,10 @@ ggplot(data_to_modeling_GLM,aes(x=,BO2_tempmean_ss_std ,y=log(EstRich))) + geom_
 # create a DF with all data
 
 bind_fish_benthos<- cbind (cov_fish, 
-                            EstRich_benthos = cov_benthos$EstRich,
+                            SR_benthos = cov_benthos$SR,
                             FRic_benthos = cov_benthos$FRic,
                             FEve_benthos = cov_benthos$FEve,
                             FDiv_benthos = cov_benthos$FDiv)
-
-# bind region
-bind_fish_benthos$Region <- ifelse (bind_fish_benthos$Lat > -20, "Tropical", "Subtropical")
 
 # average values of metrics to present in the Results
 round(apply(bind_fish_benthos[,c(1:4,22:25)],2,mean,na.rm=T),3)
@@ -55,82 +59,103 @@ round(apply(bind_fish_benthos[,c(1:4,22:25)],2,sd,na.rm=T),3)
 
 # set formula (the same for benthos and fishes)
 # complete model
-formula <- brms::bf(mvbind (log(EstRich),
-                            log(FRic),
-                            log(FEve),
-                            log(FDiv),
-                            log(EstRich_benthos),
-                            log(FRic_benthos),
-                            log(FEve_benthos),
-                            log(FDiv_benthos))~ BO2_tempmean_ss_std +
-                                                distance_std +
-                                                BO_damean_std + 
-                                                Depth + (1|Region),
-                    
-                    nl = F)+
-  set_rescor(TRUE) # nonlinear
-
-
-# alternative 1
-formulaA1 <- brms::bf(mvbind (log(EstRich),
+formula <- brms::bf(mvbind (log(SR),
                               log(FRic),
                               log(FEve),
                               log(FDiv),
-                              log(EstRich_benthos),
+                              log(SR_benthos),
+                              log(FRic_benthos),
+                              log(FEve_benthos),
+                              log(FDiv_benthos)) ~ BO2_tempmean_ss_std +
+                        distance_std +
+                        area +  
+                        BO_damean_std +
+                      Depth + 
+                      SamplingArea_std,
+                      nl = F) +
+  set_rescor(TRUE)# nonlinear
+
+# alternative 1
+formulaA1 <- brms::bf(mvbind (log(SR),
+                              log(FRic),
+                              log(FEve),
+                              log(FDiv),
+                              log(SR_benthos),
                               log(FRic_benthos),
                               log(FEve_benthos),
                               log(FDiv_benthos)) ~ BO2_tempmean_ss_std +
                                                     distance_std +
-                                                    BO_damean_std + (1|Region),
+                                                    area +  
+                                                    BO_damean_std + 
+                        SamplingArea_std ,
                       nl = F) +
   set_rescor(TRUE)# nonlinear
 
 # alternative 2
-formulaA2 <- brms::bf(mvbind (log(EstRich),
+formulaA2 <- brms::bf(mvbind (log(SR),
                               log(FRic),
                               log(FEve),
                               log(FDiv),
-                              log(EstRich_benthos),
+                              log(SR_benthos),
                               log(FRic_benthos),
                               log(FEve_benthos),
                               log(FDiv_benthos)) ~ BO2_tempmean_ss_std + 
-                                                    distance_std + (1|Region),
+                                                    distance_std +
+                                                    area + 
+                        SamplingArea_std,
                       nl = F) +
   set_rescor(TRUE)# nonlinear
 
 # alternative 3
-formulaA3 <- brms::bf(mvbind (log(EstRich),
+formulaA3 <- brms::bf(mvbind (log(SR),
                               log(FRic),
                               log(FEve),
                               log(FDiv),
-                              log(EstRich_benthos),
+                              log(SR_benthos),
                               log(FRic_benthos),
                               log(FEve_benthos),
-                              log(FDiv_benthos)) ~ BO2_tempmean_ss_std + (1|Region),
+                              log(FDiv_benthos)) ~ BO2_tempmean_ss_std + area + 
+                        SamplingArea_std,
                       nl = F) +
   set_rescor(TRUE)# nonlinear
 
+
+# alternative 4
+formulaA4 <- brms::bf(mvbind (log(SR),
+                              log(FRic),
+                              log(FEve),
+                              log(FDiv),
+                              log(SR_benthos),
+                              log(FRic_benthos),
+                              log(FEve_benthos),
+                              log(FDiv_benthos)) ~ BO2_tempmean_ss_std + 
+                        SamplingArea_std,
+                      nl = F) +
+  set_rescor(TRUE)# nonlinear
+
+
 #setting priors 
 priors <-  c(set_prior("normal(0,5)",class = "b",coef = "",
-                resp=c("logEstRich","logFDiv","logFEve","logFRic",
-                     "logEstRichbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos")),
+                resp=c("logSR","logFDiv","logFEve","logFRic",
+                     "logSRbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos")),
               set_prior("normal(0,5)",class = "Intercept",coef = "",
-                resp=c("logEstRich","logFDiv","logFEve","logFRic",
-                     "logEstRichbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos")),
-              set_prior("cauchy(0,4)", class = "sd",
-                        resp = c("logEstRich","logFDiv","logFEve","logFRic",
-                                 "logEstRichbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos"))
+                resp=c("logSR","logFDiv","logFEve","logFRic",
+                     "logSRbenthos","logFDivbenthos","logFEvebenthos","logFRicbenthos"))
   )
 
 
 # MCMC settings
-ni <- 50000#ni 
-nb <- 40000#nb
-nt <- 10#nt
-nc <- 3#nc
+ni <- ni 
+nb <- nb
+nt <- nt
+nc <- nc
 
 # run MCMC chains across different organisms and models
-MCMC_runs <- lapply (list(formula,formulaA1,formulaA2, formulaA3), function(k) #ACROSS MODELS
+MCMC_runs <- lapply (list(formula,
+                          formulaA1,
+                          formulaA2, 
+                          formulaA3,
+                          formulaA4), function(k) #ACROSS MODELS
     
     
     brms::brm(k, # for each model / formula
@@ -158,8 +183,6 @@ MCMC_runs <- lapply (list(formula,formulaA1,formulaA2, formulaA3), function(k) #
     )
   )
 
-save(MCMC_runs,
-	file=here("output","MCMC_runs_ranef.RData"))
 
 # LOO model fit checking   
 # run loo fit test
@@ -184,8 +207,8 @@ res <- list (looic = tab_mod_sel,
 
 ## save
 save ( MCMC_runs,res, 
-       file=here ("output", 
-                  "MCMC_runs_multivariate_rarefied_no_aut_ranef.Rdata"))
+       file=here ("output_no_resampling", 
+                  "MCMC_runs_multivariate_rarefied_no_aut.Rdata"))
 
 
 ############################################################################
@@ -198,7 +221,7 @@ save ( MCMC_runs,res,
 ############################################################################
 
 # run model (ancova)
-model.ancova <- brm (FRic ~ EstRich*Organism,
+model.ancova <- brm (FRic ~ SR*Organism,
                 data=data_to_modeling_GLM,
                 family = gaussian (link="identity"),
                 chains=nc,
@@ -215,7 +238,7 @@ p1<-plot(conditional_effects(model.ancova,
                          method="fitted",
                          re_formula=NA,
                          robust=T,
-                         effects = "EstRich:Organism",
+                         effects = "SR:Organism",
                          points=T,
                          prob = 0.95),
      
@@ -230,15 +253,18 @@ p1<-plot(conditional_effects(model.ancova,
   
   xlab("Species richness") + 
   
-  ylab ("FRic")
-    
+  ylab ("FRic") +
   
+  ylim(c(-0.05,1.0))
+    
+p1
+
 # compare slopes
-m.lst <- emtrends (model.ancova, "Organism", var="EstRich")
+m.lst <- emtrends (model.ancova, "Organism", var="SR")
 m.lst_tab <- summary(m.lst,point.est = mean)
 
 save (model.ancova,m.lst,
-      file=here("output", "ancovaFRic.RData"))
+      file=here("output_no_resampling", "ancovaFRic.RData"))
 
 ############################################################################
 # -------------------------------------------------------------------------
@@ -250,7 +276,7 @@ save (model.ancova,m.lst,
 ############################################################################
 
 # run model (ancova)
-model.ancova.FEve <-  brm (FEve ~ EstRich*Organism,
+model.ancova.FEve <-  brm (FEve ~ SR*Organism,
        data=data_to_modeling_GLM,
        family = gaussian (link="identity"),
        chains=nc,
@@ -269,7 +295,7 @@ p2<-plot(conditional_effects(model.ancova.FEve,
                            method="fitted",
                            re_formula=NA,
                            robust=T,
-                           effects = "EstRich:Organism",
+                           effects = "SR:Organism",
                            points=T,
                            prob = 0.95),
        
@@ -286,11 +312,11 @@ p2<-plot(conditional_effects(model.ancova.FEve,
   ylab ("FEve")
 
 # compare slopes
-m.lst.FEve <- emtrends (model.ancova.FEve,  "Organism", var="EstRich")
+m.lst.FEve <- emtrends (model.ancova.FEve,  "Organism", var="SR")
 m.lst_tab.FEve <- summary(m.lst.FEve,point.est = mean)
 
 save (model.ancova.FEve,m.lst.FEve,
-      file=here("output", "ancovaFEve.RData"))
+      file=here("output_no_resampling", "ancovaFEve.RData"))
 
 
 ############################################################################
@@ -304,7 +330,7 @@ save (model.ancova.FEve,m.lst.FEve,
 
 
 # run model (ancova)
-model.ancova.FDiv <- brm (FDiv ~ EstRich*Organism,
+model.ancova.FDiv <- brm (FDiv ~ SR*Organism,
        data=data_to_modeling_GLM,
        family = gaussian (link="identity"),
        chains=nc,
@@ -320,7 +346,7 @@ p3<-plot(conditional_effects(model.ancova.FDiv,
                            method="fitted",
                            re_formula=NA,
                            robust=T,
-                           effects = "EstRich:Organism",
+                           effects = "SR:Organism",
                            points=T,
                            prob = 0.95),
        
@@ -337,15 +363,15 @@ p3<-plot(conditional_effects(model.ancova.FDiv,
   ylab ("FDiv")
   
 # compare slopes
-m.lst.FDiv <- emtrends (model.ancova.FDiv, "Organism", var="EstRich")
+m.lst.FDiv <- emtrends (model.ancova.FDiv, "Organism", var="SR")
 m.lst_tab.FDiv <- summary(m.lst.FDiv, point.est = mean)
 
 # save
 save (model.ancova.FDiv,m.lst.FDiv,
-      file=here("output", "ancovaFDiv.RData"))
+      file=here("output_no_resampling", "ancovaFDiv.RData"))
 
 ## arrange these plots into a panel
-pdf (here ("output","vectorized","glm_slope"),width=7,height=5)
+pdf (here ("output_no_resampling","glm_slope.pdf"),width=7,height=5)
 grid.arrange(p1,p2,p3,
              ncol=3,nrow=2)
 

@@ -12,51 +12,51 @@ source("R/functions.R")
 # Load rarefied data of fishes and benthos
 # sites x transect / video x species
 
-load (here ("output","random_composition_bentos.RData"))
-load (here ("output","random_composition_fish.RData"))
+load (here ("output_sensitivity","random_composition_bentos.RData"))
+load (here ("output_sensitivity","random_composition_fish.RData"))
 
 # ------------------------------------------ #
 #
 #     Load results of the rarefaction
 
-load (here ("output","FD_fish_MSS_abundW.RData"))
-load (here ("output","FD_benthos_MSS_abundW.RData"))
+load (here ("output_sensitivity","FD_fish_MSS.RData"))
+load (here ("output_sensitivity","FD_benthos_MSS.RData"))
 
 # ------------------------------------------ #
 #
 #     Load environment data
 
-load (here ("output","env_data.RData"))
+load (here ("output_sensitivity","env_data.RData"))
 
 ############# -
 # checking quality of Functional space
 
 # fishes
 
-naxes_fishes <- data.frame (meanAxesMSS = mean(unlist(sapply (FD_fish_MSS_abundW, "[","chosenAxes")),na.rm=T),
+naxes_fishes <- data.frame (meanAxesMSS = mean(unlist(sapply (FD_fish_MSS, "[","chosenAxes")),na.rm=T),
                             # sd
-                            sdAxesMSS = sd(unlist(sapply (FD_fish_MSS_abundW, "[","chosenAxes")),na.rm=T),
+                            sdAxesMSS = sd(unlist(sapply (FD_fish_MSS, "[","chosenAxes")),na.rm=T),
                             # quality
-                            qualityMSS= mean (unlist(lapply (sapply (sapply (FD_fish_MSS_abundW, "[","Fdindexes"), "[", "qual.FRic"),unique)),na.rm=T),
+                            qualityMSS= mean (unlist(lapply (sapply (sapply (FD_fish_MSS, "[","Fdindexes"), "[", "qual.FRic"),unique)),na.rm=T),
                             # sd quality
-                            sdqualityMSS= sd (unlist(lapply (sapply (sapply (FD_fish_MSS_abundW, "[","Fdindexes"), "[", "qual.FRic"),unique)),na.rm=T)
+                            sdqualityMSS= sd (unlist(lapply (sapply (sapply (FD_fish_MSS, "[","Fdindexes"), "[", "qual.FRic"),unique)),na.rm=T)
                             )                            
 
 
 # benthos
 
-naxes_benthos <- data.frame (meanAxesMSS = mean(unlist(sapply (FD_benthos_MSS_abundW, "[","chosenAxes")),na.rm=T),
+naxes_benthos <- data.frame (meanAxesMSS = mean(unlist(sapply (FD_benthos_MSS, "[","chosenAxes")),na.rm=T),
                              # sd
-                             sdAxesMSS = sd(unlist(sapply (FD_benthos_MSS_abundW, "[","chosenAxes")),na.rm=T),
+                             sdAxesMSS = sd(unlist(sapply (FD_benthos_MSS, "[","chosenAxes")),na.rm=T),
                              # quality
-                             qualityMSS= mean (unlist(lapply (sapply (sapply (FD_benthos_MSS_abundW, "[","Fdindexes"), "[", "qual.FRic"),unique)),na.rm=T),
+                             qualityMSS= mean (unlist(lapply (sapply (sapply (FD_benthos_MSS, "[","Fdindexes"), "[", "qual.FRic"),unique)),na.rm=T),
                              # sd quality
-                             sdqualityMSS= sd (unlist(lapply (sapply (sapply (FD_benthos_MSS_abundW, "[","Fdindexes"), "[", "qual.FRic"),unique)),na.rm=T)
+                             sdqualityMSS= sd (unlist(lapply (sapply (sapply (FD_benthos_MSS, "[","Fdindexes"), "[", "qual.FRic"),unique)),na.rm=T)
                              )                            
 
 
 save (naxes_fishes,
-      naxes_benthos, file = here("output","FE_quality_abundW.RData") )
+      naxes_benthos, file = here("output_sensitivity","FE_quality.RData") )
 
 
 #################################################################
@@ -72,7 +72,7 @@ FDindexes <- c("FRic", "FEve", "FDiv")
 FRic_fish <- lapply (FDindexes, function (index) {
   
   pre_res <- sapply (
-                sapply (FD_fish_MSS_abundW, "[", "Fdindexes"),"[", index)
+                sapply (FD_fish_MSS, "[", "Fdindexes"),"[", index)
   
   # rm estimates that did not work
   pre_res <- do.call(cbind,
@@ -101,7 +101,7 @@ colnames(FRic_fish) <- c("FRic","FEve","FDiv","EstRich","Sites");
 FRic_benthos <- lapply (FDindexes, function (index) {
   
   pre_res <- sapply (
-                  sapply (FD_benthos_MSS_abundW, "[", "Fdindexes"),"[", index)
+                  sapply (FD_benthos_MSS, "[", "Fdindexes"),"[", index)
   
   # rm estimates that did not work
   pre_res <- do.call(cbind,
@@ -153,13 +153,8 @@ cov_fish$BO2_salinitymean_ss_std <- (cov_fish$BO2_salinitymean_ss-mean(cov_fish$
 cov_fish$BO_damean_std <- (cov_fish$BO_damean-mean(cov_fish$BO_damean))/sd(cov_fish$BO_damean)
 cov_fish$distanceLog <- log(cov_fish$distance)
 cov_fish$distance_std <- (cov_fish$distanceLog-mean(cov_fish$distanceLog))/sd(cov_fish$distanceLog)
+cov_fish$area <- (covariates_site$reef_area-mean(covariates_site$reef_area))/sd(covariates_site$reef_area)
 
-
-# depth
-cov_fish <- cbind(cov_fish,
-                  Depth=covariates_site$prof)
-cov_fish$Depth <- as.factor (cov_fish$Depth)
-  
 # ----------------------------- #
 #            Benthos
 # ----------------------------- #
@@ -189,12 +184,7 @@ cov_benthos$BO2_salinitymean_ss_std <- (cov_benthos$BO2_salinitymean_ss-mean(cov
 cov_benthos$BO_damean_std <- (cov_benthos$BO_damean-mean(cov_benthos$BO_damean))/sd(cov_benthos$BO_damean)
 cov_benthos$distanceLog <- log(cov_benthos$distance)
 cov_benthos$distance_std <- (cov_benthos$distanceLog-mean(cov_benthos$distanceLog))/sd(cov_benthos$distanceLog)
-
-
-# depth
-cov_benthos <- cbind(cov_benthos,
-                  Depth=covariates_site$prof)
-cov_benthos$Depth <- as.factor (cov_benthos$Depth)
+cov_benthos$area <- (covariates_site$reef_area-mean(covariates_site$reef_area))/sd(covariates_site$reef_area)
 
 ## aggregate list of results across organisms by rarefaction method
 
@@ -205,6 +195,6 @@ data_to_modeling_GLM <- rbind(cov_fish,
 save (data_to_modeling_GLM, 
       cov_fish,
       cov_benthos,
-      file=here("output", "data_to_modeling_GLM_abundW.RData"))
+      file=here("output_sensitivity", "data_to_modeling_GLM.RData"))
 
 rm(list=ls())
