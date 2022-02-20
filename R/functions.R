@@ -67,7 +67,7 @@ function_FD_fish <- function (site.data, spp.trait.data) {
       ## quasieuclid() transformation to make the gower matrix as euclidean. nf= number of axis 
       ## ---------------------------------------------- ##
       
-      pco<-dudi.pco(quasieuclid(gower_matrix), scannf=F, nf=10) 
+      pco <-dudi.pco(quasieuclid(gower_matrix), scannf=F, nf=10) 
       
       ### barplot of eigenvalues for each axis 
       #barplot(pco$eig) 
