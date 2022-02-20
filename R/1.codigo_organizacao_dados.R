@@ -482,9 +482,13 @@ layers_oracle <- load_layers(c("BO2_tempmean_ss",
 ## these data have different extent
 #layers_oracle_Chl <- load_layers (c("BO2_chlomean_ss","BO2_chlorange_ss"))
 
+#f <- system.file("data/environment/BO2_tempmean_ss_lonlat.tif", 
+#                 package="raster")
+
 ## coordinates to spatial points
 # adjusting one coordinate
 coordenadas_peixes [grep("perua",coordenadas_peixes$Group.1),2] <- as.numeric(-35.082658) ## perua preta
+
 # list of points
 sp_points <- list(coordenadas_peixes,
                   coordenadas_bentos)
@@ -532,8 +536,8 @@ coordenadas_bentos <- cbind (coordenadas_bentos, dist_bentos)
 ggplot(data = world) +
   geom_sf() +
   geom_point(data=coordenadas_bentos, 
-             aes(x=Lon, y=Lat, col =distance)) +
-  coord_sf(xlim = c(-55, -20), ylim = c(-33,0 ), expand = FALSE)
+             aes(x=Lon, y=Lat, col =distance))# +
+  #coord_sf(xlim = c(-55, -20), ylim = c(-33,0 ), expand = FALSE)
 
 ## fish
 sp_data <- SpatialPoints(coordenadas_peixes[,2:3])
@@ -543,25 +547,143 @@ sp_data <- spTransform(sp_data, CRS("+init=epsg:4326"))
 # measuring distance
 dist_peixes <- geosphere::dist2Line(p = sp_data, 
                                     line = (BR))
+
 # bind coords and distance
 coordenadas_peixes <- cbind (coordenadas_peixes, dist_peixes)
 #plot to check
 ggplot(data = world) +
   geom_sf() +
   geom_point(data=coordenadas_peixes, 
-             aes(x=Lon, y=Lat, col =distance)) +
-  coord_sf(xlim = c(-55, -20), ylim = c(-33,0 ), expand = FALSE)
+             aes(x=Lon, y=Lat, col =distance))# +
+  #coord_sf(xlim = c(-55, -20), ylim = c(-33,0 ), expand = FALSE)
+
+# ====================== 
+# magris data (reef area)
+
+shapefiles<-list.files(here ("data","environment","magris_reef_map"),pattern=".shp")
+# load all at once
+shapes <- lapply (shapefiles, function (shp) 
+  
+      readOGR (here ("data","environment","magris_reef_map"),
+                   gsub(".shp","",shp)) 
+)
+
+# subset of habitats
+list_habitats <- list ("amazon" = "AO11",# amazon
+                      "eastern"= c("EC11",# eastern
+                         "EC12",
+                         "EC13",
+                         "EC14",
+                         "EC15",
+                         "EC16"),
+                      "northeastern" = c("NC11",# northeastern
+                                         "NC12",
+                                         "NC13"),
+                       "riogrande"="RC11", # rio grande
+                      "southeastern"="SC11" #southeastern
+                       )
+
+# reef location
+BR_reefs <- lapply (seq (1,length(shapes)), function (shp)
+  # extract codes  
+  shapes[[shp]][which(shapes[[shp]]$habitat %in% list_habitats[[shp]]),]
+  
+)
 
 
+# bind 
+BR_reefs <- bind(BR_reefs[[1]],
+                 BR_reefs[[2]],
+                 BR_reefs[[3]],
+                 BR_reefs[[4]],
+                 BR_reefs[[5]])
+
+# create a grid for extracting data
+# based on the extent of extracted data
+grd_df <- expand.grid(x = seq(from = extent (BR_reefs)[1]-1,
+                              to = extent (BR_reefs)[2]+1, 
+                              by = .5),
+                      y = seq(from = extent (BR_reefs)[3]-1,                                           
+                              to = extent (BR_reefs)[4]+1, 
+                              by = .5))  # expand points to grid
+
+# Convert grd object to a matrix and then turn into a spatial
+# points object
+coordinates(grd_df) <- ~x + y
+
+# Sp points into raster
+grd_raster <- (raster(grd_df,resolution = .5))
+crs(grd_raster) <-crs(BR_reefs)
+values (grd_raster) <- runif(n=ncell(grd_raster))
+
+# project
+# reproject to laea # https://weiming-hu.github.io/projection-in-R/
+BR_reefs <- spTransform(BR_reefs, 
+                        "+proj=laea +lat_0=0 +lon_0=0 +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+to_raster <-  raster (extent(BR_reefs),
+                      crs = "+proj=laea +lat_0=0 +lon_0=0 +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+                      res=55000)
+grd_raster <- projectRaster(grd_raster, to_raster)
+
+# southe maerica map
+southAme<- readOGR(dsn= here("data","South_America"),encoding="latin1", 
+                   layer="South_America")
+southAme <- spTransform(southAme, 
+                        "+proj=laea +lat_0=0 +lon_0=0 +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+
+# extract
+require("exactextractr")
+
+# extract
+prop_area <- coverage_fraction(grd_raster, 
+                               st_combine(st_as_sf(BR_reefs)))[[1]]
+# points
+pts <- spTransform(spdf[[1]], 
+                   "+proj=laea +lat_0=0 +lon_0=0 +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+
+# plot
+plot1 <- gplot(prop_area) +  
+  geom_tile(aes(fill=(value)),alpha=0.8) +
+  scale_fill_gradient(low = "white", high = "darkred",
+                     name="Reef area") +
+   theme_classic() 
+
+# 
+plot2 <- plot1 + geom_polygon(data=southAme, 
+                                    aes(x=long, y=lat, group=group),
+                                    size = 0.1, fill="gray60", 
+                                    colour="gray75",alpha=0.1) + 
+  xlab("Longitude") + ylab("Latitude") +
+  coord_fixed (xlim = c(-5000000,-2500000), 
+               ylim = c(-4000000, 0), ratio = 1) +
+  theme(legend.position = c(0.8,0.7),
+        axis.text.x = element_text(angle=45))
+
+pdf (here ("output_no_resampling","reef_area.pdf"),width=3,height = 4)
+plot2
+dev.off()
+
+# values in site coords
+extracted_area <- extract (prop_area, 
+                           pts,
+                           method='simple', fun=mean)
+
+# spdf[[1]]$Lon == spdf[[2]]$Lon
 ## list with predictors
 covariates_site <- list (site_names = sites_fish_complete,
                          regiao = regiao,
                          prof = prof,
+                         reef_area = extracted_area,
                          coord = list(coord_bentos=coordenadas_bentos,
                                       coord_peixes = coordenadas_peixes),
                          sea_data = extracted_sea_data)
 # effort
 covariates_effort <- list(effort = tabela_esforco)
+
+
+cor(data.frame (covariates_site$sea_data[[1]],
+                area = covariates_site$reef_area,
+                dist = covariates_site$coord$coord_bentos$distance))
 
 # SAVE
 
@@ -572,3 +694,6 @@ save (covariates_site , ### dados de covariaveis das bases de dados
 
 
 rm(list=ls())
+
+
+
