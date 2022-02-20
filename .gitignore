@@ -8,5 +8,8 @@ data/environment
 *.pdf
 *.JPEG
 output
+output_sensitivity
+output_no_resampling
+output_no_resampling_sensitivity
 MS
 R/abundance
