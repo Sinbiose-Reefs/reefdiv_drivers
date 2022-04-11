@@ -226,6 +226,35 @@ df_plot<- lapply (list(site_to_plot_ccorais,
 # melt this df
 df_plot<-do.call(rbind,df_plot)
 
+# species from shallow and deep areas
+comp_fish_deep <- comp_peixes[grep ("fundo", comp_peixes$locality_site),]
+comp_fish_deep<-colnames(comp_fish_deep [,which(colSums(comp_fish_deep[,-1]) >0)])
+comp_fish_shallow <- comp_peixes[grep ("raso", comp_peixes$locality_site),]
+comp_fish_shallow<- colnames(comp_fish_shallow [,which(colSums(comp_fish_shallow[,-1]) >0)])
+# find the species in both depths
+fish_spp <- data.frame (species = colnames(comp_peixes)[-1],
+                           depth = NA)
+# depth
+fish_spp[which(fish_spp$species %in% comp_fish_deep == T & fish_spp$species %in% comp_fish_shallow == F),"depth"] <- "fundo"
+fish_spp[which(fish_spp$species %in% comp_fish_shallow == T & fish_spp$species %in% comp_fish_deep == F),"depth"] <- "raso"
+fish_spp[which(fish_spp$species %in% comp_fish_shallow == T & fish_spp$species %in% comp_fish_deep == T),"depth"] <- "complete"
+fish_spp$depth [is.na(fish_spp$depth)] <- "complete"
+# ordering
+FD_obs_data_fish$axesPCO <- FD_obs_data_fish$axesPCO [order(rownames(FD_obs_data_fish$axesPCO)),]
+fish_spp<-fish_spp [which(fish_spp$species %in% rownames(FD_obs_data_fish$axesPCO)),]
+fish_spp$species == rownames(FD_obs_data_fish$axesPCO)
+# bind depth
+FD_obs_data_fish$axesPCO <- cbind (FD_obs_data_fish$axesPCO,
+                                      depth=fish_spp$depth)
+FD_obs_data_fish$axesPCO$depth <- factor (FD_obs_data_fish$axesPCO$depth,
+                                             levels = c("complete",
+                                                        "fundo",
+                                                        "raso"))
+df_plot$data<-factor (df_plot$data,
+                              levels = c("complete",
+                                         "fundo",
+                                         "raso"))
+
 # index per depth
 
 # results to annotate into the plot (average indexes across rarefaction samples)
@@ -261,13 +290,22 @@ round(FD_obs_data_benthos$explanAxes,3)
 # create a plot and set in an object (will be used bellow)
 plotA_fish <- ggplot()+#data=FD_fish_MSS[[i]]$axesPCO, 
   #aes(A1, A2)) + # plot the complete space
-  #geom_point() + theme_bw() + # the points
   geom_polygon(data=df_plot, aes(x=A1,y=A2, group=paste(data,1,sep=""),
                                  fill=data), alpha=0.7) +
-  scale_fill_manual(values = c("gray70", "#046582", "#B5EAEA")) + 
-  facet_wrap(~site) + theme_classic()
-
-
+  geom_point(data=FD_obs_data_fish$axesPCO,
+             aes (x=A1,y=A2,
+                  colour = depth),
+             alpha=0.7,
+             size = 0.5,
+             stroke = 1) +
+  scale_fill_manual(values = c(complete = "#E6D5B8",
+                               fundo = "#0E185F",
+                               raso = "#56BBF1")) + # theme_bw() + # the points
+  scale_colour_manual(values = c(complete = "#E6D5B8",
+                                 fundo = "#56BBF1",
+                                 raso = "#0E185F")) + # theme_bw() + # the points
+  facet_wrap(~site,ncol= 1) + theme_classic()
+plotA_fish
 # benthos
 
 df_plot_benthos<- lapply (list(site_to_plot_ccorais,
@@ -309,30 +347,73 @@ df_plot_benthos<- lapply (list(site_to_plot_ccorais,
 # melt this df
 df_plot_benthos<-do.call(rbind,df_plot_benthos)
 
+# species from shallow and deep areas
+comp_bentos_deep <- comp_bentos[grep ("fundo", comp_bentos$locality_site),]
+comp_bentos_deep<-colnames(comp_bentos_deep [,which(colSums(comp_bentos_deep[,-1]) >0)])
+comp_bentos_shallow <- comp_bentos[grep ("raso", comp_bentos$locality_site),]
+comp_bentos_shallow<- colnames(comp_bentos_shallow [,which(colSums(comp_bentos_shallow[,-1]) >0)])
+# find the species in both depths
+benthos_spp <- data.frame (species = colnames(comp_bentos)[-1],
+                           depth = NA)
+# depth
+benthos_spp[which(benthos_spp$species %in% comp_bentos_deep == T & benthos_spp$species %in% comp_bentos_shallow == F),"depth"] <- "fundo"
+benthos_spp[which(benthos_spp$species %in% comp_bentos_shallow == T & benthos_spp$species %in% comp_bentos_deep == F),"depth"] <- "raso"
+benthos_spp[which(benthos_spp$species %in% comp_bentos_shallow == T & benthos_spp$species %in% comp_bentos_deep == T),"depth"] <- "complete"
+benthos_spp$depth [is.na(benthos_spp$depth)] <- "complete"
+# ordering
+FD_obs_data_benthos$axesPCO <- FD_obs_data_benthos$axesPCO [order(rownames(FD_obs_data_benthos$axesPCO)),]
+benthos_spp<-benthos_spp [which(benthos_spp$species %in% rownames(FD_obs_data_benthos$axesPCO)),]
+benthos_spp$species == rownames(FD_obs_data_benthos$axesPCO)
+# bind depth
+FD_obs_data_benthos$axesPCO <- cbind (FD_obs_data_benthos$axesPCO,
+                                      depth=benthos_spp$depth)
+FD_obs_data_benthos$axesPCO$depth <- factor (FD_obs_data_benthos$axesPCO$depth,
+                                             levels = c("complete",
+                                                        "fundo",
+                                                        "raso"))
+df_plot_benthos$data<-factor (df_plot_benthos$data,
+                              levels = c("complete",
+                                         "fundo",
+                                         "raso"))
+
 # create a plot and set in an object (will be used bellow)
 plotA_benthos <- ggplot()+#data=FD_fish_MSS[[i]]$axesPCO, 
   #aes(A1, A2)) + # plot the complete space
   #geom_point() + theme_bw() + # the points
   geom_polygon(data=df_plot_benthos, aes(x=A1,y=A2, group=paste(data,1,sep=""),
-                                 fill=data), alpha=0.7) +
-  scale_fill_manual(values = c("gray70", "#FB9300", "#FAFCC2")) + 
-  facet_wrap(~site) + theme_classic()
+                                 fill=data), 
+               linetype=2, alpha=0.5) +
+  #scale_fill_manual(values = c("gray70", "#FB9300", "#FAFCC2")) + 
+  geom_point(data=FD_obs_data_benthos$axesPCO,
+             aes (x=A1,y=A2,
+                  colour = depth),
+             alpha=0.7,
+             size = 0.5,
+             stroke = 1) +
+  scale_fill_manual(values = c(complete = "#E6D5B8",
+                                 fundo = "#FF5F00",
+                               raso = "#F6F54D")) + # theme_bw() + # the points
+  scale_colour_manual(values = c(complete = "#E6D5B8",
+                                 fundo = "#F6F54D",
+                                 raso = "#FF5F00")) + # theme_bw() + # the points
+  facet_wrap(~site,ncol= 1) + theme_classic()
+plotA_benthos
 
 # save
-pdf(file=here("output_no_resampling","Fig1_spaces.pdf"),height=5,width=6.5)
+pdf(file=here("output_no_resampling","Fig1_spaces_with_pts"),height=5,width=6.5)
 
 grid.arrange(map_peixes_bentos, 
-             plotA_benthos,
-             plotA_fish,
+             plotA_benthos+theme(legend.position = "none"),
+             plotA_fish+theme(legend.position = "none"),
              ncol=9,nrow=11,
-             layout_matrix = rbind (c(1,1,1,1,2,2,2,2,2),
-                                    c(1,1,1,1,2,2,2,2,2),
-                                    c(1,1,1,1,2,2,2,2,2),
-                                    c(1,1,1,1,2,2,2,2,2),
-                                    c(1,1,1,1,3,3,3,3,3),
-                                    c(1,1,1,1,3,3,3,3,3),
-                                    c(1,1,1,1,3,3,3,3,3),
-                                    c(1,1,1,1,3,3,3,3,3)))
+             layout_matrix = rbind (c(1,1,1,1,2,2,2,3,3,3),
+                                    c(1,1,1,1,2,2,2,3,3,3),
+                                    c(1,1,1,1,2,2,2,3,3,3),
+                                    c(1,1,1,1,2,2,2,3,3,3),
+                                    c(1,1,1,1,2,2,2,3,3,3),
+                                    c(1,1,1,1,2,2,2,3,3,3),
+                                    c(1,1,1,1,2,2,2,3,3,3),
+                                    c(1,1,1,1,2,2,2,3,3,3)))
 dev.off()
 
 # ------------------------------------------------
@@ -374,7 +455,7 @@ mcmc_areas(posterior, pars = c("b_logSR_BO2_tempmean_ss_std",
                                    "b_logFDivbenthos_BO2_tempmean_ss_std"),
                prob = 0.5, # 85% intervals
                prob_outer = 0.95, # 95%
-               point_est = "mean",
+               point_est = "median",
            area_method = "equal height")
 
 dev.off()
@@ -469,7 +550,6 @@ cor_out <- do.call("rbind.data.frame", cor_out) %>%
   dplyr::mutate(var_a = case_when(!grepl("benthos", var_a) ~ paste0(var_a, "_fish"), TRUE ~ var_a),
                 var_b = case_when(!grepl("benthos", var_b) ~ paste0(var_b, "_fish"), TRUE ~ var_b),
                 cor_pair = paste0(var_a, " ~ ", var_b))
-
 
 # select correlation in the diagonal (i.e., cor of the same metric between fish and benthos)
 sel_cors <- c("SR_fish ~ SRbenthos",
@@ -725,7 +805,6 @@ model %>%
   dplyr::summarise(ggdist::median_hdci(b_logFEvebenthos_sst),
                    prob_pos = sum(b_logFEvebenthos_sst > 0) / n(),
                    prob_neg = sum(b_logFEvebenthos_sst < 0) / n())
-
 
 # sst Fdiv fish
 model %>%
