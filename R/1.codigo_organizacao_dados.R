@@ -455,6 +455,9 @@ coordenadas_bentos <- aggregate(bentos_subset,
                          by= list (bentos_subset$locality_site), 
                          FUN=mean)[c("Group.1","Lon","Lat")]
 coordenadas_bentos<- coordenadas_bentos[which(coordenadas_bentos$Group.1 %in% sites_bentos_complete),]
+## coordinates to spatial points
+# adjusting one coordinate
+coordenadas_peixes [grep("perua",coordenadas_peixes$Group.1),2] <- as.numeric(-35.082658) ## perua preta
 
 # -----------------------
 # BiO Oracle - extracting covariate data
@@ -485,9 +488,6 @@ layers_oracle <- load_layers(c("BO2_tempmean_ss",
 #f <- system.file("data/environment/BO2_tempmean_ss_lonlat.tif", 
 #                 package="raster")
 
-## coordinates to spatial points
-# adjusting one coordinate
-coordenadas_peixes [grep("perua",coordenadas_peixes$Group.1),2] <- as.numeric(-35.082658) ## perua preta
 
 # list of points
 sp_points <- list(coordenadas_peixes,
@@ -644,7 +644,10 @@ pts <- spTransform(spdf[[1]],
 # plot
 plot1 <- gplot(prop_area) +  
   geom_tile(aes(fill=(value)),alpha=0.8) +
-  scale_fill_gradient(low = "white", high = "darkred",
+  scale_fill_viridis_c(begin = 0.1, 
+                      end = 1,
+                      direction=-1,
+                      option = "magma",
                      name="Reef area") +
    theme_classic() 
 
@@ -696,4 +699,62 @@ save (covariates_site , ### dados de covariaveis das bases de dados
 rm(list=ls())
 
 
+# --------------------------------------------------------------------- #
+# impacts
 
+impacts <- readOGR (here ("data","environment","cumulative_impacts"),
+                    "PU_cumulativeThreat")
+
+plot1<- ggplot() + geom_polygon(data=impacts, 
+                     aes(x=long, y=lat, group=group),
+                     size = 0.1, fill="gray60", 
+                     colour="gray75",alpha=0.1) 
+
+# create a grid for extracting data
+# based on the extent of extracted data
+grd_df <- expand.grid(x = seq(from = extent (impacts)[1]-1,
+                              to = extent (impacts)[2]+1, 
+                              by = .5),
+                      y = seq(from = extent (impacts)[3]-1,                                           
+                              to = extent (impacts)[4]+1, 
+                              by = .5))  # expand points to grid
+
+# Convert grd object to a matrix and then turn into a spatial
+# points object
+coordinates(grd_df) <- ~x + y
+
+# Sp points into raster
+grd_raster <- (raster(grd_df,resolution = .5))
+crs(grd_raster) <-crs(impacts)
+values (grd_raster) <- runif(n=ncell(grd_raster))
+
+# to raster
+to_raster <-  raster (extent(impacts),
+                      crs = crs (impacts),
+                      res=.5)
+grd_raster <- projectRaster(grd_raster, to_raster)
+# extract
+require("exactextractr")
+
+# extract
+impacts_raster <- coverage_fraction(grd_raster, 
+                                     st_combine(st_as_sf(impacts)))[[1]]
+
+# plot
+plot1 <- gplot(impacts_raster) +  
+  geom_tile(aes(fill=(value)),alpha=0.8) +
+  scale_fill_gradient(low = "white", high = "darkred",
+                      name="Reef area") +
+  theme_classic() + 
+  geom_point(data = spdf[[1]]@data,aes(x=Lon,y=Lat))
+
+
+
+
+# values in site coords
+pts <- spTransform(spdf[[1]], 
+                   crs(impacts))
+
+extracted_impacts <- extract (impacts_raster, 
+                           spdf[[1]],
+                           method='simple', fun=mean)
