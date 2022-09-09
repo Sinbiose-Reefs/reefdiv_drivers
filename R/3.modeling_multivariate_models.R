@@ -371,6 +371,39 @@ save(loo_test,file = here ("output","loo_test.RData"))
 
 
 
+# extract estimates
+loo_sel <- lapply (loo_test, function (i)
+         i$estimates[which(rownames(i$estimates) == "looic"),"Estimate"])
+# extract looic (like AIC)
+tab_mod_sel <- do.call(rbind,lapply (loo_test, function (i)
+         i$estimates[which(rownames(i$estimates) == "looic"),]))
+# extract estimated number of parameters (model adequacy)
+tab_mod_fit <- do.call(rbind,lapply (loo_test, function (i)
+         i$estimates[which(rownames(i$estimates) == "p_loo"),]))
+# select the model with lowest looic
+sel_model <- list (fit_complete, fit2, fit3,fit_simple,fit_SR)[which(loo_sel == min(unlist(loo_sel)))]
+   
+# list of results 
+res <- list (looic = tab_mod_sel,
+             param= tab_mod_fit,
+             best_model = sel_model
+             )
+
+## save
+save ( res, 
+       file=here ("output", 
+                  "MCMC_selected_model.Rdata"))
+
+
+
+
+
+# end
+
+
+
+
+
 
 
 # alternative 1
