@@ -102,67 +102,49 @@ library("ggplot2")
 posterior <- as.array(res$best_model[[1]])
 dimnames(posterior)
 
-# plot
-# here: https://cran.r-project.org/web/packages/bayesplot/vignettes/plotting-mcmc-draws.html
-pdf(here ("output","figures","fig2_temp"),width=5,height=3)
-
 color_scheme_set("blue")
-mcmc_areas(posterior, pars = c( # fish
-                               "b_logFRicfish1_sst_std",         
-                               "b_logRaofish1_sst_std", 
-                               
-                               # algae
-                               
-                               "b_logFRicalgae1_sst_std",         
-                               "b_logRaoalgae1_sst_std", 
-                               
-                               # corals
-                               
-                               "b_logFRiccorals1_sst_std",         
-                               "b_logRaocorals1_sst_std" 
-                               ),
-           
-               prob = 0.75, # 75% intervals
-               prob_outer = 0.95, # 95%
-               point_est = "median",
-           area_method = "equal height")
+p_SST <- mcmc_intervals(posterior,  pars = c( # fish
+  "b_logFRicfish1_sst_std",         
+  "b_logRaofish1_sst_std", 
+  
+  # algae
+  
+  "b_logFRicalgae1_sst_std",         
+  "b_logRaoalgae1_sst_std", 
+  
+  # corals
+  
+  "b_logFRiccorals1_sst_std",         
+  "b_logRaocorals1_sst_std" 
+),
+prob = 0.5, # 50% intervals
+prob_outer = 0.95, # 99%
+point_est = "median",
+point_size = 2.5)
 
-dev.off()
-
-
-# plot
-# here: https://cran.r-project.org/web/packages/bayesplot/vignettes/plotting-mcmc-draws.html
-pdf(here ("output","figures","fig2_turbidity"),width=5,height=3)
-
-color_scheme_set("blue")
-mcmc_areas(posterior, pars = c( # fish
+# turbidity
+p_turbidity <- mcmc_intervals(posterior, pars = c( # fish
   "b_logFRicfish1_turbidity_std", 
   "b_logRaofish1_turbidity_std",
-
+  
   # algae
   
   "b_logFRicalgae1_turbidity_std", 
   "b_logRaoalgae1_turbidity_std",
-
+  
   # corals
   
   "b_logFRiccorals1_turbidity_std", 
   "b_logRaocorals1_turbidity_std"),
   
-  prob = 0.75, # 50% intervals
+  prob = 0.5, # 50% intervals
   prob_outer = 0.95, # 95%
   point_est = "median",
-  area_method = "equal height") 
-
-dev.off()
+  point_size = 2.5) 
 
 
-# plot
-# here: https://cran.r-project.org/web/packages/bayesplot/vignettes/plotting-mcmc-draws.html
-pdf(here ("output","figures","fig2_SR"),width=5,height=3)
-
-color_scheme_set("blue")
-mcmc_areas(posterior, pars = c( # fish
+# richness
+p_SR <- mcmc_intervals(posterior, pars = c( # fish
   "b_logFRicfish1_SR_fish", 
   "b_logRaofish1_SR_fish",
   
@@ -176,15 +158,97 @@ mcmc_areas(posterior, pars = c( # fish
   "b_logFRiccorals1_SR_corals", 
   "b_logRaocorals1_SR_corals"),
   
-  prob = 0.75, # 75% intervals
+  prob = 0.5, # 50% intervals
   prob_outer = 0.95, # 95%
   point_est = "median",
-  area_method = "equal height")
+  point_size = 2.5)
+
+
+pdf (here("output", "figures", "fig2"),width=7,height=3)
+
+grid.arrange(p_SST+theme (axis.text.y = element_blank()),
+             p_turbidity+theme (axis.text.y = element_blank()),
+             p_SR+theme (axis.text.y = element_blank()), 
+             ncol=3)
 
 dev.off()
 
 
-# add 50% intervals, manually in inkscape
+# add 75% intervals, manually in inkscape
+
+color_scheme_set("blue")
+p_SST <- mcmc_intervals(posterior,  pars = c( # fish
+  "b_logFRicfish1_sst_std",         
+  "b_logRaofish1_sst_std", 
+  
+  # algae
+  
+  "b_logFRicalgae1_sst_std",         
+  "b_logRaoalgae1_sst_std", 
+  
+  # corals
+  
+  "b_logFRiccorals1_sst_std",         
+  "b_logRaocorals1_sst_std" 
+),
+prob = 0.8, # 80% intervals
+prob_outer = 0.95, # 99%
+point_est = "median",
+point_size = 2.5)
+
+# turbidity
+p_turbidity <- mcmc_intervals(posterior, pars = c( # fish
+  "b_logFRicfish1_turbidity_std", 
+  "b_logRaofish1_turbidity_std",
+  
+  # algae
+  
+  "b_logFRicalgae1_turbidity_std", 
+  "b_logRaoalgae1_turbidity_std",
+  
+  # corals
+  
+  "b_logFRiccorals1_turbidity_std", 
+  "b_logRaocorals1_turbidity_std"),
+  
+  prob = 0.8, # 80% intervals
+  prob_outer = 0.95, # 95%
+  point_est = "median",
+  point_size = 2.5) 
+
+
+# richness
+p_SR <- mcmc_intervals(posterior, pars = c( # fish
+  "b_logFRicfish1_SR_fish", 
+  "b_logRaofish1_SR_fish",
+  
+  # algae
+  
+  "b_logFRicalgae1_SR_algae", 
+  "b_logRaoalgae1_SR_algae",
+  
+  # corals
+  
+  "b_logFRiccorals1_SR_corals", 
+  "b_logRaocorals1_SR_corals"),
+  
+  prob = 0.8, # 80% intervals
+  prob_outer = 0.95, # 95%
+  point_est = "median",
+  point_size = 2.5)
+
+
+pdf (here("output", "figures", "fig2_80p"),width=7,height=3)
+
+grid.arrange(p_SST+theme (axis.text.y = element_blank()),
+             p_turbidity+theme (axis.text.y = element_blank()),
+             p_SR+theme (axis.text.y = element_blank()), 
+             ncol=3)
+
+dev.off()
+
+
+
 
 # plot
 # here: https://cran.r-project.org/web/packages/bayesplot/vignettes/plotting-mcmc-draws.html
@@ -286,13 +350,70 @@ mcmc_neff(neff_vals)  + theme_bw() + yaxis_text(size = 4)
 
 dev.off()
 
+
+# help
+
 # explore fixed and random effects
 # help here
 # https://biol609.github.io/lectures/23c_brms_prediction.html
 
-# -------------------
-# SST
-# fixed effects
+
+library(brms)
+library(tidyverse)
+load("rdata_/MCMC_selected_model.rdata")
+length(res$best_model)
+mod <- res$best_model[[1]]
+nd <- data.frame(
+  SR_fish = 0, sst_std = 0, turbidity_std = 0, SR_algae = 0, SR_corals = 0,
+  region = sort(unique(mod$data$region))
+)
+
+# The rows are HMC draws, the columns correspond to the rows in `nd`
+#   re_formula = NULL for incorporation of random effects.
+int_preds <- brms::posterior_predict(mod, newdata = nd, re_formula = NULL)
+# The output is a 3D array, with each element on the third dimension
+#  corresponding to a different response variable from the multivariate normal
+#  model.
+
+head(int_preds)
+# The columns correspond to sort(unique(mod$data$region)), so first columns is
+#   "BrazilianCoastNorth", second is "BrazilianCoastSouth" and third is
+#   "BrazilianOceanicIslands".
+# So now for each response all you have to do is calculate among-column
+#   differences row-wise, and that will give you the difference among regions.
+# Transform array to list, makes it easier to deal with output
+resp_names <- dimnames(int_preds)[[3]]
+int_preds <- seq_len(dim(int_preds)[3]) %>%
+  lapply(function(x, marray) marray[ , , x], marray = int_preds)
+names(int_preds) <- resp_names
+
+# NB: 3 levels for a random effect is not recommended at all. You can barely
+#   estimate a mean with 3 levels, let alone a variance.
+diff_tab <- purrr::map_dfr(int_preds, function(x) {
+  y <- cbind(x[, 1] - x[, 2], x[, 1] - x[, 3], x[, 2] - x[, 3])
+  # exceedance probabilities.
+  #   1 - What is the probability of North being greater than south?
+  #   2 - What is the probability of North being greater than Oc. islands?
+  #   3 - What is the probability of South being greater than Oc. islands?
+  ex_probs <- c(sum(y[, 1] > 0), sum(y[, 2] > 0), sum(y[, 3] > 0)) / nrow(y)
+  y %>%
+    ggdist::median_hdci() %>%
+    dplyr::mutate(diff = c("bn-bs", "bn-oi", "bs-oi"), ex_prob = ex_probs)
+}, .id = "Response")
+
+# Just one case where evidence for difference is > 0.9
+# functional richness of algae is substantially higher in the south when
+#   compared to the oceanic islands.
+diff_tab %>%
+  dplyr::filter(ex_prob > 0.9)
+
+
+
+
+# FIXED EFFECTS
+require(tidybayes)
+
+# 
 fe_only <- tibble(sst_std = seq (range(res$best_model[[1]]$data$sst_std)[1],
                                  range(res$best_model[[1]]$data$sst_std)[2],
                                  0.01),
@@ -306,328 +427,175 @@ fe_only <- tibble(sst_std = seq (range(res$best_model[[1]]$data$sst_std)[1],
                      scale = "response",
                      n = 1e2)
   
-
-
 # summary
 fe_only_mean <- fe_only %>% 
     group_by(sst_std, .category) %>%
     summarize(.value = median(.value))
   
-# random effects
-re_model_only <- crossing(sst_std = seq (range(res$best_model[[1]]$data$sst_std)[1],
-                                         range(res$best_model[[1]]$data$sst_std)[2],
-                                         0.01),
-                          turbidity_std = 0,
-                          SR_corals = 0,
-                          SR_algae = 0,
-                          SR_fish =0,
-                            region = unique(res$best_model[[1]]$data$region)) %>%
-    add_fitted_draws(res$best_model[[1]],
-                     scale = "response", n = 1e2)
-  
-# summary
-re_model_summary <- re_model_only %>%
-    group_by(region, 
-             sst_std,
-             .category) %>%
-    summarize(.value = median(.value))
-  
-  
-# plot
-plotSST<- ggplot(re_model_summary,
-                 aes(x = sst_std, 
-                     y = .value,
-                     colour=region)) +
-  geom_line(aes(group = "region"),alpha = 0.1,size=0.7) +
-  geom_line(data = fe_only_mean, aes(x=sst_std,
-                                     y=.value,
-                                     group=1),
-            color = "black", lwd = 1,alpha=0.75,linetype="dashed")+ 
-  facet_wrap(~.category, nrow=1,scales="free_y") + 
-  theme_classic() +
-  theme(legend.position = "top")
-(plotSST)
-  
 
 
+# sst
+plotSST<- ggplot(fe_only,
+       aes(x = sst_std, y = .value)) +
+  stat_interval(alpha = 0.1) + 
+  geom_line(data = fe_only_mean, 
+            color = "black", 
+            lwd = 2) +
+  facet_wrap (~.category, scales="free",ncol=6) +
+  xlab ("SST")+theme_classic()+
+  theme(legend.position = "none")
 
 
-# -----------------------------------------
-# turbidity
-
-# fixed effects
+# turb
 fe_only <- tibble(sst_std = 0,
                   turbidity_std = seq (range(res$best_model[[1]]$data$turbidity_std)[1],
                                        range(res$best_model[[1]]$data$turbidity_std)[2],
                                        0.01),
                   SR_corals = 0,
                   SR_algae = 0,
-                  SR_fish = 0) %>%
+                  SR_fish =0) %>%
+  
   add_fitted_draws(res$best_model[[1]],
                    re_formula = NA,
                    scale = "response",
-                   n = 1e3)
+                   n = 1e2)
 
 # summary
 fe_only_mean <- fe_only %>% 
   group_by(turbidity_std, .category) %>%
   summarize(.value = median(.value))
 
-# random effects
-re_model_only <- crossing(sst_std = 0,
-                          turbidity_std = seq (range(res$best_model[[1]]$data$turbidity_std)[1],
-                                               range(res$best_model[[1]]$data$turbidity_std)[2],
-                                               0.01),
-                          SR_corals = 0,
-                          SR_algae = 0,
-                          SR_fish = 0,
-                          region = unique(res$best_model[[1]]$data$region)) %>%
-  add_fitted_draws(res$best_model[[1]],
-                   scale = "response", n = 1e3)
 
-# summary
-re_model_summary <- re_model_only %>%
-  group_by(region, 
-           turbidity_std, .category) %>%
-  summarize(.value = median(.value))
-
-
-# plot
-plotKD<- ggplot(re_model_summary,
-                 aes(x = turbidity_std, 
-                     y = .value,
-                     colour=region)) +
-  geom_line(aes( group = region), alpha = 0.8,size=0.7) +
+# kd490
+plotKD<- ggplot(fe_only,
+                 aes(x = turbidity_std, y = .value)) +
+  stat_interval(alpha = 0.1) + 
   geom_line(data = fe_only_mean, 
-            color = "black", lwd = 1,
-            alpha=0.75,linetype="dashed")+ 
-  facet_wrap(~.category, nrow=1,scales="free_y") + 
-  theme_classic() +
-  theme(legend.position = "top")
-(plotKD)
+            color = "black", 
+            lwd = 2) +
+  facet_wrap (~.category, scales="free",ncol=6) +
+  theme(legend.position = "none")
 
 
-# -----------------------------------------
-# SR_corals
-# fixed effects
+
+
+# SR corals
 fe_only <- tibble(sst_std = 0,
                   turbidity_std = 0,
                   SR_corals = seq (range(res$best_model[[1]]$data$SR_corals)[1],
                                    range(res$best_model[[1]]$data$SR_corals)[2],
                                    0.01),
                   SR_algae = 0,
-                  SR_fish = 0) %>%
+                  SR_fish =0) %>%
+  
   add_fitted_draws(res$best_model[[1]],
                    re_formula = NA,
                    scale = "response",
-                   n = 1e3)
+                   n = 1e2)
 
 # summary
 fe_only_mean <- fe_only %>% 
   group_by(SR_corals, .category) %>%
   summarize(.value = median(.value))
 
-# random effects
-re_model_only <- crossing(sst_std = 0,
-                          turbidity_std = 0,
-                          SR_corals = seq (range(res$best_model[[1]]$data$SR_corals)[1],
-                                           range(res$best_model[[1]]$data$SR_corals)[2],
-                                           0.01),
-                          SR_algae = 0,
-                          SR_fish = 0,
-                          region = unique(res$best_model[[1]]$data$region)) %>%
-  add_fitted_draws(res$best_model[[1]],
-                   scale = "response", n = 1e3)
-
-# summary
-re_model_summary <- re_model_only %>%
-  group_by(region, 
-           SR_corals,
-           .category) %>%
-  summarize(.value = median(.value))
-
-
-# plot
-plotSR_corals<- ggplot(re_model_summary,
-                aes(x = SR_corals, 
-                    y = .value,
-                    colour=region)) +
-  geom_line(aes( group = region), alpha = 0.8,size=0.7) +
-  geom_line(data = fe_only_mean, color = "black", lwd = 1,alpha=0.75,linetype="dashed")+ 
-  facet_wrap(~.category, nrow=1,scales="free_y") + 
-  theme_classic() +
-  theme(legend.position = "top")
-(plotSR_corals)
-
-
-re_model_summary %>% group_by(region) %>%
-  summarise (val=median(.value))
 
 
 
-# -----------------------------------------
+# SR corals
+plotSR_corals<- ggplot(fe_only,
+                aes(x = SR_corals, y = .value)) +
+  stat_interval(alpha = 0.1) + 
+  scale_fill_grey()+
+  geom_line(data = fe_only_mean, 
+            color = "black", 
+            lwd = 2) +
+  facet_wrap (~.category, scales="free",ncol=6) +
+  theme(legend.position = "none")
+
+
+
 # SR algae
-# fixed effects
 fe_only <- tibble(sst_std = 0,
                   turbidity_std = 0,
                   SR_corals = 0,
                   SR_algae = seq (range(res$best_model[[1]]$data$SR_algae)[1],
                                   range(res$best_model[[1]]$data$SR_algae)[2],
                                   0.01),
-                  SR_fish = 0) %>%
+                  SR_fish =0) %>%
+  
   add_fitted_draws(res$best_model[[1]],
                    re_formula = NA,
                    scale = "response",
-                   n = 1e3)
+                   n = 1e2)
 
 # summary
 fe_only_mean <- fe_only %>% 
   group_by(SR_algae, .category) %>%
   summarize(.value = median(.value))
 
-# random effects
-re_model_only <- crossing(sst_std = 0,
-                          turbidity_std = 0,
-                          SR_corals = 0,
-                          SR_algae = seq (range(res$best_model[[1]]$data$SR_algae)[1],
-                                          range(res$best_model[[1]]$data$SR_algae)[2],
-                                          0.01),
-                          SR_fish = 0,
-                          region = unique(res$best_model[[1]]$data$region)) %>%
-  add_fitted_draws(res$best_model[[1]],
-                   scale = "response", n = 1e3)
 
-# summary
-re_model_summary <- re_model_only %>%
-  group_by(region, 
-           SR_algae,
-           .category) %>%
-  summarize(.value = median(.value))
+# SR algae
+plotSR_algae<- ggplot(fe_only,
+                       aes(x = SR_algae, y = .value)) +
+  stat_interval(alpha = 0.1) + 
+  scale_fill_grey()+
+  geom_line(data = fe_only_mean, 
+            color = "black", 
+            lwd = 2) +
+  facet_wrap (~.category, scales="free",ncol=6) +
+  theme(legend.position = "none")
 
 
-# plot
-plotSR_algae<- ggplot(re_model_summary,
-                       aes(x = SR_algae, 
-                           y = .value,
-                           colour=region)) +
-  geom_line(aes( group = region), alpha = 0.8,size=0.7) +
-  geom_line(data = fe_only_mean, color = "black", lwd = 1,alpha=0.75,linetype="dashed")+ 
-  facet_wrap(~.category, nrow=1,scales="free_y") + 
-  theme_classic() +
-  theme(legend.position = "top")
-(plotSR_algae)
 
 
-re_model_summary %>% group_by(region) %>%
-  summarise (val=median(.value))
 
-
-# -----------------------------------------
 # SR fish
-# fixed effects
 fe_only <- tibble(sst_std = 0,
                   turbidity_std = 0,
                   SR_corals = 0,
                   SR_algae = 0,
-                  SR_fish = seq (range(res$best_model[[1]]$data$SR_fish)[1],
-                                 range(res$best_model[[1]]$data$SR_fish)[2],
-                                 0.01)) %>%
+                  SR_fish =seq (range(res$best_model[[1]]$data$SR_fish)[1],
+                                range(res$best_model[[1]]$data$SR_fish)[2],
+                                0.01)) %>%
+  
   add_fitted_draws(res$best_model[[1]],
                    re_formula = NA,
                    scale = "response",
-                   n = 1e3)
+                   n = 1e2)
 
 # summary
 fe_only_mean <- fe_only %>% 
-  group_by(SR_fish,.category) %>%
-  summarize(.value = median(.value))
-
-# random effects
-re_model_only <- crossing(sst_std = 0,
-                          turbidity_std = 0,
-                          SR_corals = 0,
-                          SR_algae = 0,
-                          SR_fish = seq (range(res$best_model[[1]]$data$SR_fish)[1],
-                                         range(res$best_model[[1]]$data$SR_fish)[2],
-                                         0.01),
-                          region = unique(res$best_model[[1]]$data$region)) %>%
-  add_fitted_draws(res$best_model[[1]],
-                   scale = "response", n = 1e3)
-
-# summary
-re_model_summary <- re_model_only %>%
-  group_by(region, 
-           SR_fish,
-           .category) %>%
+  group_by(SR_fish, .category) %>%
   summarize(.value = median(.value))
 
 
-# plot
-plotSR_fish<- ggplot(re_model_summary,
-                      aes(x = SR_fish, 
-                          y = .value,
-                          colour=region)) +
-  geom_line(aes( group = region), alpha = 0.8,size=0.7) +
-  geom_line(data = fe_only_mean, color = "black", lwd = 1,alpha=0.75,linetype="dashed")+ 
-  facet_wrap(~.category,nrow=1,scales="free_y") + 
-  theme_classic() +
-  theme(legend.position = "top")
-(plotSR_fish)
+# SR fish
+plotSR_fish<- ggplot(fe_only,
+                      aes(x = SR_fish, y = .value)) +
+  stat_interval(alpha = 0.1) + 
+  scale_fill_grey()+
+  geom_line(data = fe_only_mean, 
+            color = "black", 
+            lwd = 2) +
+  facet_wrap (~.category, scales="free",ncol=6) +
+  theme(legend.position = "none")
 
 
-re_model_summary %>% group_by(region) %>%
-  summarise (val=median(.value))
 
 
-pdf (here ("output", "figures", "fig4"))
-# arrrange
-grid.arrange(plotSST+theme(legend.position = "none")+xlab ("SST")+ylab("FD"),
-             plotKD+theme(legend.position = "none")+xlab ("Turbidity")+ylab("FD"),
-             plotSR_algae+theme(legend.position = "none")+xlab ("Algae richness")+ylab("FD"),
-             plotSR_corals+theme(legend.position = "none")+xlab ("Coral richness")+ylab("FD"),
-             plotSR_fish+theme(legend.position = "none")+xlab ("Fish richness")+ylab("FD"),ncol=1,nrow=5)
+#   
+pdf (here ("output", "figures", "fig4"),
+     height = 2,width=10, onefile = T)
+
+plotSST+xlab ("SST")+theme_classic()+theme(legend.position = "none")
+plotKD+xlab ("Turbidity")+theme_classic()+theme(legend.position = "none")
+plotSR_algae+xlab ("Algae richness")+theme_classic()+theme(legend.position = "none")
+plotSR_corals+xlab ("Coral richness")+theme_classic()+theme(legend.position = "none")
+plotSR_fish+xlab ("Fish richness")+theme_classic()+theme(legend.position = "none")
+
 
 dev.off()
-# find the random effect (group level)
 
-summary (res$best_model[[1]])
-apply(ranef(res$best_model[[1]])$region,c(1,2,3),exp)
-
-
-
-# only the expected average
-# fixed effects
-fe_only <- tibble(sst_std = 0,
-                  turbidity_std = 0,
-                  SR_corals = 0,
-                  SR_algae = 0,
-                  SR_fish = 0) %>%
-  add_fitted_draws(res$best_model[[1]],
-                   re_formula = NA,
-                   scale = "response",
-                   n = 1e3)
-
-# summary
-fe_only_mean <- fe_only %>% 
-  group_by(SR_fish,.category) %>%
-  summarize(.value = median(.value))
-
-# random effects
-re_model_only <- crossing(sst_std = 0,
-                          turbidity_std = 0,
-                          SR_corals = 0,
-                          SR_algae = 0,
-                          SR_fish = seq (-2,1,0.01),
-                          region = unique(res$best_model[[1]]$data$region)) %>%
-  add_fitted_draws(res$best_model[[1]],
-                   scale = "response", n = 1e3)
-
-# summary
-re_model_summary <- re_model_only %>%
-  group_by(region, 
-           SR_fish,
-           .category) %>%
-  summarize(.value = median(.value))
 
 # =================================================
 
@@ -725,16 +693,6 @@ post_cor_means <- cor_out %>%
 
 
 
-# original correlation
-
-
-# raw correlation between taxa
-
-mean(as.dist(cor (bind_fish_benthos[,c("FRic_fish","Rao_fish",
-                          "FRic_algae", "Rao_algae",
-                          "FRic_corals", "Rao_corals")]),
-        diag=F,upper=F))
-
 
 # correlation from the model
 
@@ -759,6 +717,8 @@ cor_orig <- data.frame(var_a = nn[[1]][ind[, 1]], var_b = nn[[2]][ind[, 2]],
                 cor_pair = paste0(var_a, " ~ ", var_b))
 post_cor_means$cor_pair <- gsub ("1","", post_cor_means$cor_pair)
 cor_orig$cor_pair <- gsub ("_","",cor_orig$cor_pair)
+mean(cor_orig$obs_cor_r)
+
 
 # check original vs residual correlation
 merged_cor <- merge(post_cor_means, cor_orig[, -c(1:2)], by = "cor_pair")
@@ -873,14 +833,32 @@ merged_cor %>% group_by(Correlation) %>%
             ra=range(value))
 
 
-merged_cor[order(merged_cor$value),]
+# organize names
+# taxon
+merged_cor$taxon <- gsub ("FRic", "",merged_cor$cor_pair)
+merged_cor$taxon <- gsub ("Rao", "",merged_cor$taxon)
+merged_cor$taxon <- firstup(merged_cor$taxon)
+# order 
+merged_cor$taxon<-factor (merged_cor$taxon, 
+                             levels = c("Algae ~ algae",
+                                        "Corals ~ corals",
+                                        "Fish ~ fish",
+                                        "Algae ~ corals",
+                                        "Fish ~ algae",
+                                        "Fish ~ corals"))
+
+# index
+merged_cor$index <- gsub ("fish", "",merged_cor$cor_pair)
+merged_cor$index <- gsub ("algae", "",merged_cor$index)
+merged_cor$index <- gsub ("corals", "",merged_cor$index)
+merged_cor$index <- firstup(merged_cor$index)
 
 # lollipop plot (plot of difference in correlation)
 
 # save
 pdf(file=here("output",
               "figures", 
-              "diff_cor"),height=6,width=7)
+              "diff_cor"),height=5,width=10)
 
 
 # Change baseline
@@ -888,17 +866,17 @@ ggplot(merged_cor[which(merged_cor$Correlation %in% c("Observed",
                                                       "Residual", 
                                                       "Predicted")),], 
        aes(x=value, 
-           y=cor_pair,
+           y=index,
            color = Correlation,
            fill = Correlation,
            group = cor_pair)) +
   geom_segment( aes(x=value, xend=0, 
-                    y=reorder(cor_pair,  value), 
-                    yend=reorder(cor_pair,  value)), 
+                    y=reorder(index,  value), 
+                    yend=reorder(index,  value)), 
                 color="grey",
                 position = position_jitter(height = 0.2, width = 0)) +
   
-  geom_point(size=4,
+  geom_point(size=3,
              position = position_jitter(height = 0.2, width = 0)) + 
 
     scale_color_viridis_d()+
@@ -910,10 +888,12 @@ ggplot(merged_cor[which(merged_cor$Correlation %in% c("Observed",
   ) +
   xlab("Pearson's correlation") + 
   ylab ("Pairs of functional metrics")+
-  theme(legend.position = c(0.8,0.8)) + 
   geom_vline(aes(xintercept =0),alpha =0.5,size=1,col = "gray") +
-  xlim(c(-.5,.75)) +
-  theme_classic() 
+  xlim(c(-.5,.65)) +
+  theme_classic() + 
+   facet_wrap(~taxon,ncol = 3,scales="free")+
+  theme(legend.position = "top") 
+
 
 
 

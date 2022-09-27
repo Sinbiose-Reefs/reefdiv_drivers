@@ -245,7 +245,7 @@ map_peixes
 build_FS <- function (FD_output, 
                       composition, 
                       site_covs,
-                      sel_coordinates = c(0,-5,-10,-15,-20,-25),
+                      sel_coordinates,
                       point_color,
                       space_color = "black",
                       complete_space_color = "gray30") {
@@ -264,6 +264,7 @@ build_FS <- function (FD_output,
         # find the selected comms
         sel_comms_fish <- lapply (closest_fish, function (i) 
           which(site_covs$decimalLatitude == i[1])[1])
+        
         # which ones
         # sites [unlist(sel_comms_fish)]
         # range rel abundance to plot in the selected comm
@@ -303,8 +304,8 @@ build_FS <- function (FD_output,
                      y=0,
                      size=5,
                      label=paste ("Site=", site_covs$site_number[i], 
-                                  "\nFRic=", round(FD_output$FRic[i],6),
-                                  "\nRao's Q=", round(FD_output$RaoQ[i],4))
+                                  "\nFRic=", round(FD_output$FRic[i],3),
+                                  "\nRao's Q=", round(FD_output$RaoQ[i],3))
             ) +
             geom_point(data=pk,aes (A1,A2,size=(abund)),
                        alpha=0.8,col=point_color,stroke=1) + 
@@ -321,11 +322,13 @@ build_FS <- function (FD_output,
 }
 
 # run the function
+sel_coordinates <- c(0,-4,-10,-17,-22,-24)
+
 # fish trait space
 fish_space <- build_FS(FD_output = FD_fish,
                        composition = comp_fish,
                        site_covs = site_covs,
-                       sel_coordinates = c(0,-4,-10,-17,-22,-24),
+                       sel_coordinates = sel_coordinates,
                        point_color = "#FFF5E4",
                        space_color = "#97D2EC",
                        complete_space_color = "#003865")
@@ -334,7 +337,7 @@ fish_space <- build_FS(FD_output = FD_fish,
 coral_space <- build_FS(FD_output = FD_corals,
                        composition = comp_corals,
                        site_covs = site_covs,
-                       sel_coordinates = c(0,-4,-10,-17,-22,-24),
+                       sel_coordinates = sel_coordinates,
                        point_color = "#FFF5E4",
                        space_color = "#FF9551",
                        complete_space_color = "#FF5B00")
@@ -343,7 +346,7 @@ coral_space <- build_FS(FD_output = FD_corals,
 algae_space <- build_FS(FD_output = FD_algae,
                        composition = comp_algae,
                        site_covs = site_covs,
-                       sel_coordinates = c(0,-4,-10,-17,-22,-24),
+                       sel_coordinates =sel_coordinates,
                        point_color = "#FFF5E4",
                        space_color = "#90B77D",
                        complete_space_color = "#1C6758")

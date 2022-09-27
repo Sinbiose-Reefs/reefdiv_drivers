@@ -7,7 +7,6 @@
 source("R/packages.R")
 source("R/functions.R")
 
-#source("R/function_lomolino_richness.R")
 
 # Load data
 
@@ -136,14 +135,30 @@ dataset_benthos <- benthos_SN_data_aued[which(benthos_SN_data_aued$site_analysis
 # check if sites are in both datasets
 (unique(dataset_benthos$site_analysis) %in% unique(dataset_fish$site_analysis))
 
-# REMOVE ISLAND SITES
-#dataset_fish <- dataset_fish[which(dataset_fish$higherGeography != "BrazilianOceanicIslands"),]
-#dataset_benthos <- dataset_benthos[which(dataset_benthos$higherGeography != "BrazilianOceanicIslands"),]
 
 # total number of belt transects
 length(unique(dataset_fish$eventID))
+
+# average
+mean (apply(table (dataset_fish$eventID, 
+                   dataset_fish$site_analysis)>0,
+            2,sum))
+# sd
+sd (apply(table (dataset_fish$eventID, 
+                 dataset_fish$site_analysis)>0,
+          2,sum))
+
 # total number of plots
 length(unique(dataset_benthos$eventID))
+# average
+mean (apply(table (dataset_benthos$eventID, 
+           dataset_benthos$site_analysis)>0,
+      2,sum))
+# sd
+sd (apply(table (dataset_benthos$eventID, 
+                   dataset_benthos$site_analysis)>0,
+            2,sum))
+
 
 
 #---------------------------------------------------#

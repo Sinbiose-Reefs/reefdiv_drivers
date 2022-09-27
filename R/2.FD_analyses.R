@@ -329,6 +329,19 @@ algae_traits<- algae_traits [order(rownames(algae_traits)),
 # ------
 # Fish
 #-------
+require(ape)
+tab_ord <- fish_traits_ord
+tab_ord$Body_shape <- as.numeric(tab_ord$Body_shape)
+tab_ord$Size<- as.numeric(tab_ord$Size)
+tab_ord$Temp<- as.numeric(tab_ord$Temp)
+tab_ord$Depth<- as.numeric(tab_ord$Depth)
+tab_ord$Mobility<- as.numeric(tab_ord$Mobility)
+tab_ord$Schooling<- as.numeric(tab_ord$Schooling)
+tab_ord$Body_shape<- as.numeric(tab_ord$Body_shape)
+
+
+# explanation
+pcoa(vegdist (tab_ord, "gower"), correction = "cailliez")$values$Rel_corr_eig[1:3]
 
 # composition fish
 FD_fish <- dbFD ((fish_traits_ord),
@@ -348,6 +361,18 @@ FD_fish <- dbFD ((fish_traits_ord),
 # --------
 # algae
 #---------
+
+
+# explanation
+tab_ord <- algae_traits
+tab_ord$body_size <- as.numeric(tab_ord$body_size)
+tab_ord$growth_form <- as.numeric(tab_ord$growth_form)
+tab_ord$carbonate <- as.numeric(tab_ord$carbonate)
+
+pcoa(vegdist (tab_ord, "gower"), correction = "cailliez")$values$Rel_corr_eig[1:3]
+
+# composition
+
 FD_algae <- dbFD ((algae_traits),
                     data.matrix(comp_algae),
                   w.abun = T,
@@ -369,6 +394,19 @@ FD_algae <- dbFD ((algae_traits),
 
 comm_with_corals <- which(rowSums(comp_corals>0) > 0)
 comp_corals_sub <- comp_corals[comm_with_corals,] # rm comm with no sp
+
+
+# explanation
+tab_ord <- coral_traits_complete
+tab_ord$Sexual_system <- as.numeric(tab_ord$Sexual_system)
+tab_ord$Growth_rate <- as.numeric(tab_ord$Growth_rate)
+tab_ord$growth_form <- as.numeric(as.factor(tab_ord$growth_form))
+tab_ord$reprod_mode <- as.numeric(tab_ord$reprod_mode)
+tab_ord$Depth.lower.limit <- as.numeric(tab_ord$Depth.lower.limit)
+
+
+pcoa(vegdist (tab_ord, "gower"), correction = "cailliez")$values$Rel_corr_eig[1:3]
+
 
 # run
 FD_corals <- dbFD ((coral_traits_complete),
