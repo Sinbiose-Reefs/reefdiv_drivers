@@ -1,0 +1,16 @@
+.jpeg
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+data/environment
+*.jpeg
+*.pdf
+*.JPEG
+*.JPEG
+output
+output_sensitivity
+output_no_resampling
+output_no_resampling_sensitivity
+MS
+R/abundance
