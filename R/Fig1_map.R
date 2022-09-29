@@ -10,7 +10,7 @@ source("R/functions.R")
 ### -------------------------
 #  FIG - supporting information
 # correlations between variables
-load(here("output", "modeling_data.RData"))
+load(here("data", "modeling_data.RData"))
 
 
 
@@ -132,6 +132,7 @@ SST <- ggplot(site_covs, aes(x=decimalLatitude,y=sst)) +
          axis.title.x = element_text(size=10),
          plot.margin = unit(c(0,0.3,0,0.3), "cm")
   ) +
+  ylim(c(20,30))+
   coord_flip()
 
 SST
@@ -179,6 +180,8 @@ salinity <- ggplot(site_covs, aes(x=decimalLatitude,y=salinity)) +
          axis.title.x = element_text(size=10),
          plot.margin = unit(c(0,0.3,0,0.3), "cm")
   ) +
+  ylim(c(34,38))+
+  
   coord_flip()
 
 salinity
@@ -440,7 +443,7 @@ array_algae2 <- grid.arrange(algae_space [[4]]+theme(legend.position="none",
 # save
 pdf(file=here("output",
               "figures", 
-              "Fig1_map.pdf"),height=7,width=9)
+              "Fig1_map"),height=7,width=9)
 
 
 map_arrange<- grid.arrange(map_peixes+theme(legend.position = "none"), 

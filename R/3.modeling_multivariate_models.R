@@ -9,15 +9,12 @@
 source("R/packages.R")
 source("R/functions.R")
 
-## function to test space quality (from Maire et al. 2015)
-source("R/quality_funct_space_fromdist2.R")
-
 # ------------------------------------------ #
 # Load rarefied data of fishes and benthos
 # sites x transect / video x species
 # ------------------------------------------ #
 
-load (here ("output","modeling_data.RData"))
+load (here ("data","modeling_data.RData"))
 load (here ("output","FD_results.RData"))
 
 # standardize covariate data

@@ -78,3 +78,13 @@ library(plotly)
 library(mapdata)
 library(RColorBrewer)
 palette(brewer.pal(8, "Set2"))
+
+
+library(terra)
+library(flexmix)
+library(modeltools)
+library(tidyverse)
+library(brms)
+library(ggdist)
+require(here)
+require(tidybayes)

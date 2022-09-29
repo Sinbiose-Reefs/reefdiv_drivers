@@ -695,7 +695,7 @@ save (site_covs , ### site covariates
       comp_fish, ## fish composition
       comp_benthos, ## benthic composition
       
-      file=here ("output","modeling_data.RData"))
+      file=here ("data","modeling_data.RData"))
 
 
 rm(list=ls())

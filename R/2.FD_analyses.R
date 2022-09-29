@@ -14,7 +14,7 @@ source("R/quality_funct_space_fromdist2.R")
 # sites x transect / video x species
 # ------------------------------------------ #
 
-load (here ("output","modeling_data.RData"))
+load (here ("data","modeling_data.RData"))
 
 
 # ---------------------------------- #

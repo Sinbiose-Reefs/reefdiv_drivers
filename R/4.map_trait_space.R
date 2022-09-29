@@ -10,7 +10,7 @@ source("R/functions.R")
 ### -------------------------
 #  FIG - supporting information
 # correlations between variables
-load(here("output", "modeling_data.RData"))
+load(here("data", "modeling_data.RData"))
 
 
 
