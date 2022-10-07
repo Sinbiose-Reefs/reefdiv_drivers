@@ -77,7 +77,6 @@ cor_res$pair <- gsub ("1", "", cor_res$pair)
 
 cor_orig <- model$data %>%
   dplyr::select(-sst_std,
-                -turbidity_std,
                 -region,
                 -SR_fish,
                 -SR_algae,
@@ -102,9 +101,11 @@ cor_orig$cor_pair <- gsub ("_","",cor_orig$cor_pair)
 # obs
 mean(cor_orig$obs_cor_r)
 range(cor_orig$obs_cor_r)
+
 # pred
 mean(cor_pred$y)
 range(cor_pred$y)
+
 # res
 mean(cor_res$y)
 range(cor_res$y)
@@ -119,9 +120,9 @@ cor_pred_df <- data.frame (Estimate = cor_pred$y,
                            Correlation = "Predicted")
 
 # residual
-cor_res_df <- data.frame (Estimate = cor_res$Estimate,
-                          u95CI = cor_res$`u-95% CI`,
-                          l95CI = cor_res$`l-95% CI`,
+cor_res_df <- data.frame (Estimate = cor_res$y,
+                          u95CI = cor_res$ymax,
+                          l95CI = cor_res$ymin,
                           cor_pair=cor_res$pair,
                           Correlation = "Residual")
 

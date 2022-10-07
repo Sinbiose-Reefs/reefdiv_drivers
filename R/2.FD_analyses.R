@@ -200,6 +200,20 @@ corals <- c("agaricia.fragilis",
 comp_corals <- comp_benthos[,which(colnames(comp_benthos) %in% corals)]
 comp_corals<- comp_corals [,order(colnames(comp_corals))]
 
+
+# solving ids
+corals_spp_scale <- c("agaricia.sp", 
+            "millepora.incrusting",
+            "millepora.sp",
+            "mussismilia.spp", 
+            "porites.sp",
+            "siderastrea.spp")
+comp_to_solve <-comp_corals[, colnames (comp_corals) %in% corals_spp_scale]
+rownames(comp_to_solve)<-(site_covs$sites)
+write.csv (comp_to_solve,here ("output", "comp_to_solve"))
+
+
+
 # corals traits from Bleuel et al. (unpublished data)
 require(openxlsx)
 coral_traits <- read.xlsx (here ("data", 

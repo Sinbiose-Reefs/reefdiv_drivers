@@ -1,7 +1,8 @@
 
 # ----------------------------------------------------------------------------#
 #    routine to modeling fish and benthos SR and FD  relative to environment
-#                          using GLM
+#                          using multivariate linear mixed models
+#   sensitivity analysis (using region as fixed effect)
 # 	PS: RUN IT IN R GUI
 # ----------------------------------------------------------------------------#
 
@@ -9,9 +10,11 @@
 source("R/packages.R")
 source("R/functions.R")
 
+
+
 # ------------------------------------------ #
-# Load rarefied data of fishes and benthos
-# sites x transect / video x species
+# Load data of fishes and benthos
+
 # ------------------------------------------ #
 
 load (here ("data","modeling_data.RData"))
@@ -85,8 +88,8 @@ cor(bind_fish_benthos[c(3:9)])
 formula1_fish <- brms::bf(mvbind (log(FRic_fish+1),
                                   log(Rao_fish+1)) ~ SR_fish+sst_std + # fixed effects
                                                 turbidity_std +
-                                                salinity_std  +
-                            (1|region), # random effects (intercept)
+                                                salinity_std  + region,
+                            
                       nl = F)
 
 
@@ -94,17 +97,17 @@ formula1_fish <- brms::bf(mvbind (log(FRic_fish+1),
 formula1_algae <- brms::bf(mvbind (log(FRic_algae+1),
                                     log(Rao_algae+1)) ~ SR_algae+sst_std + # fixed effects
                                       turbidity_std +
-                                      salinity_std  + 
+                                      salinity_std  + region,
                                
-                              (1|region), # random effect (intercept) 
+                              
                           nl = F) 
 # complete model
 formula1_corals <- brms::bf(mvbind (log(FRic_corals+1),
                                      log(Rao_corals+1)) ~ SR_corals+sst_std + # fixed effects
                                turbidity_std +
-                               salinity_std  + 
+                               salinity_std  + region,
                                
-                               (1|region), # random effect (intercept) 
+                             
                              nl = F) 
 
 #setting priors 
@@ -153,24 +156,24 @@ save(fit_complete,file=here ("output","fit_complete.RData"))
 # complete model
 formula1_fish <- brms::bf(mvbind (log(FRic_fish+1),
                                   log(Rao_fish+1)) ~ SR_fish+sst_std + # fixed effects
-                                                turbidity_std +
-                            (1|region), # random effects (intercept)
+                                                turbidity_std + region,
+                            
                       nl = F)
 
 
 # complete model
 formula1_algae <- brms::bf(mvbind (log(FRic_algae+1),
                                     log(Rao_algae+1)) ~ SR_algae+sst_std + # fixed effects
-                                      turbidity_std + 
+                                      turbidity_std + region,
                                
-                              (1|region), # random effect (intercept) 
+                              
                           nl = F) 
 # complete model
 formula1_corals <- brms::bf(mvbind (log(FRic_corals+1),
                                      log(Rao_corals+1)) ~ SR_corals+sst_std + # fixed effects
-                               turbidity_std +
+                               turbidity_std + region,
                                
-					(1|region), # random effect (intercept) 
+					
                              nl = F) 
 
 #setting priors 
@@ -222,21 +225,21 @@ save(fit2,file=here ("output","fit2.RData"))
 # set formula (the same for benthos and fishes)
 # complete model
 formula1_fish <- brms::bf(mvbind (log(FRic_fish+1),
-                                  log(Rao_fish+1)) ~ SR_fish+sst_std + # fixed effects
+                                  log(Rao_fish+1)) ~ SR_fish+sst_std + region,# fixed effects
                                                 
-                            (1|region), # random effects (intercept)
+                            
                       nl = F)
 
 
 # complete model
 formula1_algae <- brms::bf(mvbind (log(FRic_algae+1),
-                                    log(Rao_algae+1)) ~ SR_algae+sst_std + # fixed effects
-                                                                    (1|region), # random effect (intercept) 
+                                    log(Rao_algae+1)) ~ SR_algae+sst_std + region,# fixed effects
+                                                                    
                           nl = F) 
 # complete model
 formula1_corals <- brms::bf(mvbind (log(FRic_corals+1),
-                                     log(Rao_corals+1)) ~ SR_corals+sst_std + # fixed effects
-                                                              (1|region), # random effect (intercept) 
+                                     log(Rao_corals+1)) ~ SR_corals+sst_std + region, # fixed effects
+                                                              
                              nl = F) 
 
 
@@ -267,21 +270,21 @@ save(fit3,file=here ("output","fit3.RData"))
 # set formula (the same for benthos and fishes)
 # complete model
 formula1_fish <- brms::bf(mvbind (log(FRic_fish+1),
-                                  log(Rao_fish+1)) ~ sst_std + # fixed effects
+                                  log(Rao_fish+1)) ~ sst_std + region,# fixed effects
                                                 
-                            (1|region), # random effects (intercept)
+                            
                       nl = F)
 
 
 # complete model
 formula1_algae <- brms::bf(mvbind (log(FRic_algae+1),
-                                    log(Rao_algae+1)) ~ sst_std + # fixed effects
-                                                                    (1|region), # random effect (intercept) 
+                                    log(Rao_algae+1)) ~ sst_std + region, # fixed effects
+                                                                    
                           nl = F) 
 # complete model
 formula1_corals <- brms::bf(mvbind (log(FRic_corals+1),
-                                     log(Rao_corals+1)) ~ sst_std + # fixed effects
-                                                              (1|region), # random effect (intercept) 
+                                     log(Rao_corals+1)) ~ sst_std + region,# fixed effects
+                                                              
                              nl = F) 
 
 
@@ -305,62 +308,19 @@ save(fit_simple,file=here ("output","fit_simple.RData"))
 
 
 
-# set formula (the same for benthos and fishes)
-# complete model
-formula1_fish <- brms::bf(mvbind (log(FRic_fish+1),
-                                  log(Rao_fish+1)) ~ SR_fish + # fixed effects
-                                                
-                            (1|region), # random effects (intercept)
-                      nl = F)
-
-
-# complete model
-formula1_algae <- brms::bf(mvbind (log(FRic_algae+1),
-                                    log(Rao_algae+1)) ~ SR_algae + # fixed effects
-                                                                    (1|region), # random effect (intercept) 
-                          nl = F) 
-# complete model
-formula1_corals <- brms::bf(mvbind (log(FRic_corals+1),
-                                     log(Rao_corals+1)) ~ SR_corals + # fixed effects
-                                                              (1|region), # random effect (intercept) 
-                             nl = F) 
-
-
-# fit the model
-fit_SR <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) + 
-                    set_rescor(TRUE), 
-            data = bind_fish_benthos, 
-            chains = 3, cores = 3,
-            iter = 20000,
-            warmup = 18000,
-            thin=1,
-            prior = priors,
-            seed=1234,
-		save_pars = save_pars(all = TRUE),
-            control = list(adapt_delta = 0.99,
-				   max_treedepth = 15))
-
-#
-
-save(fit_SR,file=here ("output","fit_SR.RData"))
-
-
-
 
 # model selection analysis 
 load(here ("output","fit_complete.RData"))
 load(here ("output","fit2.RData"))
 load(here ("output","fit3.RData"))
 load(here ("output","fit_simple.RData"))
-load(here ("output","fit_SR.RData"))
-
 
 
 
 
 # LOO model fit checking   
 # run loo fit test
-loo_test <- lapply (list (fit_complete, fit2, fit3,fit_simple,fit_SR),
+loo_test <- lapply (list (fit_complete, fit2, fit3,fit_simple),
 	loo, moment_match=T,reloo=T)
 
 
@@ -379,7 +339,7 @@ tab_mod_sel <- do.call(rbind,lapply (loo_test, function (i)
 tab_mod_fit <- do.call(rbind,lapply (loo_test, function (i)
          i$estimates[which(rownames(i$estimates) == "p_loo"),]))
 # select the model with lowest looic
-sel_model <- list (fit_complete, fit2, fit3,fit_simple,fit_SR)[which(loo_sel == min(unlist(loo_sel)))]
+sel_model <- list (fit_complete, fit2, fit3,fit_simple)[which(loo_sel == min(unlist(loo_sel)))]
    
 # list of results 
 res <- list (looic = tab_mod_sel,
