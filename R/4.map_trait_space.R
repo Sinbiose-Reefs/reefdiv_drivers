@@ -359,82 +359,64 @@ array_fish1 <- grid.arrange(fish_space[[1]]+theme(legend.position="none",
                                                   legend.text = element_text(size=2),
                                                   legend.title = element_text(size=2),
                                                  legend.direction = "horizontal",
-                                                 axis.title.x = element_blank(),
-                                                 axis.text.x = element_blank()),
+                                                 axis.title.x = element_blank()),
                            fish_space[[2]]+theme(legend.position="none",
-                                                 axis.title.x = element_blank(),
-                                                 axis.text.x = element_blank()),
+                                                 axis.title.x = element_blank()),
                            fish_space[[3]]+theme(legend.position="none",
-                                                 axis.title.x = element_blank(),
-                                                 axis.text.x = element_blank()),
+                                                 axis.title.x = element_blank()),
                            nrow=1)
 
 # subtropics
 array_fish2 <- grid.arrange(fish_space[[4]]+theme(legend.position="none",
                                                   legend.direction = "horizontal",
-                                                  axis.title.x = element_blank(),
-                                                  axis.text.x = element_blank()),
+                                                  axis.title.x = element_blank()),
                             fish_space[[5]]+theme(legend.position="none",
-                                                  axis.title.x = element_blank(),
-                                                  axis.text.x = element_blank()),
+                                                  axis.title.x = element_blank()),
                             fish_space[[6]]+theme(legend.position="none",
-                                                  axis.title.x = element_blank(),
-                                                  axis.text.x = element_blank()),
+                                                  axis.title.x = element_blank()),
                             nrow=1)
 
 # corals
 # tropics
 array_corals1 <- grid.arrange(coral_space [[1]]+theme(legend.position="none",
                                                  legend.direction = "horizontal",
-                                                 axis.title.x = element_blank(),
-                                                 axis.text.x = element_blank()),
+                                                 axis.title.x = element_blank()),
                              coral_space[[2]]+theme(legend.position="none",
-                                                 axis.title.x = element_blank(),
-                                                 axis.text.x = element_blank()),
+                                                 axis.title.x = element_blank()),
                              coral_space[[3]]+theme(legend.position="none",
-                                                 axis.title.x = element_blank(),
-                                                 axis.text.x = element_blank()),
+                                                 axis.title.x = element_blank()),
                              nrow=1)
 
 
 # subtropics
 array_corals2 <- grid.arrange(coral_space [[4]]+theme(legend.position="none",
                                                       legend.direction = "horizontal",
-                                                      axis.title.x = element_blank(),
-                                                      axis.text.x = element_blank()),
+                                                      axis.title.x = element_blank()),
                               coral_space[[5]]+theme(legend.position="none",
-                                                     axis.title.x = element_blank(),
-                                                     axis.text.x = element_blank()),
+                                                     axis.title.x = element_blank()),
                               coral_space[[6]]+theme(legend.position="none",
-                                                     axis.title.x = element_blank(),
-                                                     axis.text.x = element_blank()),
+                                                     axis.title.x = element_blank()),
                               nrow=1)
 
 # algae
 # tropics
 array_algae1 <- grid.arrange(algae_space [[1]]+theme(legend.position="none",
                                                      legend.direction = "horizontal",
-                                                     axis.title.x = element_blank(),
-                                                     axis.text.x = element_blank()),
+                                                     axis.title.x = element_blank()),
                             algae_space[[2]]+theme(legend.position="none",
-                                                    axis.title.x = element_blank(),
-                                                    axis.text.x = element_blank()),
+                                                    axis.title.x = element_blank()),
                             algae_space[[3]]+theme(legend.position="none",
-                                                    axis.title.x = element_blank(),
-                                                    axis.text.x = element_blank()),
+                                                    axis.title.x = element_blank()),
                              nrow=1)
 
 # subtropics
 array_algae2 <- grid.arrange(algae_space [[4]]+theme(legend.position="none",
                                                      legend.direction = "horizontal",
-                                                     axis.title.x = element_blank(),
-                                                     axis.text.x = element_blank()),
+                                                     axis.title.x = element_blank()),
                              algae_space[[5]]+theme(legend.position="none",
-                                                    axis.title.x = element_blank(),
-                                                    axis.text.x = element_blank()),
+                                                    axis.title.x = element_blank()),
                              algae_space[[6]]+theme(legend.position="none",
-                                                    axis.title.x = element_blank(),
-                                                    axis.text.x = element_blank()),
+                                                    axis.title.x = element_blank()),
                              nrow=1)
 
 
