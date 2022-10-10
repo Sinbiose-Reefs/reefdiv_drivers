@@ -153,9 +153,8 @@ bot_pls <- ggplot(data = all_preds_bot, mapping = aes(x = richness_trans, y = me
   theme_classic()  + 
   theme (axis.text =element_text(size=7))
   
-png(here ("output", "figures", "fig4"),
-    width = 25, height =15, 
-    res = 300,units = "cm")
+pdf(here ("output", "figures", "fig4"),
+    width = 10, height =6)
 
 #dev.new(width = 10.5, height = 6.25)
 top_pls / mid_pls /    bot_pls
