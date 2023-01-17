@@ -3,6 +3,13 @@
 closest<-function(xv,sv){
   xv[which(abs(xv-sv)==min(abs(xv-sv)))]}
 
+
+# create the function to get the mode
+getmode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
 # OUTPUTS:
 # convex hull around data points in a particular color (specified by lcolor)
 
@@ -473,3 +480,9 @@ binomial_smooth <- function(...) {
   geom_smooth(method = "glm", method.args = list(family = "binomial"), ...)
 }
 
+## toupper for species names
+
+firstup <- function(x) {
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}

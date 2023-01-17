@@ -17,6 +17,7 @@ require(rgeos)
 ## pacotes para carregar os dados
 require(xlsx)
 require(openxlsx)
+require(dplyr)
 
 ## pacote para colar dados em arrays
 require(abind)
@@ -58,4 +59,32 @@ require (corrplot)
 require(viridis)
 require(rasterVis)
 
+# maps and noaa data
 
+# load packages
+library(readr)
+library(rerddap)
+require(parallel)
+library(lubridate)
+library(dplyr)
+library(flexdashboard)
+library(reshape2)
+library(leaflet)
+library(ggplot2)
+library(vegan)
+library(xts)
+library(dygraphs)
+library(plotly)
+library(mapdata)
+library(RColorBrewer)
+palette(brewer.pal(8, "Set2"))
+
+
+library(terra)
+library(flexmix)
+library(modeltools)
+library(tidyverse)
+library(brms)
+library(ggdist)
+require(here)
+require(tidybayes)
