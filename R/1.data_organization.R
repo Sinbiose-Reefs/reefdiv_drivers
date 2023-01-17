@@ -19,7 +19,7 @@ source("R/functions.R")
 
 
 ## ============================================
-## benthic snapshots (Aued et al. 2018 & Francini-Filho et al.)
+## benthic snapshots (Aued et al. 2018)
 
 
 
@@ -77,7 +77,15 @@ table (
 ) / length(unique(benthos_SN_data_aued$verbatimIdentification)) # all taxa in the dataset
 
 
+require(dplyr)
 
+check<-benthos_SN_data_aued[,-1]  %>% 
+  
+    filter (site %in% c("ilhasc_norte", "ilhasc_sul") 
+                                  ) %>%
+  group_by(site,locality,verbatimIdentification) %>%
+  summarize(siz=sum(measurementValue,na.rm=T)) %>%
+  filter (siz>0) 
 
 
 

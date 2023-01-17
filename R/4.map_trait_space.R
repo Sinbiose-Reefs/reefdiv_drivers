@@ -99,12 +99,12 @@ eff_obsrich_plot <- ggplot(bind_fish_benthos_SR_plot, aes(x=decimalLatitude,
                                 "SR_algae" = "#42855B",
                                 "SR_fish" = "#0096FF"))+
   theme_classic() +
-  theme (axis.title.y = element_blank(),
-         axis.text.y = element_blank(),
-         axis.ticks.y = element_blank(),
-         axis.line.y = element_blank(),
-         axis.text.x = element_text(size=8),
-         axis.title.x = element_text(size=10),
+  theme (#axis.title.y = element_blank(),
+         #axis.text.y = element_blank(),
+         #axis.ticks.y = element_blank(),
+         #axis.line.y = element_blank(),
+         axis.text = element_text(size=10),
+         axis.title = element_text(size=11),
          plot.margin = unit(c(0,-0.0,0,0.3), "cm")
   ) +
   coord_flip()
@@ -124,13 +124,13 @@ SST <- ggplot(site_covs, aes(x=decimalLatitude,y=sst)) +
               fill="#8E0505",alpha=0.1) +
   
   theme_classic() +
-  theme (axis.title.y = element_blank(),
-         axis.text.y = element_blank(),
-         axis.ticks.y = element_blank(),
-         axis.line.y = element_blank(),
-         axis.text.x = element_text(size=8),
-         axis.title.x = element_text(size=10),
-         plot.margin = unit(c(0,0.3,0,0.3), "cm")
+  theme (#axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    #axis.ticks.y = element_blank(),
+    #axis.line.y = element_blank(),
+    axis.text = element_text(size=10),
+    axis.title = element_text(size=11),
+    plot.margin = unit(c(0,-0.0,0,0.3), "cm")
   ) +
   coord_flip()
 
@@ -147,13 +147,13 @@ kd490 <- ggplot(site_covs, aes(x=decimalLatitude,y=turbidity)) +
               fill="#8E0505",alpha=0.1) +
   
   theme_classic() +
-  theme (axis.title.y = element_blank(),
-         axis.text.y = element_blank(),
-         axis.ticks.y = element_blank(),
-         axis.line.y = element_blank(),
-         axis.text.x = element_text(size=8),
-         axis.title.x = element_text(size=10),
-         plot.margin = unit(c(0,0.3,0,0.3), "cm")
+  theme (#axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    #axis.ticks.y = element_blank(),
+    #axis.line.y = element_blank(),
+    axis.text = element_text(size=10),
+    axis.title = element_text(size=11),
+    plot.margin = unit(c(0,-0.0,0,0.3), "cm")
   ) +
   coord_flip()
 
@@ -171,15 +171,16 @@ salinity <- ggplot(site_covs, aes(x=decimalLatitude,y=salinity)) +
               fill="#8E0505",alpha=0.1) +
   
   theme_classic() +
-  theme (axis.title.y = element_blank(),
-         axis.text.y = element_blank(),
-         axis.ticks.y = element_blank(),
-         axis.line.y = element_blank(),
-         axis.text.x = element_text(size=8),
-         axis.title.x = element_text(size=10),
-         plot.margin = unit(c(0,0.3,0,0.3), "cm")
+  theme (#axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    #axis.ticks.y = element_blank(),
+    #axis.line.y = element_blank(),
+    axis.text = element_text(size=10),
+    axis.title = element_text(size=11),
+    plot.margin = unit(c(0,-0.0,0,0.3), "cm")
   ) +
-  coord_flip()
+  coord_flip() +
+  ylim(34,39)
 
 salinity
 
@@ -215,6 +216,16 @@ site_covs_lat <- site_covs[order(site_covs$decimalLatitude,decreasing=T),]
 site_covs_lat$site_number <- seq (1,nrow(site_covs_lat))
 site_covs$site_number <- site_covs_lat$site_number[match (site_covs$sites, site_covs_lat$sites)]
 
+# select sites to show
+# run the function
+sel_coordinates <- c(0,-4,-10,-17,-22,-24,-27)
+# closest to these coords
+closest_fish <- lapply (as.list(sel_coordinates), function (i) 
+  closest (site_covs$decimalLatitude,i))
+# find the selected comms
+sel_comms_fish <- lapply (closest_fish, function (i) 
+  which(site_covs$decimalLatitude == i[1])[1])
+
 # plot
 map_peixes <- wm + geom_point(data=site_covs, 
                               
@@ -224,18 +235,17 @@ map_peixes <- wm + geom_point(data=site_covs,
                               size=3,
                               col="#0e49b5",
                               alpha = 0.4) + 
-  geom_text_repel (data = site_covs, aes(x=decimalLongitude, 
+  geom_text_repel (data = site_covs[unlist(sel_comms_fish),], aes(x=decimalLongitude, 
                             y=decimalLatitude,
                             label = site_number),
                    size = 4,
                    min.segment.length = 0,
                    box.padding = 0.3,
-                   max.overlaps=100)
+                   max.overlaps=100) + 
+  theme(legend.position =c(0.75, 0.1))
 
 
 map_peixes
-
-
 
 
 # functional trait spaces
@@ -322,7 +332,7 @@ build_FS <- function (FD_output,
 }
 
 # run the function
-sel_coordinates <- c(0,-4,-10,-17,-22,-24)
+sel_coordinates <- c(0,-4,-10,-17,-22,-24,-27)
 
 # fish trait space
 fish_space <- build_FS(FD_output = FD_fish,
@@ -374,6 +384,8 @@ array_fish2 <- grid.arrange(fish_space[[4]]+theme(legend.position="none",
                                                   axis.title.x = element_blank()),
                             fish_space[[6]]+theme(legend.position="none",
                                                   axis.title.x = element_blank()),
+                            fish_space[[7]]+theme(legend.position="none",
+                                                  axis.title.x = element_blank()),
                             nrow=1)
 
 # corals
@@ -396,6 +408,8 @@ array_corals2 <- grid.arrange(coral_space [[4]]+theme(legend.position="none",
                                                      axis.title.x = element_blank()),
                               coral_space[[6]]+theme(legend.position="none",
                                                      axis.title.x = element_blank()),
+                              coral_space[[7]]+theme(legend.position="none",
+                                                     axis.title.x = element_blank()),
                               nrow=1)
 
 # algae
@@ -417,6 +431,8 @@ array_algae2 <- grid.arrange(algae_space [[4]]+theme(legend.position="none",
                                                     axis.title.x = element_blank()),
                              algae_space[[6]]+theme(legend.position="none",
                                                     axis.title.x = element_blank()),
+                             algae_space[[7]]+theme(legend.position="none",
+                                                    axis.title.x = element_blank()),
                              nrow=1)
 
 
@@ -425,37 +441,33 @@ array_algae2 <- grid.arrange(algae_space [[4]]+theme(legend.position="none",
 # save
 pdf(file=here("output",
               "figures", 
-              "Fig1_map"),height=7,width=9)
+              "Fig1_map"),height=4,width=14)
 
 
-map_arrange<- grid.arrange(map_peixes+theme(legend.position = "none"), 
-                           eff_obsrich_plot+theme(legend.position = "none"),
-                           SST,
-                           kd490,
-                           salinity,
-                           ncol=14,nrow=11,
-                           layout_matrix = rbind (c(1,1,1,1,1,1,1,1,2,2,2,3,3,3),
-                                                  c(1,1,1,1,1,1,1,1,2,2,2,3,3,3),
-                                                  c(1,1,1,1,1,1,1,1,2,2,2,3,3,3),
-                                                  c(1,1,1,1,1,1,1,1,2,2,2,3,3,3),
-                                                  c(1,1,1,1,1,1,1,1,2,2,2,3,3,3),
-                                                  c(1,1,1,1,1,1,1,1,4,4,4,5,5,5),
-                                                  c(1,1,1,1,1,1,1,1,4,4,4,5,5,5),
-                                                  c(1,1,1,1,1,1,1,1,4,4,4,5,5,5),
-                                                  c(1,1,1,1,1,1,1,1,4,4,4,5,5,5),
-                                                  c(1,1,1,1,1,1,1,1,4,4,4,5,5,5),
-                                                  c(1,1,1,1,1,1,1,1,4,4,4,5,5,5)))
+map_arrange<- grid.arrange(map_peixes, 
+                           eff_obsrich_plot+theme(legend.position = "none",
+                                                  axis.title.y = element_blank()),
+                           SST+theme(legend.position = "none",
+                                     axis.title.y = element_blank()),
+                           kd490+theme(legend.position = "none",
+                                       axis.title.y = element_blank()),
+                           salinity+theme(legend.position = "none",
+                                          axis.title.y = element_blank()),
+                           ncol=6,nrow=2,
+                           layout_matrix = rbind (c(1,1,2,3,4,5),
+                                                  c(1,1,2,3,4,5)))
 
 dev.off()
 
 # arrange all
 ncol_plot <- 4
+ncol_plot2 <- 6
 nrow_plot <- 6
 
 # save
 pdf(file=here("output",
               "figures", 
-              "spaces_with_pts"),height=6,width=14)
+              "spaces_with_pts"),height=6,width=16)
 
 grid.arrange(array_fish1,array_fish2,
              array_corals1,array_corals2,
@@ -463,17 +475,17 @@ grid.arrange(array_fish1,array_fish2,
              ncol = ncol_plot,
              nrow=nrow_plot,
              layout_matrix = rbind (c(rep(1,ncol_plot),
-                                    rep(2,ncol_plot)),
+                                    rep(2,ncol_plot2)),
                                     c(rep(1,ncol_plot),
-                                    rep(2,ncol_plot)),
+                                    rep(2,ncol_plot2)),
                                     c(rep(3,ncol_plot),
-                                    rep(4,ncol_plot)),
+                                    rep(4,ncol_plot2)),
                                     c(rep(3,ncol_plot),
-                                    rep(4,ncol_plot)),
+                                    rep(4,ncol_plot2)),
                                     c (rep(5,ncol_plot),
-                                    rep(6,ncol_plot)),
+                                    rep(6,ncol_plot2)),
                                     c (rep(5,ncol_plot),
-                                    rep(6,ncol_plot))
+                                    rep(6,ncol_plot2))
              ))
 
 

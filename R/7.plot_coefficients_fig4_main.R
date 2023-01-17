@@ -106,11 +106,12 @@ top_pls <- ggplot(data = all_preds_top, mapping = aes(x = sst_std, y = mean)) +
     values = c(fish = "darkblue", algae = "darkgreen", corals = "darkorange")
   ) +
   labs(y = "", x = "Sea Surface Temperature") +
-  facet_wrap(~rsp, ncol = 6, scales = "free_x") +
+  facet_wrap(~rsp, ncol = 6, scales = "free") +
   theme_classic() + 
   scale_x_continuous(breaks= seq(min(df$sst_std), max(df$sst_std), length.out = 5),
                      labels = round(seq(min(trans_sst_std), max(trans_sst_std), length.out = 5),1)) + 
-  theme (axis.text =element_text(size=7))
+  theme (axis.text =element_text(size=8),
+         axis.text.x = element_text(angle=30))
 
 mid_pls <- ggplot(data = all_preds_mid, mapping = aes(x = region, y = mean)) +
   geom_errorbar(mapping = aes(ymin = `2.5%`, ymax = `97.5%`), colour = "grey90") +
@@ -120,11 +121,11 @@ mid_pls <- ggplot(data = all_preds_mid, mapping = aes(x = region, y = mean)) +
     values = c(fish = "darkblue", algae = "darkgreen", corals = "darkorange")
   ) +
   labs(y = "", x = "Region") +
-  facet_wrap(~rsp, ncol = 6, scales = "free_x") +
+  facet_wrap(~rsp, ncol = 6, scales = "free") +
   theme_classic() + 
   scale_x_discrete (breaks= unique(all_preds_mid$region),
                      labels = c("N/NE", "S/SE", "Islands")) + 
-  theme (axis.text =element_text(size=7),
+  theme (axis.text =element_text(size=8),
          axis.text.x = element_text(angle=30))
 
 
@@ -149,12 +150,12 @@ bot_pls <- ggplot(data = all_preds_bot, mapping = aes(x = richness_trans, y = me
   labs(y = "", x = "Species richness") +
   #scale_x_continuous(breaks= seq(min(all_preds_bot$richness), max(all_preds_bot$richness), length.out = 6),
   #                   labels = round(seq(min(all_preds_bot$richness_trans), max(all_preds_bot$richness_trans), length.out = 6),2))+
-  facet_wrap(~rsp, ncol = 6, scales = "free_x") +
+  facet_wrap(~rsp, ncol = 6, scales = "free") +
   theme_classic()  + 
-  theme (axis.text =element_text(size=7))
+  theme (axis.text =element_text(size=8))
   
 pdf(here ("output", "figures", "fig4"),
-    width = 10, height =6)
+    width = 9, height =6)
 
 #dev.new(width = 10.5, height = 6.25)
 top_pls / mid_pls /    bot_pls

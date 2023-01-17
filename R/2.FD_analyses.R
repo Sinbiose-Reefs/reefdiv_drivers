@@ -449,6 +449,13 @@ df_corals <-data.frame (
 df_corals[comm_with_corals,"FRic"] <- FD_corals$FRic
 df_corals[comm_with_corals,"RaoQ"] <- FD_corals$RaoQ
 
+# insert data with imputed zeros in santa catarina sites
+FD_corals$FRic <- df_corals$FRic
+FD_corals$RaoQ <- df_corals$RaoQ
+
+
+
+
 
 # save 
 save (comp_fish,
