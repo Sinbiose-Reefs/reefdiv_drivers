@@ -2,6 +2,8 @@
 ## ------------------------------------------------------------ ##
 ##                 Analysis of functional diversity             ##
 ## ------------------------------------------------------------ ##
+
+
 ## loading packages
 source("R/packages.R")
 source("R/functions.R")
@@ -16,6 +18,8 @@ source("R/quality_funct_space_fromdist2.R")
 
 load (here ("data","modeling_data.RData"))
 
+# create directory to host results
+dir.create("output")
 
 # ---------------------------------- #
 # Load fish trait data
@@ -112,8 +116,6 @@ fish_traits_ord <-data.frame (Size=(size),
                               Depth = fish_traits2$Depth_range,
                               Mobility=ordered (mobility), 
                               Schooling=ordered (schooling), 
-                              #Caudal_fin=as.factor(fish_traits2$Caudal_fin), 
-                              #Mouth_position=as.factor(fish_traits2$Mouth_position),
                               Body_shape=as.factor(fish_traits2$Body_shape)
                               )
 
@@ -121,8 +123,6 @@ rownames(fish_traits_ord) <- rownames(fish_traits2)
 
 # filtering out spp not in trait dataset
 comp_fish <- comp_fish[,which(colnames(comp_fish) %in% rownames(fish_traits_ord) )]# rm spp not in trait dataset
-
-
 
 #----------------------------------#
 #      Load benthos trait dataset
@@ -167,6 +167,7 @@ rownames(bent_traits_ord) <- bent_traits$groups
 colnames (comp_benthos) <- tolower (colnames(comp_benthos))
 comp_benthos <- comp_benthos[,which(colnames(comp_benthos) %in% rownames(bent_traits_ord) )]# rm spp not in trait dataset
 benthos_traits <- bent_traits_ord[which(rownames (bent_traits_ord) %in% colnames(comp_benthos)),]
+
 # order
 comp_benthos<- comp_benthos [,order(colnames(comp_benthos))]
 benthos_traits<- benthos_traits [order(rownames(benthos_traits)),]
@@ -210,7 +211,7 @@ corals_spp_scale <- c("agaricia.sp",
             "siderastrea.spp")
 comp_to_solve <-comp_corals[, colnames (comp_corals) %in% corals_spp_scale]
 rownames(comp_to_solve)<-(site_covs$sites)
-write.csv (comp_to_solve,here ("output", "comp_to_solve"))
+#write.csv (comp_to_solve,here ("output", "comp_to_solve"))
 
 
 
@@ -423,7 +424,6 @@ tab_ord$Depth.lower.limit <- as.numeric(tab_ord$Depth.lower.limit)
 
 pcoa(vegdist (tab_ord, "gower"), correction = "cailliez")$values$Rel_corr_eig[1:3]
 
-
 # run
 FD_corals <- dbFD ((coral_traits_complete),
                    data.matrix(comp_corals_sub),
@@ -467,4 +467,4 @@ save (comp_fish,
       comp_algae,
       file=here ("output", "FD_results.RData"))
 
-
+rm(list=ls())

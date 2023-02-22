@@ -1,18 +1,22 @@
 
 # ----------------------------------------------------------------------------#
-#    routine to modeling fish and benthos SR and FD  relative to environment
+#    routine to modeling fish, coral and algae FRic and Rao's Q in function of environmental variables
 #                          using multivariate linear mixed models
 #   sensitivity analysis (using region as fixed effect)
-# 	PS: RUN IT IN R GUI
+#
 # ----------------------------------------------------------------------------#
 
-## laoding packages
+
+
+
+## loading packages
 source("R/packages.R")
 source("R/functions.R")
 
 
 
 # ------------------------------------------ #
+
 # Load data of fishes and benthos
 
 # ------------------------------------------ #
@@ -58,8 +62,8 @@ bind_fish_benthos<- cbind (site_covs,
 )
 
 # average values of metrics to present in the Results
-round(apply(bind_fish_benthos[c(3:16,18:30)],2,mean,na.rm=T),3)
-round(apply(bind_fish_benthos[c(3:16,18:30)],2,sd,na.rm=T),3)
+round(apply(bind_fish_benthos[c(3:15,17:29)],2,mean,na.rm=T),3)
+round(apply(bind_fish_benthos[c(3:15,17:29)],2,sd,na.rm=T),3)
 
 
 # correlation between variables
@@ -145,11 +149,11 @@ fit_complete <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) + 
 
 #
 
-save(fit_complete,file=here ("output","fit_complete.RData"))
+save(fit_complete,file=here ("output","fit_complete_model.RData"))
 
 
 
-# ******************************
+# ***********************************
 # alternative model without salinity
 
 # set formula (the same for benthos and fishes)
@@ -210,11 +214,7 @@ fit2 <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 #
 
-save(fit2,file=here ("output","fit2.RData"))
-
-
-
-
+save(fit2,file=here ("output","fit2_SR_sst_kd490_region.RData"))
 
 
 
@@ -259,12 +259,11 @@ fit3 <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 #
 
-save(fit3,file=here ("output","fit3.RData"))
+save(fit3,file=here ("output","fit3_SR_sst_region.RData"))
 
 
 # ********************************
-# without SR and other covariates; only SST
-
+# without SR and other covariates; only SST and region
 
 
 # set formula (the same for benthos and fishes)
@@ -304,7 +303,7 @@ fit_simple <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 #
 
-save(fit_simple,file=here ("output","fit_simple.RData"))
+save(fit_simple,file=here ("output","fit_sst_region.RData"))
 
 
 
@@ -342,9 +341,6 @@ res <- list (looic = tab_mod_sel,
 save ( res, 
        file=here ("output", 
                   "MCMC_selected_model.Rdata"))
-
-
-
 
 
 # end
