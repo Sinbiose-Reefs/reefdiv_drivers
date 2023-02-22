@@ -4,14 +4,14 @@
 .RData
 .Ruserdata
 data/environment
+data/traits/Coral_traits_SINBIOSIS.xlsx
+data/traits/Sheet_functional_traits_CORAL_TRAITS_original_JBleuel.xlsx
+data/traits/brazilian-reef-fish-table-04-mar-18-website.xlsx
 *.jpeg
 *.pdf
 *.JPEG
 *.JPEG
 output
-output_sensitivity
-output_no_resampling
-output_no_resampling_sensitivity
 MS
 R/abundance
 R/old codes
