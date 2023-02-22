@@ -3,16 +3,16 @@
 .Rhistory
 .RData
 .Ruserdata
+MS
+output
+output_region
+R/abundance
+R/old codes
 data/environment
 data/traits/Coral_traits_SINBIOSIS.xlsx
 data/traits/Sheet_functional_traits_CORAL_TRAITS_original_JBleuel.xlsx
+data/traits/Sheet_functional_traits_CORAL_TRAITS.xlsx
 data/traits/brazilian-reef-fish-table-04-mar-18-website.xlsx
-*.jpeg
-*.pdf
-*.JPEG
-*.JPEG
-output
-MS
-R/abundance
-R/old codes
-output_region
+data/detection/*.xlsx
+data/detection/*.csv
+data/detection/*.docx
