@@ -18,5 +18,5 @@ data/traits/brazilian-reef-fish-table-04-mar-18-website.xlsx
 data/detection/*.xlsx
 data/detection/*.csv
 data/detection/*.docx
-data/*.RData
+data/modeling_data.RData
 
