@@ -482,16 +482,16 @@ layers <- list_layers()
 options(sdmpredictors_datadir=here ("data","environment"))
 
 ## chlorophil has different extent - loading and extracting in two steps         
-#layers_oracle <- load_layers(c("BO2_tempmean_ss",
-#                               #"BO2_temprange_ss",
-#                               "BO2_ppmean_ss", 
-#                               #"BO2_pprange_ss",
-#                               "BO2_salinitymean_ss", 
-#                               #"BO2_salinityrange_ss",
-#                               #"BO_damax",
-#                               "BO_damean"
-#                               #,"BO_damin"
-#))
+layers_oracle <- load_layers(c("BO2_tempmean_ss",
+                               #"BO2_temprange_ss",
+                               "BO2_ppmean_ss", 
+                               #"BO2_pprange_ss",
+                               "BO2_salinitymean_ss", 
+                              #"BO2_salinityrange_ss",
+                              #"BO_damax",
+                               "BO_damean"
+                               #,"BO_damin"
+))
 
 biooracle_data <-  (list.files (here ("data","environment"),pattern = ".tif"))
 biooracle_data <- lapply (biooracle_data, function (i) 
@@ -515,7 +515,7 @@ cor (extracted_sea_data,
      site_covs[,-1],
      use = "complete.obs")
 
-# it's ok to use biooracle data (that is more complete)
+# it's ok to use biooracle dataset (that is more complete)
 
 
 # ------------------------------
