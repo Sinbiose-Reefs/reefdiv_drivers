@@ -10,7 +10,10 @@ vert.txt
 comp_to_solve.csv
 R/abundance
 R/old codes
-data/environment
+data/environment/batimetria_lito
+data/environment/brazil-coastline
+data/environment/cumulative_impacts
+data/environment/magris_reef_map
 data/modeling_data.RData
 data/traits/Coral_traits_SINBIOSIS.xlsx
 data/traits/Sheet_functional_traits_CORAL_TRAITS_original_JBleuel.xlsx
