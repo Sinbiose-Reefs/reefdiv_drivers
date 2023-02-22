@@ -309,15 +309,6 @@ save(fit_simple,file=here ("output","fit_simple.RData"))
 
 
 
-# model selection analysis 
-load(here ("output","fit_complete.RData"))
-load(here ("output","fit2.RData"))
-load(here ("output","fit3.RData"))
-load(here ("output","fit_simple.RData"))
-
-
-
-
 # LOO model fit checking   
 # run loo fit test
 loo_test <- lapply (list (fit_complete, fit2, fit3,fit_simple),
