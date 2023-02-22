@@ -6,10 +6,16 @@
 MS
 output
 output_region
-*.txt
-*.csv
+vert.txt
+comp_to_solve.csv
 R/abundance
 R/old codes
 data/environment
+data/modeling_data.RData
+data/traits/Coral_traits_SINBIOSIS.xlsx
+data/traits/Sheet_functional_traits_CORAL_TRAITS_original_JBleuel.xlsx
+data/traits/Sheet_functional_traits_CORAL_TRAITS.xlsx
+data/traits/brazilian-reef-fish-table-04-mar-18-website.xlsx
+
 
 
