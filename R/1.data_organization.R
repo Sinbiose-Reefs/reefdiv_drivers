@@ -30,15 +30,15 @@ benthos_DF_eMOF_aued <- read.csv(here ("data",
                                        "detection",
                                        "AAued_spatialData",
                                        "DF_eMOF.csv"),sep=",",
-                                 #encoding= "UTF-8",
+                                 encoding= "latin1",
                                  row.names=NULL)
 
 # event core
 benthos_event_core_aued <-  read.csv(here ("data",
                                            "detection",
                                            "AAued_spatialData",
-                                           "event_core.csv"),sep=","#, 
-                                     #encoding= "UTF-8"
+                                           "event_core.csv"),sep=",", 
+                                     encoding= "latin1"
                                      )
 
 
@@ -138,11 +138,8 @@ dataset_fish <- fish_SN_data_morais[which(fish_SN_data_morais$site_analysis %in%
                                             benthos_SN_data_aued$site_analysis),]
 dataset_benthos <- benthos_SN_data_aued[which(benthos_SN_data_aued$site_analysis %in% 
                                                 fish_SN_data_morais$site_analysis),]
-
-
 # check if sites are in both datasets
 (unique(dataset_benthos$site_analysis) %in% unique(dataset_fish$site_analysis))
-
 
 # total number of belt transects
 length(unique(dataset_fish$eventID))
@@ -283,215 +280,23 @@ coordinates_sites$decimalLongitude [grep("ilha_das_cabras", coordinates_sites$si
 
 
 # -----------------------
-# NOAA Ocean Data
 
-
-
-
-# parameters
-SSTstartDate <- "2012-01-01"  ## define start date of your time series 
-
-## set dataset source (monthly SST)
-## the list of datasets is here
-## https://coastwatch.pfeg.noaa.gov/erddap/search/index.html?page=1&itemsPerPage=1000&searchFor=griddap
-# https://coastwatch.pfeg.noaa.gov/erddap/griddap/index.html?page=1&itemsPerPage=1000
-
-
-# SST
-SSTsource <- info("jplMURSST41mday")
-
-# create a cluster of 'ncores', 
-ncores <- 5
-cl <- makeCluster (ncores)
-# load data and functions in each core 
-clusterExport(cl, c("SSTsource",
-                    "SSTstartDate",
-                    "coordinates_sites"))
-# load packages in each core
-clusterEvalQ(cl,library("rerddap"))
-
-## Get sst 
-SST <- parLapply (cl, seq (1,nrow (coordinates_sites)), function (i) {
-  
-  tryCatch(
-    
-    griddap(SSTsource, 
-            time=c(SSTstartDate, "last"),
-            longitude = c(coordinates_sites$decimalLongitude[i],
-                          coordinates_sites$decimalLongitude[i]),
-            latitude = c(coordinates_sites$decimalLatitude[i], 
-                         coordinates_sites$decimalLatitude[i]), 
-            fields = "sst", # to have the field you need to go to the graph option in the website (https://coastwatch.pfeg.noaa.gov/erddap/griddap/erdVH2018r6718day.graph) and going to "color"
-            fmt = "csv"),
-    error = function(e) return ("NULL"))}#{print(e); print("retrying...")}
-)
-stopCluster (cl)
-
-
-
-
-# turbidity
-DEPTHsource <- info("erdMH1kd4901day")
-cl <- makeCluster (ncores) #cluster
-# load data and functions in each core 
-clusterExport(cl, c("DEPTHsource", 
-                    "SSTstartDate",
-                    "coordinates_sites"))
-# load packages in each core
-clusterEvalQ(cl,library("rerddap"))
-
-## Get depth
-DEPTH <- parLapply (cl, seq (1,nrow (coordinates_sites)), function (i) {
-  
-  tryCatch(
-    
-    griddap(DEPTHsource, 
-            time=c(SSTstartDate, "last"),
-            longitude = c(coordinates_sites$decimalLongitude[i],
-                          coordinates_sites$decimalLongitude[i]),
-            latitude = c(coordinates_sites$decimalLatitude[i], 
-                         coordinates_sites$decimalLatitude[i]), 
-            fields = "k490", # to have the field you need to go to the graph option in the website (https://coastwatch.pfeg.noaa.gov/erddap/griddap/erdVH2018r6718day.graph) and going to "color"
-            fmt = "csv"),
-    error = function(e) return ("NULL"))}#{print(e); print("retrying...")}
-)
-stopCluster (cl) # stop cluster
-
-
-
-
-
-# productivity (Chlorophyll-a)
-PRODsource <- info("erdMH1chla8day")
-cl <- makeCluster (ncores) # cluster
-
-# load data and functions in each core 
-clusterExport(cl, c("PRODsource", 
-                    "SSTstartDate",
-                    "coordinates_sites"))
-# load packages in each core
-clusterEvalQ(cl,library("rerddap"))
-
-## Get productivity
-PRODUCTIVITY <- parLapply (cl, seq (1,nrow (coordinates_sites)), function (i) {
-  
-  tryCatch(
-    
-    griddap(PRODsource, 
-            time=c(SSTstartDate, "last"),
-            longitude = c(coordinates_sites$decimalLongitude[i],
-                          coordinates_sites$decimalLongitude[i]),
-            latitude = c(coordinates_sites$decimalLatitude[i], 
-                         coordinates_sites$decimalLatitude[i]), 
-            fields = "chlorophyll", # to have the field you need to go to the graph option in the website (https://coastwatch.pfeg.noaa.gov/erddap/griddap/erdVH2018r6718day.graph) and going to "color"
-            fmt = "csv"),
-    error = function(e) return ("NULL"))}#{print(e); print("retrying...")}
-)
-
-stopCluster (cl)
-
-
-
-# salinity source
-SALINsource <- info("jplAquariusSSSDailyV5")
-
-##
-cl <- makeCluster (ncores)
-
-## Get sst cl <- makeCluster (ncores)
-# load data and functions in each core 
-clusterExport(cl, c("SALINsource", 
-                    "SSTstartDate",
-                    "coordinates_sites"))
-# load packages in each core
-clusterEvalQ(cl,library("rerddap"))
-
-# run
-## Get productivity
-
-SALINITY <- parLapply (cl, seq (1,nrow (coordinates_sites)), function (i) {
-  
-  tryCatch(
-    
-    griddap(SALINsource, 
-            time=c(SSTstartDate, "last"),
-            longitude = c(coordinates_sites$decimalLongitude[i],
-                          coordinates_sites$decimalLongitude[i]),
-            latitude = c(coordinates_sites$decimalLatitude[i], 
-                         coordinates_sites$decimalLatitude[i]), 
-            fields = "sss", # to have the field you need to go to the graph option in the website (https://coastwatch.pfeg.noaa.gov/erddap/griddap/erdVH2018r6718day.graph) and going to "color"
-            fmt = "csv"),
-    error = function(e) return ("NULL"))}#{print(e); print("retrying...")}
-)
-
-stopCluster (cl)
-
-
-
-## summarized  variables
-# sst
-SST_site <- unlist (lapply (SST, function (i) 
-  
-  i %>% summarise(sst = mean(sst,na.rm=T))
-  
-))
-# turbidity
-kd490_site <- unlist (lapply (DEPTH, function (i) 
-  
-  i %>% summarise(k490 = mean(k490,na.rm=T))
-  
-))
-# PROD
-prod_site <- unlist (lapply (PRODUCTIVITY, function (i) 
-  
-  i %>% summarise(chlorophyll = mean(chlorophyll,na.rm=T))
-  
-))
-# salinity
-salinity_site <- unlist (lapply (SALINITY, function (i) 
-  
-  i %>% summarise(sss = mean(sss,na.rm=T))
-  
-))
-
-
-# site covs
-site_covs <- data.frame (sites = sites,
-            sst = SST_site,
-            turbidity = kd490_site,
-            productivity = prod_site,
-            salinity = salinity_site,
-            depth = site_depth)
-
-
-
-
-# -----------------------
-
-# try BioOracle too
-
-
+#  BioOracle 
+# codes to download and save in the folder "environment"
 # BiO Oracle - extracting covariate data
 # Explore datasets in the package
 # devtools::install_github("lifewatch/sdmpredictors")
-layers <- list_layers()
-#View (layers [grep ("Bio-ORACLE",layers$dataset_code),])
-
+# layers <- list_layers()
+# View (layers [grep ("Bio-ORACLE",layers$dataset_code),])
 # Download specific layers to the current directory
 # set prefered folder (to download data)
-options(sdmpredictors_datadir=here ("data","environment"))
-
+# options(sdmpredictors_datadir=here ("data","environment"))
 ## chlorophil has different extent - loading and extracting in two steps         
-layers_oracle <- load_layers(c("BO2_tempmean_ss",
-                               #"BO2_temprange_ss",
-                               "BO2_ppmean_ss", 
-                               #"BO2_pprange_ss",
-                               "BO2_salinitymean_ss", 
-                              #"BO2_salinityrange_ss",
-                              #"BO_damax",
-                               "BO_damean"
-                               #,"BO_damin"
-))
+# layers_oracle <- load_layers(c("BO2_tempmean_ss",
+#                               "BO2_ppmean_ss", 
+#                               "BO2_salinitymean_ss", 
+#                               "BO_damean"
+#                              ))
 
 biooracle_data <-  (list.files (here ("data","environment"),pattern = ".tif"))
 biooracle_data <- lapply (biooracle_data, function (i) 
@@ -506,35 +311,31 @@ spdf <- SpatialPointsDataFrame(coords = coordinates_sites[,3:2], data = coordina
 
 ## extracting data
 
-extracted_sea_data <- extract (biooracle_data, spdf,method='bilinear', 
+extracted_sea_data <- raster::extract (biooracle_data, spdf,method='bilinear', 
                                fun=mean)
 rownames (extracted_sea_data) <- sites
-
-# correlation between datasets
-cor (extracted_sea_data, 
-     site_covs[,-1],
-     use = "complete.obs")
-
-# it's ok to use biooracle dataset (that is more complete)
 
 
 # ------------------------------
 #  distance offshore
 # BR coastline, download from here https://mapcruzin.com/free-brazil-arcgis-maps-shapefiles.htm
 
-BR <- readOGR(dsn=here("data", "environment","brazil-coastline"), "brazil_coastline")
-crs(BR) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
-BR <- spTransform(BR, CRS("+init=epsg:4326"))
-
+#BR <- readOGR(dsn=here("data", "environment","brazil-coastline"), "brazil_coastline")
+BR <- st_read(("data/environment/brazil-coastline/brazil_coastline.shp"))
+#crs(BR) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
+#BR <- spTransform(BR, CRS("+init=epsg:4326"))
+st_crs(BR) <- st_crs(4326) # assign crs
 
 # use dist2Line from geosphere - only works for WGS84 
-sp_data <- spTransform(spdf, CRS("+init=epsg:4326"))
-
+sp_data <- st_as_sf(spdf, coords = c("decimalLongitude", "decimalLatitude"))
+st_crs(sp_data) <- st_crs(4326) # assign crs
 
 # measuring the distance
-dist_bentos <- geosphere::dist2Line(p = sp_data, 
-                             line = (BR))
-
+#dist_bentos <- st_distance(x = sp_data, 
+#                             y = (BR))
+# help : https://gis.stackexchange.com/questions/243994/how-to-calculate-distance-from-point-to-linestring-in-r-using-sf-library-and-g
+dist_bentos <- geosphere::dist2Line(p = st_coordinates(sp_data), 
+                     line = st_coordinates(BR)[,1:2])
 
 # binding coords
 coordinates_sites <- cbind (coordinates_sites, dist_bentos)
@@ -549,138 +350,6 @@ ggplot(data = world) +
 
 
 
-# ====================== 
-# magris data (reef area)
-
-shapefiles<-list.files(here ("data","environment","magris_reef_map"),pattern=".shp")
-shapefiles<-shapefiles[-grep ("cumulative",shapefiles)]
-shapefiles<-shapefiles[-grep ("Threatened",shapefiles)]
-
-# repeat noronha to have rocas atol
-shapefiles <- c(shapefiles,"FN.shp")
-shapefiles<-shapefiles[order(shapefiles)]
-
-# load all at once
-shapes <- lapply (shapefiles, function (shp) 
-  
-      readOGR (here ("data","environment","magris_reef_map"),
-                   gsub(".shp","",shp)) 
-)
-
-# subset of habitats
-list_habitats <- list ("amazon" = "AO11",# amazon
-                      "eastern"= c("EC11",# eastern
-                         "EC12",
-                         "EC13",
-                         "EC14",
-                         "EC15",
-                         "EC16"),
-                      "noronha" = "FS13", # noronha
-                      "atol" = "FS12", #rocas
-                      "northeastern" = c("NC11",# northeastern
-                                         "NC12",
-                                         "NC13"),
-                      "riogrande"="RC11", # rio grande
-                      "southeastern"="SC11", #southeastern
-                      "trindade" = "TS12" # trindade
-                       )
-
-# reef location
-BR_reefs <- lapply (seq (1,length(shapes)), function (shp)
-  # extract codes  
-  shapes[[shp]][which(shapes[[shp]]$habitat %in% list_habitats[[shp]]),]
-  
-)
-
-
-# bind 
-BR_reefs <- bind(BR_reefs[[1]],
-                 BR_reefs[[2]],
-                 BR_reefs[[3]],
-                 BR_reefs[[4]],
-                 BR_reefs[[5]],
-                 BR_reefs[[6]],
-                 BR_reefs[[7]],
-                 BR_reefs[[8]])
-
-# create a grid for extracting data
-# based on the extent of extracted data
-grd_df <- expand.grid(x = seq(from = extent (BR_reefs)[1]-1,
-                              to = extent (BR_reefs)[2]+1, 
-                              by = .5),
-                      y = seq(from = extent (BR_reefs)[3]-1,                                           
-                              to = extent (BR_reefs)[4]+1, 
-                              by = .5))  # expand points to grid
-
-# Convert grd object to a matrix and then turn into a spatial
-# points object
-coordinates(grd_df) <- ~x + y
-
-# Sp points into raster
-grd_raster <- (raster(grd_df,resolution = .5))
-crs(grd_raster) <-crs(BR_reefs)
-values (grd_raster) <- runif(n=ncell(grd_raster))
-
-# project
-# reproject to laea # https://weiming-hu.github.io/projection-in-R/
-BR_reefs_lambert <- spTransform(BR_reefs, 
-                        "+proj=laea +lat_0=0 +lon_0=0 +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
-to_raster <-  raster (extent(BR_reefs_lambert),
-                      crs = "+proj=laea +lat_0=0 +lon_0=0 +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
-                      res=55000)
-grd_raster <- projectRaster(grd_raster, to_raster)
-
-# southe maerica map
-southAme<- readOGR(dsn= here("data","environment","South_America"),encoding="latin1", 
-                   layer="South_America")
-southAme <- spTransform(southAme, 
-                        "+proj=laea +lat_0=0 +lon_0=0 +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
-
-# extract
-require("exactextractr")
-
-# extract
-prop_area <- coverage_fraction(grd_raster, 
-                               st_combine(st_as_sf(BR_reefs_lambert)))[[1]]
-# points
-pts <- spTransform(spdf, 
-                   "+proj=laea +lat_0=0 +lon_0=0 +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
-
-# plot
-plot1 <- gplot(prop_area) +  
-  geom_tile(aes(fill=(value)),alpha=0.8) +
-  scale_fill_viridis_c(begin = 0.1, 
-                      end = 1,
-                      direction=-1,
-                      option = "magma",
-                     name="Reef area") +
-   theme_classic() 
-
-# 
-plot2 <- plot1 + geom_polygon(data=southAme, 
-                                    aes(x=long, y=lat, group=group),
-                                    size = 0.1, fill="gray60", 
-                                    colour="gray75",alpha=0.1) + 
-  xlab("Longitude") + ylab("Latitude") +
-  coord_fixed (xlim = c(-5000000,-2500000), 
-               ylim = c(-4000000, 0), ratio = 1) +
-  theme(legend.position = c(0.8,0.7),
-        axis.text.x = element_text(angle=45))
-
-pdf (here ("output_no_resampling","reef_area.pdf"),width=3,height = 4)
-plot2 + geom_point(data = data.frame (coordinates(pts)), 
-                   aes (x=decimalLongitude,
-                                           y=decimalLatitude),
-                   shape=1,size =5,col = "gray")
-dev.off()
-
-# values in site coords
-extracted_area <- extract (prop_area, 
-                           pts,
-                           method='simple', fun=mean)
-
-
-
 # all covariate data into a dataframe
 
 site_covs <- data.frame (sites = sites,
@@ -690,7 +359,6 @@ site_covs <- data.frame (sites = sites,
                          productivity = extracted_sea_data[,'BO2_ppmean_ss_lonlat'],
                          salinity = extracted_sea_data[,'BO2_salinitymean_ss_lonlat'],
                          depth = site_depth,
-                         reef_area = extracted_area,
                          offshore_distance = coordinates_sites$distance,
                          decimalLatitude = coordinates_sites$decimalLatitude,
                          decimalLongitude = coordinates_sites$decimalLongitude)

@@ -58,8 +58,8 @@ bind_fish_benthos<- cbind (site_covs,
 )
 
 # average values of metrics to present in the Results
-round(apply(bind_fish_benthos[c(3:16,18:30)],2,mean,na.rm=T),3)
-round(apply(bind_fish_benthos[c(3:16,18:30)],2,sd,na.rm=T),3)
+round(apply(bind_fish_benthos[c(3:15,17:29)],2,mean,na.rm=T),3)
+round(apply(bind_fish_benthos[c(3:15,17:29)],2,sd,na.rm=T),3)
 
 
 # correlation between variables
@@ -214,10 +214,6 @@ save(fit2,file=here ("output","fit2.RData"))
 
 
 
-
-
-
-
 # ******************************
 # alternative model without salinity and turbidity
 
@@ -263,8 +259,7 @@ save(fit3,file=here ("output","fit3.RData"))
 
 
 # ********************************
-# without SR and other covariates; only SST
-
+# without SR and other covariates; only SST and region
 
 
 # set formula (the same for benthos and fishes)

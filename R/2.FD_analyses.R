@@ -167,6 +167,7 @@ rownames(bent_traits_ord) <- bent_traits$groups
 colnames (comp_benthos) <- tolower (colnames(comp_benthos))
 comp_benthos <- comp_benthos[,which(colnames(comp_benthos) %in% rownames(bent_traits_ord) )]# rm spp not in trait dataset
 benthos_traits <- bent_traits_ord[which(rownames (bent_traits_ord) %in% colnames(comp_benthos)),]
+
 # order
 comp_benthos<- comp_benthos [,order(colnames(comp_benthos))]
 benthos_traits<- benthos_traits [order(rownames(benthos_traits)),]
@@ -467,4 +468,4 @@ save (comp_fish,
       comp_algae,
       file=here ("output", "FD_results.RData"))
 
-
+rm(list=ls())
