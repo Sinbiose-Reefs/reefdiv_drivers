@@ -1,16 +1,15 @@
 ReadMe
 
 CORAL TRAITS
-Metadata coral traits = informações sobre os dados funcionais dos corais
-Planilha_functional_traits_CORAL_TRAITS = arquivo com dados de atributos de corais, similar ao de baixo, enviado por último por Guilherme Longo
-Coral_traits_SINBIOSIS = arquivo com dados de atributos de corais
+Metadata coral traits = information associated to coral trait data
+Planilha_functional_traits_CORAL_TRAITS = file showing coral traits (compiled by Jessica Bleuel, sent by Guilherme Longo)
+Coral_traits_SINBIOSIS = old file with trait data
 
 
-
-Peixes
-Atributos_especies_Atlantico_&_Pacifico_Oriental_2020_04_28 = dados do datapaper de Juan Quimbayo
-brazilian-reef-fish-table-04-mar-18-website = dados Pinheiro et al. 2018 (from here: https://swatlanticreeffishes.wordpress.com/database/)
+Fish
+Atributos_especies_Atlantico_&_Pacifico_Oriental_2020_04_28 = Data of Quimbayo et al. (2021, Ecology)
+brazilian-reef-fish-table-04-mar-18-website = biogeographical data (distribution) from Pinheiro et al. 2018 (from here: https://swatlanticreeffishes.wordpress.com/database/)
 
 Bentos
-Database_benthos = dados funcionais de Anaide Aued
-readMeDatabase_benthos = readMe dos dados de Anaide Aued
+Database_benthos = benthuc trait data compiled by Anaide Aued
+readMeDatabase_benthos = readMe benthic trait data (by Anaide Aued)
