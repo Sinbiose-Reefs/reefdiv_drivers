@@ -218,12 +218,14 @@ write.csv (comp_to_solve,here ("output", "comp_to_solve"))
 require(openxlsx)
 coral_traits <- read.xlsx (here ("data", 
                                 "traits", 
-                                "Planilha_functional_traits_CORAL_TRAITS.xlsx"),
+                                "Sheet_functional_traits_CORAL_TRAITS.xlsx"),
                            sheet=1)
+
 
 # removing rows without data
 coral_traits <- coral_traits[is.na(coral_traits$spp_modified) != T,]
 coral_traits$Depth.lower.limit <- as.numeric(coral_traits$Depth.lower.limit)
+
 
 # modified spp names
 coral_traits$spp_modified <- tolower (gsub (" ", ".", coral_traits$spp_modified))
@@ -452,9 +454,6 @@ df_corals[comm_with_corals,"RaoQ"] <- FD_corals$RaoQ
 # insert data with imputed zeros in santa catarina sites
 FD_corals$FRic <- df_corals$FRic
 FD_corals$RaoQ <- df_corals$RaoQ
-
-
-
 
 
 # save 
