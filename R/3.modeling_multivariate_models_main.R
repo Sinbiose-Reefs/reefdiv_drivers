@@ -143,9 +143,9 @@ fit_complete <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) + 
             thin=1,
             prior = priors,
             seed=1234,
-		save_pars = save_pars(all = TRUE),
+		        save_pars = save_pars(all = TRUE),
             control = list(adapt_delta = 0.99,
-				   max_treedepth = 15))
+				    max_treedepth = 15))
 
 #
 
@@ -215,7 +215,6 @@ fit2 <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 #
 
 save(fit2,file=here ("output","fit2_SR_sst_kd490_region.RData"))
-
 
 
 # ******************************
