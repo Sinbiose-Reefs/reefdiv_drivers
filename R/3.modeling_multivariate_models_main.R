@@ -22,7 +22,7 @@ source("R/functions.R")
 # ------------------------------------------ #
 
 load (here ("data","modeling_data.RData"))
-load (here ("output","FD_results_old.RData"))
+load (here ("output","FD_results.RData"))
 
 # standardize covariate data
 site_covs$sst_std <- (site_covs$sst - mean(site_covs$sst))/sd(site_covs$sst)
