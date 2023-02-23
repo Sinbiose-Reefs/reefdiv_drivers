@@ -273,10 +273,10 @@ coordinates_sites <- dataset_fish [,-which(colnames(dataset_fish) %in% c("eventI
             decimalLongitude = mean(decimalLongitude))
 
 # adjusting some coordinates
-coordinates_sites$decimalLatitude [which(coordinates_sites$site_analysis == "btds_santos-farol_da_barra")] <- -13.017295
-coordinates_sites$decimalLongitude [which(coordinates_sites$site_analysis == "btds_santos-farol_da_barra")] <- -38.544638
-coordinates_sites$decimalLatitude [grep("ilha_das_cabras", coordinates_sites$site_analysis)] <- -23.824199
-coordinates_sites$decimalLongitude [grep("ilha_das_cabras", coordinates_sites$site_analysis)] <- -45.397819
+#coordinates_sites$decimalLatitude [which(coordinates_sites$site_analysis == "btds_santos-farol_da_barra")] <- -13.017295
+#coordinates_sites$decimalLongitude [which(coordinates_sites$site_analysis == "btds_santos-farol_da_barra")] <- -38.544638
+#coordinates_sites$decimalLatitude [grep("ilha_das_cabras", coordinates_sites$site_analysis)] <- -23.824199
+#coordinates_sites$decimalLongitude [grep("ilha_das_cabras", coordinates_sites$site_analysis)] <- -45.397819
 
 
 # -----------------------
@@ -311,7 +311,8 @@ spdf <- SpatialPointsDataFrame(coords = coordinates_sites[,3:2], data = coordina
 
 ## extracting data
 
-extracted_sea_data <- raster::extract (biooracle_data, spdf,method='bilinear', 
+extracted_sea_data <- raster::extract (biooracle_data, 
+                                       spdf,method='bilinear', 
                                fun=mean)
 rownames (extracted_sea_data) <- sites
 
