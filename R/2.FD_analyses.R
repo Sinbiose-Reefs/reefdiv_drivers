@@ -285,8 +285,6 @@ coral_traits_complete$reprod_mode <- as.factor(coral_traits_complete$reprod_mode
 
 
 # algae
-
-
 # composition algae
 algae <- c("bryopsis.pennata",
            "calcareous.articulate.algae",
@@ -362,7 +360,7 @@ pcoa(vegdist (tab_ord, "gower"), correction = "cailliez")$values$Rel_corr_eig[1:
 
 # composition fish
 FD_fish <- dbFD ((fish_traits_ord),
-      comp_fish,
+                 (comp_fish),
       w.abun = T,
       corr = "cailliez",
       calc.FRic = T,
