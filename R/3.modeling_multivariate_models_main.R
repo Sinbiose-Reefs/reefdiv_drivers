@@ -22,14 +22,14 @@ source("R/functions.R")
 # ------------------------------------------ #
 
 load (here ("data","modeling_data.RData"))
-load (here ("output","FD_results.RData"))
+load (here ("output","FD_results_old.RData"))
 
 # standardize covariate data
 site_covs$sst_std <- (site_covs$sst - mean(site_covs$sst))/sd(site_covs$sst)
 site_covs$turbidity_std <- (site_covs$turbidity - mean(site_covs$turbidity))/sd(site_covs$turbidity)
 site_covs$productivity_std <- (site_covs$productivity - mean(site_covs$productivity))/sd(site_covs$productivity)
 site_covs$salinity_std <- (site_covs$salinity - mean(site_covs$salinity))/sd(site_covs$salinity)
-site_covs$offshore_distance_std <- (site_covs$offshore_distance - mean(site_covs$offshore_distance))/sd(site_covs$offshore_distance)
+# site_covs$offshore_distance_std <- (site_covs$offshore_distance - mean(site_covs$offshore_distance))/sd(site_covs$offshore_distance)
 
 # effort data
 effort_dataframe$fish_effort_std <- (effort_dataframe$fish_effort - mean(effort_dataframe$fish_effort))/sd(effort_dataframe$fish_effort)
@@ -52,7 +52,7 @@ bind_fish_benthos<- cbind (site_covs,
                            Rao_corals = df_corals$RaoQ,
                            # fish
                            SR_fish = scale (FD_fish$nbsp),
-                           FRic_fish = FD_fish$FRic,
+                           FRic_fish = round (FD_fish$FRic,10),
                            Rao_fish = FD_fish$RaoQ,
                            # algae
                            SR_algae = scale (FD_algae$nbsp),
@@ -149,7 +149,7 @@ fit_complete <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) + 
 
 #
 
-save(fit_complete,file=here ("output","fit_complete_model.RData"))
+#save(fit_complete,file=here ("output","fit_complete_model.RData"))
 
 
 
@@ -214,7 +214,7 @@ fit2 <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 #
 
-save(fit2,file=here ("output","fit2_SR_sst_kd490_region.RData"))
+#save(fit2,file=here ("output","fit2_SR_sst_kd490_region.RData"))
 
 # ******************************
 # alternative model without salinity and turbidity
@@ -257,7 +257,7 @@ fit3 <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 #
 
-save(fit3,file=here ("output","fit3_SR_sst_region.RData"))
+#save(fit3,file=here ("output","fit3_SR_sst_region.RData"))
 
 
 # ********************************
@@ -301,7 +301,7 @@ fit_simple <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 #
 
-save(fit_simple,file=here ("output","fit_sst_region.RData"))
+#save(fit_simple,file=here ("output","fit_sst_region.RData"))
 
 
 
@@ -309,11 +309,11 @@ save(fit_simple,file=here ("output","fit_sst_region.RData"))
 # LOO model fit checking   
 # run loo fit test
 loo_test <- lapply (list (fit_complete, fit2, fit3,fit_simple),
-	loo, moment_match=T,reloo=T)
+	loo, moment_match=T,reloo=T,cores=4)
 
 
 # save fit test
-save(loo_test,file = here ("output","loo_test.RData"))
+#save(loo_test,file = here ("output","loo_test_new.RData"))
 
 
 
@@ -338,7 +338,7 @@ res <- list (looic = tab_mod_sel,
 ## save
 save ( res, 
        file=here ("output", 
-                  "MCMC_selected_model.Rdata"))
+                  "MCMC_selected_model_new.Rdata"))
 
 
 # end
