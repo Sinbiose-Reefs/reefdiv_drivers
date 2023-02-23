@@ -216,7 +216,6 @@ fit2 <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 save(fit2,file=here ("output","fit2_SR_sst_kd490_region.RData"))
 
-
 # ******************************
 # alternative model without salinity and turbidity
 
