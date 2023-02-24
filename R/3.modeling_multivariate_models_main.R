@@ -62,8 +62,8 @@ bind_fish_benthos<- cbind (site_covs,
 )
 
 # average values of metrics to present in the Results
-round(apply(bind_fish_benthos[c(3:15,17:29)],2,mean,na.rm=T),3)
-round(apply(bind_fish_benthos[c(3:15,17:29)],2,sd,na.rm=T),3)
+#round(apply(bind_fish_benthos[c(3:15,17:29)],2,mean,na.rm=T),3)
+#round(apply(bind_fish_benthos[c(3:15,17:29)],2,sd,na.rm=T),3)
 
 
 # correlation between variables
@@ -149,7 +149,7 @@ fit_complete <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) + 
 
 #
 
-#save(fit_complete,file=here ("output","fit_complete_model.RData"))
+save(fit_complete,file=here ("output","fit_complete_model.RData"))
 
 
 
@@ -214,7 +214,7 @@ fit2 <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 #
 
-#save(fit2,file=here ("output","fit2_SR_sst_kd490_region.RData"))
+save(fit2,file=here ("output","fit2_SR_sst_kd490_region.RData"))
 
 # ******************************
 # alternative model without salinity and turbidity
@@ -257,7 +257,7 @@ fit3 <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 #
 
-#save(fit3,file=here ("output","fit3_SR_sst_region.RData"))
+save(fit3,file=here ("output","fit3_SR_sst_region.RData"))
 
 
 # ********************************
@@ -301,7 +301,7 @@ fit_simple <- brms::brm(mvbf(formula1_fish, formula1_algae,formula1_corals) +
 
 #
 
-#save(fit_simple,file=here ("output","fit_sst_region.RData"))
+save(fit_simple,file=here ("output","fit_sst_region.RData"))
 
 
 
@@ -313,32 +313,42 @@ loo_test <- lapply (list (fit_complete, fit2, fit3,fit_simple),
 
 
 # save fit test
-#save(loo_test,file = here ("output","loo_test_new.RData"))
+save(loo_test,file = here ("output","loo_test_new.RData"))
 
 
-
-# extract estimates
-loo_sel <- lapply (loo_test, function (i)
-         i$estimates[which(rownames(i$estimates) == "looic"),"Estimate"])
 # extract looic (like AIC)
 tab_mod_sel <- do.call(rbind,lapply (loo_test, function (i)
          i$estimates[which(rownames(i$estimates) == "looic"),]))
+tab_mod_sel<- data.frame (tab_mod_sel,
+                     model = c("complete", "sst_region_SR_turbidity", "sst_region_SR",  "sst_region" ))
 # extract estimated number of parameters (model adequacy)
 tab_mod_fit <- do.call(rbind,lapply (loo_test, function (i)
          i$estimates[which(rownames(i$estimates) == "p_loo"),]))
-# select the model with lowest looic
-sel_model <- list (fit_complete, fit2, fit3,fit_simple)[which(loo_sel == min(unlist(loo_sel)))]
-   
+# tab comparison (delta)
+tab_comp <- loo_compare(loo_test[[1]], 
+                        loo_test[[2]], 
+                        loo_test[[3]],
+                        loo_test[[4]])
+
+# bind results
+tab_mod_sel <- cbind (tab_mod_sel,
+                      tab_mod_fit,
+                      tab_comp) 
+
+# order 
+tab_mod_sel <- tab_mod_sel[order (tab_mod_sel$Estimate),]
+write.csv (tab_mod_sel,here ("output", "model_selection.csv")) # write results
+
 # list of results 
 res <- list (looic = tab_mod_sel,
              param= tab_mod_fit,
-             best_model = sel_model
+             best_model = fit3
              )
 
 ## save
 save ( res, 
        file=here ("output", 
-                  "MCMC_selected_model_new.Rdata"))
+                  "MCMC_selected_model.Rdata"))
 
 
 # end
