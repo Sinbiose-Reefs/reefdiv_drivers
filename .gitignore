@@ -10,6 +10,8 @@ vert.txt
 comp_to_solve.csv
 R/abundance
 R/old codes
+data/modeling_data.RData
+data/modeling_data_old.RData
 data/environment/batimetria_lito
 data/environment/cumulative_impacts
 data/environment/magris_reef_map
