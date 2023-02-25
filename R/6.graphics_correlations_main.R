@@ -17,7 +17,7 @@ load (here ("output",
 
 #---------------------
 
-model <- res$best_model[[1]]
+model <- res$best_model
 
 
 # correlation among predicted values
