@@ -83,25 +83,11 @@ load (here ("output",
             "MCMC_selected_model.RData"))
 
 
-br2<- bayes_R2(res$best_model[[1]], robust=T) # mean for each reponse
+br2<- bayes_R2(res$best_model, robust=T) # mean for each reponse
 round(br2,2)
 round(mean(br2 [,'Estimate']),2) # average across responses
 
 
-
-
-# coefficients of drivers
-
-# model selection
-tab_models <-data.frame (res$looic,
-         res$param,
-         model = c ("mv(FRic, Rao)~SR+SST+KD490+salinity+region",
-                    "mv(FRic, Rao)~SR+SST+KD490+region",
-                    "mv(FRic, Rao)~SR+SST+region",
-                    "mv(FRic, Rao)~SST+region"))
-
-# order 
-tab_models<-tab_models [order (tab_models$Estimate,decreasing=F),]
 
 
 
@@ -112,7 +98,7 @@ library("ggplot2")
 #library("rstanarm")   
 
 # extract posterior probs
-posterior <- as.array(res$best_model[[1]])
+posterior <- as.array(res$best_model)
 dimnames(posterior)
 
 color_scheme_set("blue")
@@ -195,7 +181,7 @@ p_region <- mcmc_intervals(posterior, pars = c( # fish
   point_size = 2.5) 
 
 
-pdf (here("output", "figures", "fig3"),width=15,height=5,family="sans")
+pdf (here("output", "figures", "fig3.pdf"),width=15,height=5,family="sans")
 
 grid.arrange(p_SST,
              p_SR,
@@ -211,10 +197,10 @@ dev.off()
 # rhat
 # fitting statistics
 # help here : https://biol609.github.io/lectures/23c_brms_prediction.html
-png(here ("output","figures", "fitting_statistics_rhat"),
+png(here ("output","figures", "fitting_statistics_rhat.png"),
     units="cm",res=300, width=15,height=20)
 
-rhat_vals <- rhat(res$best_model[[1]])
+rhat_vals <- rhat(res$best_model)
 mcmc_rhat_data(rhat_vals)
 mcmc_rhat(rhat_vals) + theme_bw() + yaxis_text(size = 4)
 
@@ -222,10 +208,10 @@ dev.off()
 
 # n eff samples
 
-png(here ("output","figures", "fitting_statistics_neff"),
+png(here ("output","figures", "fitting_statistics_neff.png"),
     units="cm",res=300, width=15,height=20)
 
-neff_vals <- neff_ratio(res$best_model[[1]])
+neff_vals <- neff_ratio(res$best_model)
 mcmc_neff_data(neff_vals)
 mcmc_neff(neff_vals)  + theme_bw() + yaxis_text(size = 4)
 
@@ -240,14 +226,12 @@ dev.off()
 
 
 # full posterior exceedance probabilities
-
-
 # param probability
-require(tidybayes)
-vars_ext<-get_variables(res$best_model[[1]])[grep("sst_std",get_variables(res$best_model[[1]]))]
+
+vars_ext<-get_variables(res$best_model)[grep("sst_std",get_variables(res$best_model))]
 
 # select model
-model <- res$best_model[[1]]
+model <- res$best_model
 
 # sst fish
 # fric
@@ -304,7 +288,7 @@ model %>%
 
 # param probability
 
-vars_ext<-get_variables(res$best_model[[1]])[grep("SR_",get_variables(res$best_model[[1]]))]
+vars_ext<-get_variables(res$best_model)[grep("SR_",get_variables(res$best_model))]
 
 
 # SR fish
@@ -363,8 +347,8 @@ model %>%
 # region
 
 # param probability
-vars_ext<-get_variables(res$best_model[[1]])[grep("region",get_variables(res$best_model[[1]]))]
-intercepts <- fixef(res$best_model[[1]])[grep("Intercept", rownames(fixef(res$best_model[[1]]))),"Estimate"]
+vars_ext<-get_variables(res$best_model)[grep("region",get_variables(res$best_model))]
+intercepts <- fixef(res$best_model)[grep("Intercept", rownames(fixef(res$best_model))),"Estimate"]
 
 # fric
 # south
@@ -487,3 +471,4 @@ model %>%
   )
 
 
+rm(list=ls())
