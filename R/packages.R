@@ -43,11 +43,9 @@ require(clue)
 require("sdmpredictors")
 require("leaflet")
 library(mgcv)
-require("gamm4")
 require(nlme)
 require(emmeans)
 
-require(betareg)
 require(MASS)
 require(effects)
 
