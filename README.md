@@ -42,28 +42,28 @@ Dr. Guilherme O. Longo) has an embargo to be released (up to February
     ## [8] methods   base     
     ## 
     ## other attached packages:
-    ##  [1] ggdist_3.2.1            forcats_0.5.2           stringr_1.5.0          
-    ##  [4] purrr_1.0.1             tidyr_1.3.0             tibble_3.1.8           
-    ##  [7] tidyverse_1.3.2         modeltools_0.2-23       flexmix_2.3-18         
-    ## [10] terra_1.7-3             RColorBrewer_1.1-3      mapdata_2.3.1          
-    ## [13] plotly_4.10.1           dygraphs_1.1.1.6        xts_0.12.2             
-    ## [16] zoo_1.8-11              flexdashboard_0.6.1     lubridate_1.9.1        
-    ## [19] rerddap_1.0.1           readr_2.1.3             rasterVis_0.51.5       
-    ## [22] viridis_0.6.2           viridisLite_0.4.1       corrplot_0.92          
-    ## [25] loo_2.5.1               brms_2.18.0             Rcpp_1.0.10            
-    ## [28] effects_4.2-2           carData_3.0-5           MASS_7.3-58.1          
-    ## [31] emmeans_1.8.4-1         mgcv_1.8-41             nlme_3.1-160           
-    ## [34] leaflet_2.1.1           sdmpredictors_0.2.14    clue_0.3-63            
-    ## [37] cluster_2.1.4           FD_1.0-12.1             geometry_0.4.6.1       
-    ## [40] ape_5.6-2               ade4_1.7-20             vegan_2.6-4            
-    ## [43] lattice_0.20-45         permute_0.9-7           maps_3.4.1             
-    ## [46] spdep_1.2-7             sf_1.0-9                spData_2.2.1           
-    ## [49] raster_3.6-14           rgdal_1.6-4             abind_1.4-5            
-    ## [52] dplyr_1.0.10            openxlsx_4.2.5.1        rgeos_0.6-1            
-    ## [55] sp_1.6-0                scatterpie_0.1.8        ggrepel_0.9.2          
-    ## [58] gridExtra_2.3           ggplot2_3.4.0           rnaturalearthdata_0.1.0
-    ## [61] rnaturalearth_0.3.2     reshape2_1.4.4          reshape_0.8.9          
-    ## [64] here_1.0.1             
+    ##  [1] tidybayes_3.0.3         ggdist_3.2.1            forcats_0.5.2          
+    ##  [4] stringr_1.5.0           purrr_1.0.1             tidyr_1.3.0            
+    ##  [7] tibble_3.1.8            tidyverse_1.3.2         modeltools_0.2-23      
+    ## [10] flexmix_2.3-18          terra_1.7-3             RColorBrewer_1.1-3     
+    ## [13] mapdata_2.3.1           plotly_4.10.1           dygraphs_1.1.1.6       
+    ## [16] xts_0.12.2              zoo_1.8-11              flexdashboard_0.6.1    
+    ## [19] lubridate_1.9.1         rerddap_1.0.1           readr_2.1.3            
+    ## [22] rasterVis_0.51.5        viridis_0.6.2           viridisLite_0.4.1      
+    ## [25] corrplot_0.92           loo_2.5.1               brms_2.18.0            
+    ## [28] Rcpp_1.0.10             effects_4.2-2           carData_3.0-5          
+    ## [31] MASS_7.3-58.1           emmeans_1.8.4-1         mgcv_1.8-41            
+    ## [34] nlme_3.1-160            leaflet_2.1.1           sdmpredictors_0.2.14   
+    ## [37] clue_0.3-63             cluster_2.1.4           FD_1.0-12.1            
+    ## [40] geometry_0.4.6.1        ape_5.6-2               ade4_1.7-20            
+    ## [43] vegan_2.6-4             lattice_0.20-45         permute_0.9-7          
+    ## [46] maps_3.4.1              spdep_1.2-7             sf_1.0-9               
+    ## [49] spData_2.2.1            raster_3.6-14           rgdal_1.6-4            
+    ## [52] abind_1.4-5             dplyr_1.1.0             openxlsx_4.2.5.1       
+    ## [55] rgeos_0.6-1             sp_1.6-0                scatterpie_0.1.8       
+    ## [58] ggrepel_0.9.2           gridExtra_2.3           ggplot2_3.4.0          
+    ## [61] rnaturalearthdata_0.1.0 rnaturalearth_0.3.2     reshape2_1.4.4         
+    ## [64] reshape_0.8.9           here_1.0.1             
     ## 
     ## loaded via a namespace (and not attached):
     ##   [1] estimability_1.4.1   rappdirs_0.3.3       coda_0.19-4         
