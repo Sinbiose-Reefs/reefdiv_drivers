@@ -3,7 +3,7 @@ library(brms)
 library(patchwork)
 require(here)
 load(here ("output","MCMC_selected_model.RData"))
-model <- res$best_model[[1]]
+model <- res$best_model
 df <- model$data
 
 # replacing standardized by natural scale vars
