@@ -2,8 +2,6 @@
 # ----------------------------------------------------------------------------#
 #    routine to modeling fish, coral and algae FRic and Rao's Q in function of environmental variables
 #                          using multivariate linear mixed models
-#   sensitivity analysis (using region as fixed effect)
-#
 # ----------------------------------------------------------------------------#
 
 
@@ -320,7 +318,10 @@ save(loo_test,file = here ("output","loo_test_new.RData"))
 tab_mod_sel <- do.call(rbind,lapply (loo_test, function (i)
          i$estimates[which(rownames(i$estimates) == "looic"),]))
 tab_mod_sel<- data.frame (tab_mod_sel,
-                     model = c("complete", "sst_region_SR_turbidity", "sst_region_SR",  "sst_region" ))
+                     model = c ("mv(FRic, Rao)~SR+SST+KD490+salinity+region",
+                                "mv(FRic, Rao)~SR+SST+KD490+region",
+                                "mv(FRic, Rao)~SR+SST+region",
+                                "mv(FRic, Rao)~SST+region"))
 # extract estimated number of parameters (model adequacy)
 tab_mod_fit <- do.call(rbind,lapply (loo_test, function (i)
          i$estimates[which(rownames(i$estimates) == "p_loo"),]))
