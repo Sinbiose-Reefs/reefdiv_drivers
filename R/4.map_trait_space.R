@@ -467,7 +467,7 @@ nrow_plot <- 6
 # save
 pdf(file=here("output",
               "figures", 
-              "spaces_with_pts"),height=6,width=16)
+              "spaces_with_pts.pdf"),height=6,width=16)
 
 grid.arrange(array_fish1,array_fish2,
              array_corals1,array_corals2,
