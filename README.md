@@ -21,6 +21,9 @@ in the Universidade Federal do Rio Grande do Norte, supervised by
 Dr. Guilherme O. Longo) has an embargo to be released (up to February
 2024).
 
+Zenodo’s link:
+[![DOI](https://zenodo.org/badge/289125423.svg)](https://zenodo.org/badge/latestdoi/289125423)
+
 <!-- badges: start -->
 <!-- badges: end -->
 
