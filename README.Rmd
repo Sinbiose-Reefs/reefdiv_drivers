@@ -1,5 +1,5 @@
 ---
-title: "Functional diversity patterns of fish, corals and algae in the Brazilian biogeographic province"
+title: "Functional diversity patterns of reef fish, corals and algae in the Brazilian biogeographic province"
 output: github_document
 ---
 
