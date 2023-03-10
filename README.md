@@ -1,5 +1,5 @@
-Functional diversity patterns of fish, corals and algae in the Brazilian
-biogeographic province
+Functional diversity patterns of reef fish, corals and algae in the
+Brazilian biogeographic province
 ================
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -7,7 +7,7 @@ biogeographic province
 <!-- badges: end -->
 
 Repository containing the data and scripts used in the article
-“Functional diversity patterns of fish, corals and algae in the
+“Functional diversity patterns of reef fish, corals and algae in the
 Brazilian biogeographic province”, accepted in Journal of Biogeography
 (February 2023).
 

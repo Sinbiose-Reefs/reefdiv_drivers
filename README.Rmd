@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-Repository containing the data and scripts used in the article "Functional diversity patterns of fish, corals and algae in the Brazilian biogeographic province", accepted in Journal of Biogeography (February 2023).
+Repository containing the data and scripts used in the article "Functional diversity patterns of reef fish, corals and algae in the Brazilian biogeographic province", accepted in Journal of Biogeography (February 2023).
 
 Occurrence data (folder "data/detection") are formatted according to the Darwin Core Standards (https://www.tdwg.org/standards/dwc/). Trait data follow the basic format of trait datasets: species in the rows and traits in the columns.
 
